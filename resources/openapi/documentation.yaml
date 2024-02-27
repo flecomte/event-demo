@@ -1,0 +1,8 @@
+openapi: "3.0.3"
+info:
+  title: "event_demo API"
+  description: "event_demo API"
+  version: "1.0.0"
+servers:
+- url: "https://event_demo"
+paths: {}
