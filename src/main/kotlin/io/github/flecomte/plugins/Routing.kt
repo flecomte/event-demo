@@ -1,14 +1,18 @@
 package io.github.flecomte.plugins
 
-import io.ktor.http.*
-import io.ktor.resources.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.autohead.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.resources.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.resources.Resource
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.plugins.autohead.AutoHeadResponse
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.resources.get
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
 
 fun Application.configureRouting() {
