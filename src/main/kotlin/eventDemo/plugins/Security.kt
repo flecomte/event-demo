@@ -1,4 +1,4 @@
-package io.github.flecomte.plugins
+package eventDemo.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm

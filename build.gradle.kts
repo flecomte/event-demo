@@ -1,7 +1,12 @@
+@file:Suppress("PropertyName")
+
 @Suppress("ktlint:standard:property-naming")
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
+val koin_version: String by project
+val kotlin_logging_version: String by project
+val kotest_version: String by project
 
 plugins {
     kotlin("jvm") version "1.9.22"
@@ -14,7 +19,7 @@ group = "io.github.flecomte"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.github.flecomte.ApplicationKt")
+    mainClass.set("eventDemo.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -22,6 +27,10 @@ application {
 
 repositories {
     mavenCentral()
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 dependencies {
@@ -37,7 +46,14 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common-jvm")
     implementation("io.ktor:ktor-server-status-pages-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
+    implementation("io.ktor:ktor-server-data-conversion")
+    implementation("io.ktor:ktor-client-content-negotiation")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("io.insert-koin:koin-ktor:$koin_version")
+    implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
+    implementation("io.github.oshai:kotlin-logging-jvm:$kotlin_logging_version")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:2.3.8")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
 }
