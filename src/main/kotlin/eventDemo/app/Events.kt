@@ -1,10 +1,10 @@
 package eventDemo.app
 
 sealed interface Event<ID : AggregateId> {
-    val aggregateId: ID
+    val id: ID
 }
 
 data class PlayCardEvent(
-    override val aggregateId: GameId,
+    override val id: GameId,
     val card: Card,
 ) : Event<GameId>

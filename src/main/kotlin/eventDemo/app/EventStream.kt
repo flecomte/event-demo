@@ -7,11 +7,15 @@ class EventStream<ID : AggregateId> {
     private val eventBus: MutableMap<ID, MutableList<Event<ID>>> = mutableMapOf()
 
     fun publish(event: Event<ID>) {
-        eventBus.getOrPut(event.aggregateId) { mutableListOf() }.add(event)
+        eventBus.getOrPut(event.id) { mutableListOf() }.add(event)
         logger.atInfo {
-            message = "Event published"
+            message = "Event published: $event"
             payload = mapOf("event" to event)
         }
+    }
+
+    fun publish(vararg events: Event<ID>) {
+        events.forEach { publish(it) }
     }
 
     fun <U : Event<ID>> read(

@@ -1,6 +1,6 @@
 package eventDemo.plugins
 
-import eventDemo.app.actions.putCard
+import eventDemo.app.actions.card
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -24,8 +24,6 @@ fun Application.configureRouting() {
     }
 
     routing {
-        putCard()
+        card()
     }
 }
-
-private typealias ConverterDeclaration = Configuration.() -> Unit

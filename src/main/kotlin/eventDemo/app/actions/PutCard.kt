@@ -37,7 +37,7 @@ class Game(
     }
 }
 
-fun Routing.putCard() {
+fun Routing.card() {
     val eventStream by inject<EventStream<GameId>>()
 
     post<Game.Card.PutCard> {

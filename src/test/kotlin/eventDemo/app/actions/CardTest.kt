@@ -19,7 +19,7 @@ import org.koin.core.context.stopKoin
 import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 
-class PutCardTest : FunSpec({
+class CardTest : FunSpec({
     test("/game/{id}/card") {
         testApplication {
             val client = httpClient()
@@ -48,6 +48,7 @@ class PutCardTest : FunSpec({
                 module()
                 val eventStream by inject<EventStream<GameId>>()
                 eventStream.publish(
+                    PlayCardEvent(GameId(), Card.Simple(2, Card.Color.Yellow)),
                     PlayCardEvent(id, card),
                 )
             }
