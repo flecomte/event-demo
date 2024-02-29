@@ -21,11 +21,7 @@ class EventStream<ID : AggregateId> {
     fun <U : Event<ID>> read(
         aggregateId: ID,
         eventClass: Class<U>,
-    ): U? {
-        return eventBus.get(aggregateId)?.filterIsInstance(eventClass)?.firstOrNull()
-    }
+    ): U? = eventBus.get(aggregateId)?.filterIsInstance(eventClass)?.firstOrNull()
 }
 
-inline fun <reified U : Event<ID>, ID : AggregateId> EventStream<ID>.read(aggregateId: ID): U? {
-    return this.read(aggregateId, U::class.java)
-}
+inline fun <reified U : Event<ID>, ID : AggregateId> EventStream<ID>.read(aggregateId: ID): U? = this.read(aggregateId, U::class.java)

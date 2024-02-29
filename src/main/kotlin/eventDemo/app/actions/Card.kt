@@ -26,14 +26,20 @@ class Game(
 ) {
     @Serializable
     @Resource("card")
-    class Card(val game: Game) {
+    class Card(
+        val game: Game,
+    ) {
         @Serializable
         @Resource("")
-        class PutCard(val card: Card)
+        class PutCard(
+            val card: Card,
+        )
 
         @Serializable
         @Resource("last")
-        class LastCard(val card: Card)
+        class LastCard(
+            val card: Card,
+        )
     }
 }
 
@@ -47,7 +53,8 @@ fun Routing.card() {
     }
 
     get<Game.Card.LastCard> {
-        eventStream.read<PlayCardEvent, GameId>(it.card.game.id)
+        eventStream
+            .read<PlayCardEvent, GameId>(it.card.game.id)
             ?.let { it1 -> call.respond<Card>(it1.card) }
             ?: call.response.status(HttpStatusCode.BadRequest)
     }

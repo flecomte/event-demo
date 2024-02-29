@@ -9,8 +9,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import java.util.UUID
 
-fun ApplicationTestBuilder.httpClient(): HttpClient {
-    return createClient {
+fun ApplicationTestBuilder.httpClient(): HttpClient =
+    createClient {
         install(ContentNegotiation) {
             json(
                 Json {
@@ -22,4 +22,3 @@ fun ApplicationTestBuilder.httpClient(): HttpClient {
             )
         }
     }
-}

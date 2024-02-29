@@ -19,7 +19,9 @@ import org.koin.ktor.ext.inject
 @Resource("/command")
 class CommandRoute {
     @Resource("send")
-    class Send(val commandRoute: CommandRoute) {
+    class Send(
+        val commandRoute: CommandRoute,
+    ) {
         @Serializable
         data class Response(
             val id: CommandId,
@@ -29,7 +31,9 @@ class CommandRoute {
     }
 
     @Resource("next")
-    class Next(val commandRoute: CommandRoute)
+    class Next(
+        val commandRoute: CommandRoute,
+    )
 }
 
 fun Routing.command() {

@@ -22,48 +22,48 @@ import org.koin.java.KoinJavaComponent.getKoin
 import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 
-class CardTest : FunSpec({
-    test("/game/{id}/card") {
-        testApplication {
-            val client = httpClient()
-            application {
-                stopKoin()
-                module()
-            }
-            val id = GameId()
-            val card: Card = Card.Simple(1, Card.Color.Blue)
-            client.post("/game/$id/card") {
-                contentType(Json)
-                accept(Json)
-                setBody(card)
-            }.apply {
-                assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+class CardTest :
+    FunSpec({
+        test("/game/{id}/card") {
+            testApplication {
+                application {
+                    stopKoin()
+                    module()
+                }
+                val id = GameId()
+                val card: Card = Card.Simple(1, Card.Color.Blue)
+                httpClient()
+                    .post("/game/$id/card") {
+                        contentType(Json)
+                        accept(Json)
+                        setBody(card)
+                    }.apply {
+                        assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
 
-                val eventStream = getKoin().get<EventStream<GameId>>()
-                assertEquals(PlayCardEvent(id, card), eventStream.read<PlayCardEvent, GameId>(id))
+                        val eventStream = getKoin().get<EventStream<GameId>>()
+                        assertEquals(PlayCardEvent(id, card), eventStream.read<PlayCardEvent, GameId>(id))
+                    }
             }
         }
-    }
 
-    test("/game/{id}/card/last") {
-        testApplication {
-            val client = httpClient()
-            val id = GameId()
-            val card: Card = Card.Simple(1, Card.Color.Blue)
-            application {
-                stopKoin()
-                module()
-                val eventStream by inject<EventStream<GameId>>()
-                eventStream.publish(
-                    PlayCardEvent(GameId(), Card.Simple(2, Card.Color.Yellow)),
-                    PlayCardEvent(id, card),
-                )
-            }
+        test("/game/{id}/card/last") {
+            testApplication {
+                val id = GameId()
+                val card: Card = Card.Simple(1, Card.Color.Blue)
+                application {
+                    stopKoin()
+                    module()
+                    val eventStream by inject<EventStream<GameId>>()
+                    eventStream.publish(
+                        PlayCardEvent(GameId(), Card.Simple(2, Card.Color.Yellow)),
+                        PlayCardEvent(id, card),
+                    )
+                }
 
-            client.get("/game/$id/card/last").apply {
-                assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-                assertEquals(card, this.call.body<Card>())
+                httpClient().get("/game/$id/card/last").apply {
+                    assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+                    assertEquals(card, this.call.body<Card>())
+                }
             }
         }
-    }
-})
+    })

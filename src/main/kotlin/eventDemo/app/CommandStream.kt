@@ -18,11 +18,7 @@ class CommandStream {
         commands.forEach { sendRequest(it) }
     }
 
-    fun readNext(): Command? {
-        return commandBus.firstOrNull()
-    }
+    fun readNext(): Command? = commandBus.firstOrNull()
 
-    fun <U : Command> readNext(commandClass: Class<U>): U? {
-        return commandBus.filterIsInstance(commandClass).firstOrNull()
-    }
+    fun <U : Command> readNext(commandClass: Class<U>): U? = commandBus.filterIsInstance(commandClass).firstOrNull()
 }

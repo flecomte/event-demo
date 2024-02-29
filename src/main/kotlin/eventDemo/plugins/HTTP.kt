@@ -20,7 +20,9 @@ fun Application.configureHTTP() {
     }
 }
 
-class BadRequestException(val httpError: HttpErrorBadRequest) : Exception()
+class BadRequestException(
+    val httpError: HttpErrorBadRequest,
+) : Exception()
 
 class HttpErrorBadRequest(
     statusCode: HttpStatusCode,

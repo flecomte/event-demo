@@ -22,47 +22,49 @@ import org.koin.java.KoinJavaComponent.getKoin
 import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 
-class CommandTest : FunSpec({
-    test("/command/send") {
-        testApplication {
-            val client = httpClient()
-            application {
-                stopKoin()
-                module()
-            }
-            val command = PlayCardCommand(Game.new(), Card.Simple(1, Card.Color.Blue))
-            client.post("/command/send") {
-                contentType(Json)
-                accept(Json)
-                setBody(command)
-            }.apply {
-                assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+class CommandTest :
+    FunSpec({
+        test("/command/send") {
+            testApplication {
+                val client = httpClient()
+                application {
+                    stopKoin()
+                    module()
+                }
+                val command = PlayCardCommand(Game.new(), Card.Simple(1, Card.Color.Blue))
+                client
+                    .post("/command/send") {
+                        contentType(Json)
+                        accept(Json)
+                        setBody(command)
+                    }.apply {
+                        assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
 
-                val commandStream = getKoin().get<CommandStream>()
-                assertEquals(command, commandStream.readNext())
-            }
-        }
-    }
-
-    test("/command/next") {
-        testApplication {
-            val command =
-                PlayCardCommand(
-                    Game.new(),
-                    Card.Simple(1, Card.Color.Blue),
-                )
-            application {
-                stopKoin()
-                module()
-
-                val commandStream by inject<CommandStream>()
-                commandStream.sendRequest(command)
-            }
-
-            httpClient().get("/command/next").apply {
-                assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-                assertEquals(command, this.call.body<Command>())
+                        val commandStream = getKoin().get<CommandStream>()
+                        assertEquals(command, commandStream.readNext())
+                    }
             }
         }
-    }
-})
+
+        test("/command/next") {
+            testApplication {
+                val command =
+                    PlayCardCommand(
+                        Game.new(),
+                        Card.Simple(1, Card.Color.Blue),
+                    )
+                application {
+                    stopKoin()
+                    module()
+
+                    val commandStream by inject<CommandStream>()
+                    commandStream.sendRequest(command)
+                }
+
+                httpClient().get("/command/next").apply {
+                    assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+                    assertEquals(command, this.call.body<Command>())
+                }
+            }
+        }
+    })

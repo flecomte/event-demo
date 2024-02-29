@@ -10,7 +10,9 @@ sealed interface AggregateId {
 
 @JvmInline
 @Serializable(with = GameIdSerializer::class)
-value class GameId(override val id: UUID = UUID.randomUUID()) : AggregateId {
+value class GameId(
+    override val id: UUID = UUID.randomUUID(),
+) : AggregateId {
     constructor(id: String) : this(UUID.fromString(id))
 
     override fun toString(): String = id.toString()

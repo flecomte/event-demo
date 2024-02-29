@@ -8,9 +8,7 @@ data class Game(
     val id: GameId,
 ) {
     companion object {
-        fun new(): Game {
-            return Game(GameId())
-        }
+        fun new(): Game = Game(GameId())
     }
 }
 
