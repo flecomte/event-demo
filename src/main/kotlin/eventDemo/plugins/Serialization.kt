@@ -1,5 +1,6 @@
 package eventDemo.plugins
 
+import eventDemo.app.CommandId
 import eventDemo.app.GameId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -26,6 +27,19 @@ fun Application.configureSerialization() {
             },
         )
     }
+}
+
+object CommandIdSerializer : KSerializer<CommandId> {
+    override fun deserialize(decoder: Decoder): CommandId = CommandId(decoder.decodeString())
+
+    override fun serialize(
+        encoder: Encoder,
+        value: CommandId,
+    ) {
+        encoder.encodeString(value.toString())
+    }
+
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("CommandId", PrimitiveKind.STRING)
 }
 
 object GameIdSerializer : KSerializer<GameId> {

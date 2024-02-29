@@ -1,6 +1,7 @@
 package eventDemo.plugins
 
 import eventDemo.app.actions.card
+import eventDemo.app.actions.command
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,7 +10,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
-import io.ktor.util.converters.DataConversion.Configuration
 
 fun Application.configureRouting() {
     install(AutoHeadResponse)
@@ -25,5 +25,6 @@ fun Application.configureRouting() {
 
     routing {
         card()
+        command()
     }
 }

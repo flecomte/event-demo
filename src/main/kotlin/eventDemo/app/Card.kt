@@ -4,6 +4,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class Game(
+    val id: GameId,
+) {
+    companion object {
+        fun new(): Game {
+            return Game(GameId())
+        }
+    }
+}
+
+@Serializable
 sealed interface Card {
     @Serializable
     enum class Color {

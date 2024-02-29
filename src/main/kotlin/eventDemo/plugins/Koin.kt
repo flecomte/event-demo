@@ -1,5 +1,6 @@
 package eventDemo.plugins
 
+import eventDemo.app.CommandStream
 import eventDemo.app.EventStream
 import eventDemo.app.GameId
 import io.ktor.server.application.Application
@@ -19,4 +20,5 @@ fun Application.configureKoin() {
 val appModule =
     module {
         singleOf<EventStream<GameId>>(::EventStream)
+        singleOf<CommandStream>(::CommandStream)
     }

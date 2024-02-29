@@ -41,7 +41,7 @@ fun Routing.card() {
     val eventStream by inject<EventStream<GameId>>()
 
     post<Game.Card.PutCard> {
-        val card = call.receive<Card.Simple>()
+        val card = call.receive<Card>()
         eventStream.publish(PlayCardEvent(it.card.game.id, card))
         call.respondNullable<Any?>(HttpStatusCode.OK, null)
     }
