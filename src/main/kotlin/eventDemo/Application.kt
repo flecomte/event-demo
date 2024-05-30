@@ -1,5 +1,6 @@
 package eventDemo
 
+import eventDemo.plugins.configureCommandHandler
 import eventDemo.plugins.configureHTTP
 import eventDemo.plugins.configureKoin
 import eventDemo.plugins.configureRouting
@@ -22,4 +23,5 @@ fun Application.module() {
     configureHTTP()
     configureRouting()
     configureKoin()
+    configureCommandHandler()
 }

@@ -3,15 +3,16 @@
 @Suppress("ktlint:standard:property-naming")
 val ktor_version: String by project
 val kotlin_version: String by project
+val kotlin_serialization_version: String by project
 val logback_version: String by project
 val koin_version: String by project
 val kotlin_logging_version: String by project
 val kotest_version: String by project
 
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.1.10"
     id("io.ktor.plugin") version "2.3.8"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
@@ -52,8 +53,9 @@ dependencies {
     implementation("io.insert-koin:koin-ktor:$koin_version")
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlin_logging_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlin_serialization_version")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("io.ktor:ktor-server-test-host-jvm:2.3.8")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:2.3.11")
     testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
 }

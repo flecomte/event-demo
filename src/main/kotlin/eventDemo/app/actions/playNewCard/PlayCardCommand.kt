@@ -1,25 +1,11 @@
-package eventDemo.app
+package eventDemo.app.actions.playNewCard
 
-import eventDemo.plugins.CommandIdSerializer
+import eventDemo.libs.command.Command
+import eventDemo.libs.command.CommandId
+import eventDemo.shared.entity.Card
+import eventDemo.shared.entity.Game
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.UUID
-
-@JvmInline
-@Serializable(with = CommandIdSerializer::class)
-value class CommandId(
-    private val id: UUID = UUID.randomUUID(),
-) {
-    constructor(id: String) : this(UUID.fromString(id))
-
-    override fun toString(): String = id.toString()
-}
-
-@Serializable
-sealed interface Command {
-    val id: CommandId
-    val name: String
-}
 
 @Serializable
 @SerialName("PlayCard")

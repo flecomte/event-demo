@@ -5,4 +5,58 @@ info:
   version: "1.0.0"
 servers:
 - url: "https://event_demo"
-paths: {}
+paths:
+  "/game/{id}/card/last":
+    get:
+      description: get the last card played
+      responses:
+        200:
+          description: The last card
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+
+components:
+  schemas:
+    Card:
+      oneOf:
+        - $ref: "#/components/schemas/SimpleCard"
+        - $ref: "#/components/schemas/ReverseCard"
+        - $ref: "#/components/schemas/PassCard"
+        - $ref: "#/components/schemas/Plus2Card"
+        - $ref: "#/components/schemas/Plus4Card"
+        - $ref: "#/components/schemas/ChangeColorCard"
+    SimpleCard:
+      properties:
+        number:
+          type: integer
+        color:
+          $ref: "#/components/schemas/CardColor"
+    ReverseCard:
+      properties:
+        color:
+          $ref: "#/components/schemas/CardColor"
+    PassCard:
+      properties:
+        color:
+          $ref: "#/components/schemas/CardColor"
+    Plus2Card:
+      properties:
+        color:
+          $ref: "#/components/schemas/CardColor"
+    Plus4Card:
+      properties:
+        nextColor:
+          $ref: "#/components/schemas/CardColor"
+    ChangeColorCard:
+      properties:
+        nextColor:
+          $ref: "#/components/schemas/CardColor"
+    CardColor:
+      type: string
+      enum:
+        - Blue
+        - Red
+        - Yellow
+        - Green

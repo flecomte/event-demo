@@ -1,12 +1,9 @@
-package eventDemo.app
+package eventDemo.shared
 
+import eventDemo.libs.event.AggregateId
 import eventDemo.plugins.GameIdSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
-
-sealed interface AggregateId {
-    val id: UUID
-}
 
 @JvmInline
 @Serializable(with = GameIdSerializer::class)

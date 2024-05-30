@@ -1,8 +1,8 @@
 package eventDemo.plugins
 
-import eventDemo.app.CommandStream
-import eventDemo.app.EventStream
-import eventDemo.app.GameId
+import eventDemo.app.actions.playNewCard.PlayCardCommandHandler
+import eventDemo.shared.command.GameCommandStream
+import eventDemo.shared.event.GameEventStream
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.core.module.dsl.singleOf
@@ -19,6 +19,7 @@ fun Application.configureKoin() {
 
 val appModule =
     module {
-        singleOf<EventStream<GameId>>(::EventStream)
-        singleOf<CommandStream>(::CommandStream)
+        singleOf<GameEventStream>(::GameEventStream)
+        singleOf<GameCommandStream>(::GameCommandStream)
+        singleOf(::PlayCardCommandHandler)
     }

@@ -1,11 +1,10 @@
 package eventDemo.app.actions
 
-import eventDemo.app.Card
-import eventDemo.app.EventStream
-import eventDemo.app.GameId
-import eventDemo.app.PlayCardEvent
-import eventDemo.app.read
 import eventDemo.module
+import eventDemo.shared.GameId
+import eventDemo.shared.entity.Card
+import eventDemo.shared.event.CardIsPlayedEvent
+import eventDemo.shared.event.GameEventStream
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
@@ -30,8 +29,9 @@ class CardTest :
                     stopKoin()
                     module()
                 }
+
                 val id = GameId()
-                val card: Card = Card.Simple(1, Card.Color.Blue)
+                val card: Card = Card.NumericCard(1, Card.Color.Blue)
                 httpClient()
                     .post("/game/$id/card") {
                         contentType(Json)
@@ -40,8 +40,8 @@ class CardTest :
                     }.apply {
                         assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
 
-                        val eventStream = getKoin().get<EventStream<GameId>>()
-                        assertEquals(PlayCardEvent(id, card), eventStream.read<PlayCardEvent, GameId>(id))
+                        val eventStream = getKoin().get<GameEventStream>()
+                        assertEquals(CardIsPlayedEvent(id, card), eventStream.readLast(id))
                     }
             }
         }
@@ -49,20 +49,22 @@ class CardTest :
         test("/game/{id}/card/last") {
             testApplication {
                 val id = GameId()
-                val card: Card = Card.Simple(1, Card.Color.Blue)
+                val card: Card = Card.NumericCard(1, Card.Color.Blue)
                 application {
                     stopKoin()
                     module()
-                    val eventStream by inject<EventStream<GameId>>()
+                    val eventStream by inject<GameEventStream>()
                     eventStream.publish(
-                        PlayCardEvent(GameId(), Card.Simple(2, Card.Color.Yellow)),
-                        PlayCardEvent(id, card),
+                        CardIsPlayedEvent(id, Card.NumericCard(2, Card.Color.Yellow)),
+                        CardIsPlayedEvent(id, card),
+                        // Other game
+                        CardIsPlayedEvent(GameId(), Card.NumericCard(2, Card.Color.Yellow)),
                     )
                 }
 
                 httpClient().get("/game/$id/card/last").apply {
                     assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-                    assertEquals(card, this.call.body<Card>())
+                    assertEquals(card, call.body<Card>())
                 }
             }
         }

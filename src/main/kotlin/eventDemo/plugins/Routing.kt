@@ -1,7 +1,7 @@
 package eventDemo.plugins
 
-import eventDemo.app.actions.card
-import eventDemo.app.actions.command
+import eventDemo.app.actions.playNewCard.playNewCard
+import eventDemo.app.actions.readLastPlayedCard.readLastPlayedCard
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -24,7 +24,7 @@ fun Application.configureRouting() {
     }
 
     routing {
-        card()
-        command()
+        playNewCard()
+        readLastPlayedCard()
     }
 }
