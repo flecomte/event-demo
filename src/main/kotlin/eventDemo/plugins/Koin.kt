@@ -19,7 +19,7 @@ fun Application.configureKoin() {
 
 val appModule =
     module {
-        singleOf<GameEventStream>(::GameEventStream)
-        singleOf<GameCommandStream>(::GameCommandStream)
+        singleOf(::GameEventStream)
+        singleOf(::GameCommandStream)
         singleOf(::PlayCardCommandHandler)
     }

@@ -27,6 +27,9 @@ class Game(
     )
 }
 
+/**
+ * API route to read the last card played.
+ */
 fun Routing.readLastPlayedCard() {
     val eventStream by inject<GameEventStream>()
 

@@ -31,6 +31,9 @@ class GameRoute(
     )
 }
 
+/**
+ * API route to send a request to play card.
+ */
 fun Routing.playNewCard() {
     val commandStream by inject<GameCommandStream>()
 

@@ -5,6 +5,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.reflect.KClass
 
+/**
+ * An In-Memory implementation of an event stream.
+ *
+ * All methods are implemented.
+ */
 abstract class EventStreamInMemory<E : Event<ID>, ID : AggregateId>(
     private val eventType: Class<E>,
 ) : EventStream<E, ID> {

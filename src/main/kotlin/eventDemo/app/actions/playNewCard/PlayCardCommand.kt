@@ -7,6 +7,9 @@ import eventDemo.shared.entity.Game
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * A command to perform an action to play a new card
+ */
 @Serializable
 @SerialName("PlayCard")
 data class PlayCardCommand(

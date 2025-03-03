@@ -9,13 +9,17 @@ import kotlinx.coroutines.launch
 
 /**
  * Listen [PlayCardCommand] on [GameCommandStream], check the validity and execute the action.
+ *
  * This action produces a new [CardIsPlayedEvent]
  */
 class PlayCardCommandHandler(
     private val commandStream: GameCommandStream,
     private val eventStream: GameEventStream,
 ) {
-    operator fun invoke() {
+    /**
+     * Init the handler
+     */
+    fun init() {
         CoroutineScope(Dispatchers.IO).launch {
             commandStream.process {
                 // TODO check the command can be executed
