@@ -1,4 +1,4 @@
-package eventDemo.plugins
+package eventDemo
 
 import eventDemo.app.actions.playNewCard.PlayCardCommandHandler
 import io.ktor.server.application.Application

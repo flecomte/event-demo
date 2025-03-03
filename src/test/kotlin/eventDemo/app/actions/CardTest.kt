@@ -1,6 +1,6 @@
 package eventDemo.app.actions
 
-import eventDemo.module
+import eventDemo.configure
 import eventDemo.shared.GameId
 import eventDemo.shared.entity.Card
 import eventDemo.shared.event.CardIsPlayedEvent
@@ -27,7 +27,7 @@ class CardTest :
             testApplication {
                 application {
                     stopKoin()
-                    module()
+                    configure()
                 }
 
                 val id = GameId()
@@ -52,7 +52,7 @@ class CardTest :
                 val card: Card = Card.NumericCard(1, Card.Color.Blue)
                 application {
                     stopKoin()
-                    module()
+                    configure()
                     val eventStream by inject<GameEventStream>()
                     eventStream.publish(
                         CardIsPlayedEvent(id, Card.NumericCard(2, Card.Color.Yellow)),
