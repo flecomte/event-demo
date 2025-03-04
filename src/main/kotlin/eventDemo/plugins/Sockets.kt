@@ -1,16 +1,21 @@
 package eventDemo.plugins
 
+import eventDemo.app.actions.GameCommandHandler
+import eventDemo.app.actions.GameEventPlayerNotificationSubscriber
+import eventDemo.shared.entity.Player
+import eventDemo.shared.event.GameEventBus
+import eventDemo.shared.event.GameEventStream
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.CloseReason
-import io.ktor.websocket.Frame
-import io.ktor.websocket.close
-import io.ktor.websocket.readText
 import java.time.Duration
 
 fun Application.configureSockets() {
@@ -20,18 +25,26 @@ fun Application.configureSockets() {
         maxFrameSize = Long.MAX_VALUE
         masking = false
     }
+}
+
+fun Application.configureWebSocketsGameRoute(
+    eventStream: GameEventStream,
+    eventBus: GameEventBus,
+) {
     routing {
-        webSocket("/ws") {
-            // websocketSession
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    val text = frame.readText()
-                    outgoing.send(Frame.Text("YOU SAID: $text"))
-                    if (text.equals("bye", ignoreCase = true)) {
-                        close(CloseReason(CloseReason.Codes.NORMAL, "Client said BYE"))
-                    }
-                }
+        authenticate {
+            webSocket("/game") {
+                GameCommandHandler(eventStream, incoming, outgoing).init(call.getPlayer())
+                GameEventPlayerNotificationSubscriber(eventBus, outgoing).init()
             }
         }
     }
 }
+
+fun ApplicationCall.getPlayer() =
+    principal<JWTPrincipal>()!!.run {
+        Player(
+            id = payload.getClaim("playerid").asString(),
+            name = payload.getClaim("username").asString(),
+        )
+    }

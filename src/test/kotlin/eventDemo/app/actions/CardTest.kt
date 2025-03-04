@@ -3,6 +3,7 @@ package eventDemo.app.actions
 import eventDemo.configure
 import eventDemo.shared.GameId
 import eventDemo.shared.entity.Card
+import eventDemo.shared.entity.Player
 import eventDemo.shared.event.CardIsPlayedEvent
 import eventDemo.shared.event.GameEventStream
 import io.kotest.core.spec.style.FunSpec
@@ -32,6 +33,7 @@ class CardTest :
 
                 val id = GameId()
                 val card: Card = Card.NumericCard(1, Card.Color.Blue)
+                val player = Player(name = "Nikola")
                 httpClient()
                     .post("/game/$id/card") {
                         contentType(Json)
@@ -41,7 +43,7 @@ class CardTest :
                         assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
 
                         val eventStream = getKoin().get<GameEventStream>()
-                        assertEquals(CardIsPlayedEvent(id, card), eventStream.readLast(id))
+                        assertEquals(CardIsPlayedEvent(id, card, player), eventStream.readLast(id))
                     }
             }
         }
@@ -53,12 +55,14 @@ class CardTest :
                 application {
                     stopKoin()
                     configure()
+
                     val eventStream by inject<GameEventStream>()
+                    val player = Player(name = "Nikola")
                     eventStream.publish(
-                        CardIsPlayedEvent(id, Card.NumericCard(2, Card.Color.Yellow)),
-                        CardIsPlayedEvent(id, card),
+                        CardIsPlayedEvent(id, Card.NumericCard(2, Card.Color.Yellow), player),
+                        CardIsPlayedEvent(id, card, player),
                         // Other game
-                        CardIsPlayedEvent(GameId(), Card.NumericCard(2, Card.Color.Yellow)),
+                        CardIsPlayedEvent(GameId(), Card.NumericCard(2, Card.Color.Yellow), player),
                     )
                 }
 

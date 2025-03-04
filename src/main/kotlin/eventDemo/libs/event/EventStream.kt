@@ -1,6 +1,5 @@
 package eventDemo.libs.event
 
-import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KClass
 
 /**
@@ -22,6 +21,6 @@ interface EventStream<E : Event<ID>, ID : AggregateId> {
         eventType: KClass<out R>,
     ): E?
 
-    /** Reads all events associated with a given aggregate ID as a Flow (asynchronous stream) */
-    fun readAll(aggregateId: ID): Flow<E>
+    /** Reads all events associated with a given aggregate ID */
+    fun readAll(aggregateId: ID): List<E>
 }

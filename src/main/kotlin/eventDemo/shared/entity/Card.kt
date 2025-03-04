@@ -1,13 +1,17 @@
 package eventDemo.shared.entity
 
+import eventDemo.plugins.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 /**
  * A Play card
  */
 @Serializable
 sealed interface Card {
+    val id: UUID
+
     /**
      * The color of a card
      */
@@ -19,6 +23,10 @@ sealed interface Card {
         Green,
     }
 
+    sealed interface ColorCard : Card {
+        val color: Color
+    }
+
     /**
      * A play card with color and number
      */
@@ -26,8 +34,11 @@ sealed interface Card {
     @SerialName("Simple")
     data class NumericCard(
         val number: Int,
-        val color: Color,
-    ) : Card
+        override val color: Color,
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Card,
+        ColorCard
 
     sealed interface Special : Card
 
@@ -37,8 +48,13 @@ sealed interface Card {
     @Serializable
     @SerialName("Reverse")
     data class ReverseCard(
-        val color: Color,
-    ) : Special
+        override val color: Color,
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Special,
+        ColorCard
+
+    sealed interface PassTurnCard : Card
 
     /**
      * A pass card to pass the turn of the next player.
@@ -46,8 +62,12 @@ sealed interface Card {
     @Serializable
     @SerialName("Pass")
     data class PassCard(
-        val color: Color,
-    ) : Special
+        override val color: Color,
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Special,
+        ColorCard,
+        PassTurnCard
 
     /**
      * A play card to force the next player to take 2 card and pass the turn.
@@ -55,24 +75,35 @@ sealed interface Card {
     @Serializable
     @SerialName("Plus2")
     data class Plus2Card(
-        val color: Color,
-    ) : Special
+        override val color: Color,
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Special,
+        ColorCard,
+        PassTurnCard
+
+    sealed interface AllColorCard : Card
 
     /**
      * A play card to force the next player to take 4 card and pass the turn.
      */
     @Serializable
     @SerialName("Plus4")
-    data class Plus4Card(
-        val nextColor: Color,
-    ) : Special
+    class Plus4Card(
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Special,
+        AllColorCard,
+        PassTurnCard
 
     /**
      * A play card to change the color.
      */
     @Serializable
     @SerialName("ChangeColor")
-    data class ChangeColorCard(
-        val nextColor: Color,
-    ) : Special
+    class ChangeColorCard(
+        @Serializable(with = UUIDSerializer::class)
+        override val id: UUID = UUID.randomUUID(),
+    ) : Special,
+        AllColorCard
 }

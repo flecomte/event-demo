@@ -2,6 +2,7 @@ package eventDemo.plugins
 
 import eventDemo.libs.command.CommandId
 import eventDemo.shared.GameId
+import eventDemo.shared.entity.Player.PlayerId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -40,6 +41,19 @@ object CommandIdSerializer : KSerializer<CommandId> {
     }
 
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("CommandId", PrimitiveKind.STRING)
+}
+
+object PlayerIdSerializer : KSerializer<PlayerId> {
+    override fun deserialize(decoder: Decoder): PlayerId = PlayerId(UUID.fromString(decoder.decodeString()))
+
+    override fun serialize(
+        encoder: Encoder,
+        value: PlayerId,
+    ) {
+        encoder.encodeString(value.id.toString())
+    }
+
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("GameId", PrimitiveKind.STRING)
 }
 
 object GameIdSerializer : KSerializer<GameId> {

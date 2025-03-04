@@ -11,7 +11,7 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 
-fun Application.configureRouting() {
+fun Application.configureHttpRouting() {
     install(AutoHeadResponse)
     install(Resources)
     install(StatusPages) {

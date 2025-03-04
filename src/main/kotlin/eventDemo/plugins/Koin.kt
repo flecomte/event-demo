@@ -1,11 +1,11 @@
 package eventDemo.plugins
 
-import eventDemo.app.actions.playNewCard.PlayCardCommandHandler
-import eventDemo.shared.command.GameCommandStream
+import eventDemo.libs.event.EventBusInMemory
+import eventDemo.libs.event.EventStreamInMemory
+import eventDemo.shared.event.GameEventBus
 import eventDemo.shared.event.GameEventStream
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -13,13 +13,16 @@ import org.koin.logger.slf4jLogger
 fun Application.configureKoin() {
     install(Koin) {
         slf4jLogger()
-        modules(appModule)
+        modules(appKoinModule)
     }
 }
 
-val appModule =
+val appKoinModule =
     module {
-        singleOf(::GameEventStream)
-        singleOf(::GameCommandStream)
-        singleOf(::PlayCardCommandHandler)
+        single {
+            GameEventStream(get(), EventStreamInMemory())
+        }
+        single {
+            GameEventBus(EventBusInMemory())
+        }
     }

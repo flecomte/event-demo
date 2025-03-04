@@ -1,8 +1,6 @@
 package eventDemo.libs.event
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlin.reflect.KClass
 
 /**
@@ -10,14 +8,12 @@ import kotlin.reflect.KClass
  *
  * All methods are implemented.
  */
-abstract class EventStreamInMemory<E : Event<ID>, ID : AggregateId>(
-    private val eventType: Class<E>,
-) : EventStream<E, ID> {
+class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> {
     private val logger = KotlinLogging.logger {}
-    private val eventBus: MutableList<E> = mutableListOf()
+    private val events: MutableList<E> = mutableListOf()
 
     override fun publish(event: E) {
-        eventBus.add(event)
+        events.add(event)
         logger.atInfo {
             message = "Event published: $event"
             payload = mapOf("event" to event)
@@ -28,20 +24,17 @@ abstract class EventStreamInMemory<E : Event<ID>, ID : AggregateId>(
         events.forEach { publish(it) }
     }
 
-    override fun readLast(aggregateId: ID): E? = eventBus.lastOrNull()
+    override fun readLast(aggregateId: ID): E? = events.lastOrNull()
 
     override fun <R : E> readLastOf(
         aggregateId: ID,
         eventType: KClass<out R>,
     ): R? =
-        eventBus
+        events
             .filterIsInstance(eventType.java)
             .lastOrNull { it.id == aggregateId }
 
-    override fun readAll(aggregateId: ID): Flow<E> =
-        flow {
-            eventBus.forEach { emit(it) }
-        }
+    override fun readAll(aggregateId: ID): List<E> = events
 }
 
 inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStreamInMemory<E, ID>.readLastOf(aggregateId: ID): R? =

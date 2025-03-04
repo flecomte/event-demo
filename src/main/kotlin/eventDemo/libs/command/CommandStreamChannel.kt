@@ -1,21 +1,24 @@
 package eventDemo.libs.command
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readText
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
-typealias CommandBlock<C> = CommandStream.ComputeStatus.(C) -> Unit
-
 /**
- * Manage [Command]'s
- *
- * It stores the new [Command] in memory.
+ * Manage [Command]'s with kotlin Channel
  */
-abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
+class CommandStreamChannel<C : Command>(
+    private val incoming: ReceiveChannel<Frame>,
+    private val outgoing: SendChannel<Frame>,
+    private val serializer: (C) -> String,
+    private val deserializer: (String) -> C,
+) : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
-    private val failedCommand = mutableListOf<Command>()
-    private val queue: Channel<C> = Channel(onUndeliveredElement = { logger.atWarn { "${it.name} elem not send" } })
+    private val failedCommand = mutableListOf<C>()
 
     /**
      * Send a new [Command] to the queue.
@@ -28,21 +31,26 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
             message = "Command published: $command"
             payload = mapOf("command" to command)
         }
-        queue.send(command)
+
+        outgoing.send(Frame.Text(serializer(command)))
     }
 
-    override suspend fun process(action: CommandBlock<C>) {
-        queue.consumeEach { command ->
-            compute(command, action)
-        }
-        for (command in queue) {
-            compute(command, action)
+    override suspend fun process(action: CommandStream.ComputeStatus.(C) -> Unit) {
+//        incoming.consumeEach { commandAsFrame ->
+//            if (commandAsFrame is Frame.Text) {
+//                compute(deserializer(commandAsFrame.readText()), action)
+//            }
+//        }
+        for (command in incoming) {
+            if (command is Frame.Text) {
+                compute(deserializer(command.readText()), action)
+            }
         }
     }
 
     private fun compute(
         command: C,
-        action: CommandBlock<C>,
+        action: CommandStream.ComputeStatus.(C) -> Unit,
     ) {
         val status =
             object : CommandStream.ComputeStatus {
@@ -66,18 +74,24 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
         }
     }
 
-    private fun <C : Command> markAsSuccess(command: C) {
+    private fun markAsSuccess(command: C) {
         logger.atInfo {
             message = "Compute command SUCCESS and it removed of the stack : $command"
             payload = mapOf("command" to command)
         }
+        runBlocking {
+            outgoing.send(Frame.Text("Command executed successfully"))
+        }
     }
 
-    private fun <C : Command> markAsFailed(command: C) {
+    private fun markAsFailed(command: C) {
         failedCommand.add(command)
         logger.atWarn {
             message = "Compute command FAILED and it put it ot the top of the stack : $command"
             payload = mapOf("command" to command)
+        }
+        runBlocking {
+            outgoing.send(Frame.Text("Command execution failed"))
         }
     }
 }
