@@ -1,10 +1,10 @@
-package eventDemo.plugins
+package eventDemo.configuration
 
+import eventDemo.app.GameEventPlayerNotificationListener
 import eventDemo.app.actions.GameCommandHandler
-import eventDemo.app.actions.GameEventPlayerNotificationSubscriber
-import eventDemo.shared.entity.Player
-import eventDemo.shared.event.GameEventBus
-import eventDemo.shared.event.GameEventStream
+import eventDemo.app.entity.Player
+import eventDemo.app.event.GameEventBus
+import eventDemo.app.event.GameEventStream
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
@@ -35,7 +35,7 @@ fun Application.configureWebSocketsGameRoute(
         authenticate {
             webSocket("/game") {
                 GameCommandHandler(eventStream, incoming, outgoing).init(call.getPlayer())
-                GameEventPlayerNotificationSubscriber(eventBus, outgoing).init()
+                GameEventPlayerNotificationListener(eventBus, outgoing).init()
             }
         }
     }

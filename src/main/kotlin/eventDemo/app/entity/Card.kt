@@ -1,6 +1,6 @@
-package eventDemo.shared.entity
+package eventDemo.app.entity
 
-import eventDemo.plugins.UUIDSerializer
+import eventDemo.configuration.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID

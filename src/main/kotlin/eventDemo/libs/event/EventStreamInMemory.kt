@@ -37,5 +37,5 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
     override fun readAll(aggregateId: ID): List<E> = events
 }
 
-inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStreamInMemory<E, ID>.readLastOf(aggregateId: ID): R? =
+inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStream<E, ID>.readLastOf(aggregateId: ID): R? =
     readLastOf(aggregateId, R::class)

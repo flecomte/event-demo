@@ -1,10 +1,10 @@
-package eventDemo.shared.event
+package eventDemo.app.event
 
+import eventDemo.app.GameId
+import eventDemo.app.entity.Card
+import eventDemo.app.entity.Deck
+import eventDemo.app.entity.Player
 import eventDemo.libs.event.Event
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Card
-import eventDemo.shared.entity.Deck
-import eventDemo.shared.entity.Player
 import kotlinx.serialization.Serializable
 
 /**

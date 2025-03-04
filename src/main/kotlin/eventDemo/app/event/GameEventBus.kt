@@ -1,7 +1,7 @@
-package eventDemo.shared.event
+package eventDemo.app.event
 
+import eventDemo.app.GameId
 import eventDemo.libs.event.EventBus
-import eventDemo.shared.GameId
 
 class GameEventBus(
     bus: EventBus<GameEvent, GameId>,

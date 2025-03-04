@@ -19,7 +19,7 @@ interface EventStream<E : Event<ID>, ID : AggregateId> {
     fun <R : E> readLastOf(
         aggregateId: ID,
         eventType: KClass<out R>,
-    ): E?
+    ): R?
 
     /** Reads all events associated with a given aggregate ID */
     fun readAll(aggregateId: ID): List<E>

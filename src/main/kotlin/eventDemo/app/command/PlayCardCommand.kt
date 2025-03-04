@@ -1,10 +1,10 @@
-package eventDemo.app.actions.playNewCard
+package eventDemo.app.command
 
+import eventDemo.app.GameId
+import eventDemo.app.entity.Card
+import eventDemo.app.entity.Player
 import eventDemo.libs.command.Command
 import eventDemo.libs.command.CommandId
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Card
-import eventDemo.shared.entity.Player
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

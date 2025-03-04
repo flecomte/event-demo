@@ -1,8 +1,8 @@
-package eventDemo.plugins
+package eventDemo.configuration
 
+import eventDemo.app.GameId
+import eventDemo.app.entity.Player.PlayerId
 import eventDemo.libs.command.CommandId
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Player.PlayerId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

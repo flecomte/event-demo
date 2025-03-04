@@ -1,13 +1,12 @@
-package eventDemo.app.actions
+package eventDemo.app
 
+import eventDemo.app.event.GameEvent
+import eventDemo.app.event.GameStartedEvent
+import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.libs.event.EventBus
 import eventDemo.libs.event.EventStream
-import eventDemo.shared.GameId
-import eventDemo.shared.event.GameEvent
-import eventDemo.shared.event.GameStartedEvent
-import eventDemo.shared.event.buildStateFromEventStream
 
-class GameEventReactionSubscriber(
+class GameEventReactionListener(
     private val eventBus: EventBus<GameEvent, GameId>,
     private val eventStream: EventStream<GameEvent, GameId>,
 ) {

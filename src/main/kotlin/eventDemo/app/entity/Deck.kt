@@ -1,4 +1,4 @@
-package eventDemo.shared.entity
+package eventDemo.app.entity
 
 import kotlinx.serialization.Serializable
 

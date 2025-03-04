@@ -1,5 +1,6 @@
 package eventDemo
 
+import eventDemo.configuration.configure
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty

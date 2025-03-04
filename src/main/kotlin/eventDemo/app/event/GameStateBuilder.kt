@@ -1,8 +1,9 @@
-package eventDemo.shared.event
+package eventDemo.app.event
 
+import eventDemo.app.GameId
+import eventDemo.app.GameState
+import eventDemo.app.entity.Card
 import eventDemo.libs.event.EventStream
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Card
 
 fun GameId.buildStateFromEventStream(eventStream: EventStream<GameEvent, GameId>): GameState =
     buildStateFromEvents(
@@ -61,7 +62,7 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
             is GameStartedEvent -> {
                 state.copy(
                     lastColor = (event.deck.discard.first() as? Card.ColorCard)?.color,
-                    lastCard = GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
+                    lastCard = eventDemo.app.GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
                     lastPlayer = event.firstPlayer,
                     deck = event.deck,
                     isStarted = true,

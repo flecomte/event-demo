@@ -1,8 +1,8 @@
-package eventDemo.shared.entity
+package eventDemo.app.entity
 
+import eventDemo.configuration.PlayerIdSerializer
+import eventDemo.configuration.UUIDSerializer
 import eventDemo.libs.event.AggregateId
-import eventDemo.plugins.PlayerIdSerializer
-import eventDemo.plugins.UUIDSerializer
 import io.ktor.server.auth.Principal
 import kotlinx.serialization.Serializable
 import java.util.UUID

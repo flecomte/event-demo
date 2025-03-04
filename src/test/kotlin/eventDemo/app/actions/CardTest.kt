@@ -1,11 +1,11 @@
 package eventDemo.app.actions
 
-import eventDemo.configure
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Card
-import eventDemo.shared.entity.Player
-import eventDemo.shared.event.CardIsPlayedEvent
-import eventDemo.shared.event.GameEventStream
+import eventDemo.app.GameId
+import eventDemo.app.entity.Card
+import eventDemo.app.entity.Player
+import eventDemo.app.event.CardIsPlayedEvent
+import eventDemo.app.event.GameEventStream
+import eventDemo.configuration.configure
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.call.body
 import io.ktor.client.request.accept

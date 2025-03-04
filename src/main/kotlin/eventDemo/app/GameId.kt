@@ -1,7 +1,7 @@
-package eventDemo.shared
+package eventDemo.app
 
+import eventDemo.configuration.GameIdSerializer
 import eventDemo.libs.event.AggregateId
-import eventDemo.plugins.GameIdSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

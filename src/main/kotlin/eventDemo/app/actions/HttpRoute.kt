@@ -1,10 +1,11 @@
-package eventDemo.app.actions.readLastPlayedCard
+package eventDemo.app.actions
 
+import eventDemo.app.GameId
+import eventDemo.app.event.CardIsPlayedEvent
+import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.buildStateFromEventStream
+import eventDemo.configuration.GameIdSerializer
 import eventDemo.libs.event.readLastOf
-import eventDemo.plugins.GameIdSerializer
-import eventDemo.shared.GameId
-import eventDemo.shared.event.CardIsPlayedEvent
-import eventDemo.shared.event.GameEventStream
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.call
@@ -25,6 +26,12 @@ class Game(
     class Card(
         val game: Game,
     )
+
+    @Serializable
+    @Resource("state")
+    class State(
+        val game: Game,
+    )
 }
 
 /**
@@ -36,10 +43,25 @@ fun Routing.readLastPlayedCard() {
     /*
      * Read the last played card on the game.
      */
-    get<Game.Card> { card ->
+    get<Game.Card> { body ->
         eventStream
-            .readLastOf<CardIsPlayedEvent, _, _>(card.game.id)
+            .readLastOf<CardIsPlayedEvent, _, _>(body.game.id)
             ?.let { call.respond(it.card) }
             ?: call.response.status(HttpStatusCode.BadRequest)
+    }
+}
+
+/**
+ * API route to read the last card played.
+ */
+fun Routing.readGameState() {
+    val eventStream by inject<GameEventStream>()
+
+    /*
+     * Read the last played card on the game.
+     */
+    get<Game.State> { body ->
+        val state = body.game.id.buildStateFromEventStream(eventStream)
+        call.respond(state)
     }
 }

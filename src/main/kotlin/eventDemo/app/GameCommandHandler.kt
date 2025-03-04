@@ -1,13 +1,14 @@
 package eventDemo.app.actions
 
-import eventDemo.app.actions.playNewCard.PlayCardCommand
-import eventDemo.shared.command.GameCommandStream
-import eventDemo.shared.entity.Player
-import eventDemo.shared.event.CardIsPlayedEvent
-import eventDemo.shared.event.GameEvent
-import eventDemo.shared.event.GameEventStream
-import eventDemo.shared.event.GameState
-import eventDemo.shared.event.buildStateFromEventStream
+import eventDemo.app.GameState
+import eventDemo.app.command.GameCommand
+import eventDemo.app.command.GameCommandStream
+import eventDemo.app.command.PlayCardCommand
+import eventDemo.app.entity.Player
+import eventDemo.app.event.CardIsPlayedEvent
+import eventDemo.app.event.GameEvent
+import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.buildStateFromEventStream
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
- * Listen [PlayCardCommand] on [GameCommandStream], check the validity and execute the action.
+ * Listen [GameCommand] on [GameCommandStream], check the validity and execute an action.
  *
  * This action can be executing an action and produce a new [GameEvent] after verification.
  */
@@ -64,10 +65,10 @@ class GameCommandHandler(
             }
         }
     }
-}
 
-private fun GameState.commandCardCanBeExecuted(command: PlayCardCommand): Boolean =
-    canBePlayThisCard(
-        command.payload.player,
-        command.payload.card,
-    )
+    private fun GameState.commandCardCanBeExecuted(command: PlayCardCommand): Boolean =
+        canBePlayThisCard(
+            command.payload.player,
+            command.payload.card,
+        )
+}

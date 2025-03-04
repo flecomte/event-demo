@@ -1,8 +1,8 @@
-package eventDemo.shared.event
+package eventDemo.app.event
 
+import eventDemo.app.GameId
 import eventDemo.libs.event.EventBus
 import eventDemo.libs.event.EventStream
-import eventDemo.shared.GameId
 
 /**
  * A stream to publish and read the played card event.

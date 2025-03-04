@@ -1,10 +1,11 @@
-package eventDemo.shared.event
+package eventDemo.app
 
-import eventDemo.shared.GameId
-import eventDemo.shared.entity.Card
-import eventDemo.shared.entity.Deck
-import eventDemo.shared.entity.Player
+import eventDemo.app.entity.Card
+import eventDemo.app.entity.Deck
+import eventDemo.app.entity.Player
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class GameState(
     val gameId: GameId,
     val players: Set<Player> = emptySet(),
@@ -16,6 +17,7 @@ data class GameState(
     val deck: Deck = Deck(players.toList()),
     val isStarted: Boolean = false,
 ) {
+    @Serializable
     data class LastCard(
         val card: Card,
         val player: Player,

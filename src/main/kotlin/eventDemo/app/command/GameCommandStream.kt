@@ -1,6 +1,5 @@
-package eventDemo.shared.command
+package eventDemo.app.command
 
-import eventDemo.app.actions.playNewCard.GameCommand
 import eventDemo.libs.command.CommandStream
 import eventDemo.libs.command.CommandStreamChannel
 import eventDemo.libs.command.CommandStreamInMemory
