@@ -15,7 +15,10 @@ typealias CommandBlock<C> = CommandStream.ComputeStatus.(C) -> Unit
 abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
     private val failedCommand = mutableListOf<Command>()
-    private val queue: Channel<C> = Channel(onUndeliveredElement = { logger.atWarn { "${it.name} elem not send" } })
+    private val queue: Channel<C> =
+        Channel(onUndeliveredElement = {
+            logger.atWarn { "${it::class.simpleName} command not send" }
+        })
 
     /**
      * Send a new [Command] to the queue.

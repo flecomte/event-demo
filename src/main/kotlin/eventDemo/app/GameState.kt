@@ -41,73 +41,6 @@ data class GameState(
         return players.size == readyPlayers.size && players.all { readyPlayers.contains(it) }
     }
 
-    fun canBePlayThisCard(
-        player: Player,
-        card: Card,
-    ): Boolean {
-        if (!isReady) return false
-        val cardOnGame = lastCard?.card ?: return false
-
-        return when (cardOnGame) {
-            is Card.NumericCard -> {
-                when (card) {
-                    is Card.AllColorCard -> true
-                    is Card.NumericCard -> card.number == cardOnGame.number || card.color == cardOnGame.color
-                    is Card.ColorCard -> card.color == cardOnGame.color
-                }
-            }
-
-            is Card.ReverseCard -> {
-                when (card) {
-                    is Card.ReverseCard -> true
-                    is Card.AllColorCard -> true
-                    is Card.ColorCard -> card.color == cardOnGame.color
-                }
-            }
-
-            is Card.PassCard -> {
-                if (player.cardOnBoardIsForYou) {
-                    false
-                } else {
-                    when (card) {
-                        is Card.AllColorCard -> true
-                        is Card.ColorCard -> card.color == cardOnGame.color
-                    }
-                }
-            }
-
-            is Card.ChangeColorCard -> {
-                when (card) {
-                    is Card.AllColorCard -> true
-                    is Card.ColorCard -> card.color == lastColor
-                }
-            }
-
-            is Card.Plus2Card -> {
-                if (player.cardOnBoardIsForYou && card is Card.Plus2Card) {
-                    true
-                } else {
-                    when (card) {
-                        is Card.AllColorCard -> true
-                        is Card.Plus2Card -> true
-                        is Card.ColorCard -> card.color == cardOnGame.color
-                    }
-                }
-            }
-
-            is Card.Plus4Card -> {
-                if (player.cardOnBoardIsForYou && card is Card.Plus4Card) {
-                    true
-                } else {
-                    when (card) {
-                        is Card.AllColorCard -> true
-                        is Card.ColorCard -> card.color == lastColor
-                    }
-                }
-            }
-        }
-    }
-
     private val lastPlayerIndex: Int? get() {
         val i = players.indexOf(lastPlayer)
         return if (i == -1) {
@@ -130,9 +63,9 @@ data class GameState(
 
     val nextPlayer: Player = players.elementAt(nextPlayerIndex)
 
-    private val Player.currentIndex: Int get() = players.indexOf(this)
+    val Player.currentIndex: Int get() = players.indexOf(this)
 
-    private fun Player.playerDiffIndex(nextPlayer: Player): Int =
+    fun Player.playerDiffIndex(nextPlayer: Player): Int =
         if (direction == Direction.CLOCKWISE) {
             nextPlayer.currentIndex + this.currentIndex
         } else {

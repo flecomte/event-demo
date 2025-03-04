@@ -24,5 +24,4 @@ value class CommandId(
  */
 interface Command {
     val id: CommandId
-    val name: String
 }

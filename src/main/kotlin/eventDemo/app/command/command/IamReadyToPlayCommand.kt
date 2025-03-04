@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
 data class IamReadyToPlayCommand(
     override val payload: Payload,
 ) : GameCommand {
-    override val name: String = "Ready"
     override val id: CommandId = CommandId()
 
     @Serializable

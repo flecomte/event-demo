@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
 data class IWantToPlayCardCommand(
     override val payload: Payload,
 ) : GameCommand {
-    override val name: String = "PlayCard"
     override val id: CommandId = CommandId()
 
     @Serializable
@@ -33,13 +32,7 @@ data class IWantToPlayCardCommand(
         playerNotifier: (String) -> Unit,
         eventStream: GameEventStream,
     ) {
-        val commandCardCanBeExecuted: Boolean =
-            state.canBePlayThisCard(
-                payload.player,
-                payload.card,
-            )
-
-        if (commandCardCanBeExecuted) {
+        if (state.canBePlayThisCard()) {
             eventStream.publish(
                 CardIsPlayedEvent(
                     payload.gameId,
@@ -48,7 +41,70 @@ data class IWantToPlayCardCommand(
                 ),
             )
         } else {
-            playerNotifier("Command cannot be executed")
+            playerNotifier("You cannot play this card")
+        }
+    }
+
+    fun GameState.canBePlayThisCard(): Boolean {
+        if (!isReady) return false
+        val cardOnBoard = lastCard?.card ?: return false
+        return when (cardOnBoard) {
+            is Card.NumericCard -> {
+                when (payload.card) {
+                    is Card.AllColorCard -> true
+                    is Card.NumericCard -> payload.card.number == cardOnBoard.number || payload.card.color == cardOnBoard.color
+                    is Card.ColorCard -> payload.card.color == cardOnBoard.color
+                }
+            }
+
+            is Card.ReverseCard -> {
+                when (payload.card) {
+                    is Card.ReverseCard -> true
+                    is Card.AllColorCard -> true
+                    is Card.ColorCard -> payload.card.color == cardOnBoard.color
+                }
+            }
+
+            is Card.PassCard -> {
+                if (payload.player.cardOnBoardIsForYou) {
+                    false
+                } else {
+                    when (payload.card) {
+                        is Card.AllColorCard -> true
+                        is Card.ColorCard -> payload.card.color == cardOnBoard.color
+                    }
+                }
+            }
+
+            is Card.ChangeColorCard -> {
+                when (payload.card) {
+                    is Card.AllColorCard -> true
+                    is Card.ColorCard -> payload.card.color == lastColor
+                }
+            }
+
+            is Card.Plus2Card -> {
+                if (payload.player.cardOnBoardIsForYou && payload.card is Card.Plus2Card) {
+                    true
+                } else {
+                    when (payload.card) {
+                        is Card.AllColorCard -> true
+                        is Card.Plus2Card -> true
+                        is Card.ColorCard -> payload.card.color == cardOnBoard.color
+                    }
+                }
+            }
+
+            is Card.Plus4Card -> {
+                if (payload.player.cardOnBoardIsForYou && payload.card is Card.Plus4Card) {
+                    true
+                } else {
+                    when (payload.card) {
+                        is Card.AllColorCard -> true
+                        is Card.ColorCard -> payload.card.color == lastColor
+                    }
+                }
+            }
         }
     }
 }
