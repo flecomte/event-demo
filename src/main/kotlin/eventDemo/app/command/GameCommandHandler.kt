@@ -2,6 +2,7 @@ package eventDemo.app.command
 
 import eventDemo.app.GameState
 import eventDemo.app.command.command.GameCommand
+import eventDemo.app.command.command.IWantToJoinTheGameCommand
 import eventDemo.app.command.command.IWantToPlayCardCommand
 import eventDemo.app.command.command.IamReadyToPlayCommand
 import eventDemo.app.entity.Player
@@ -42,13 +43,9 @@ class GameCommandHandler(
                 val gameState = command.buildGameState()
 
                 when (command) {
-                    is IWantToPlayCardCommand -> {
-                        command.run(gameState, playerNotifier, eventStream)
-                    }
-
-                    is IamReadyToPlayCommand -> {
-                        command.run(gameState, playerNotifier, eventStream)
-                    }
+                    is IWantToPlayCardCommand -> command.run(gameState, playerNotifier, eventStream)
+                    is IamReadyToPlayCommand -> command.run(gameState, playerNotifier, eventStream)
+                    is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
                 }
             }
         }
