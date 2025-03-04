@@ -1,8 +1,8 @@
 package eventDemo.app.entity
 
-import eventDemo.configuration.PlayerIdSerializer
-import eventDemo.configuration.UUIDSerializer
 import eventDemo.libs.event.AggregateId
+import eventDemo.shared.PlayerIdSerializer
+import eventDemo.shared.UUIDSerializer
 import io.ktor.server.auth.Principal
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -25,12 +25,4 @@ data class Player(
     ) : AggregateId {
         override fun toString(): String = id.toString()
     }
-}
-
-@Serializable
-data class PlayerHand(
-    val player: Player,
-    val cards: List<Card> = emptyList(),
-) {
-    val count = lazy { cards.count() }
 }

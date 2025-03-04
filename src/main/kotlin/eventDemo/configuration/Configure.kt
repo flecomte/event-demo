@@ -1,6 +1,6 @@
 package eventDemo.configuration
 
-import eventDemo.app.GameEventReactionListener
+import eventDemo.app.eventListener.GameEventReactionListener
 import io.ktor.server.application.Application
 import org.koin.ktor.ext.get
 
@@ -11,11 +11,11 @@ fun Application.configure() {
 
     configureSerialization()
 
-    configureSockets()
-    configureWebSocketsGameRoute(get(), get())
+    configureWebSockets()
+    declareWebSocketsGameRoute(get(), get())
 
-    configureHttp()
     configureHttpRouting()
+    declareHttpGameRoute()
 
     GameEventReactionListener(get(), get())
         .init()

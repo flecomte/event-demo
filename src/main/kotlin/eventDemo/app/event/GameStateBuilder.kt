@@ -1,8 +1,15 @@
 package eventDemo.app.event
 
-import eventDemo.app.GameId
 import eventDemo.app.GameState
 import eventDemo.app.entity.Card
+import eventDemo.app.entity.GameId
+import eventDemo.app.event.event.CardIsPlayedEvent
+import eventDemo.app.event.event.GameEvent
+import eventDemo.app.event.event.GameStartedEvent
+import eventDemo.app.event.event.NewPlayerEvent
+import eventDemo.app.event.event.PlayerChoseColorEvent
+import eventDemo.app.event.event.PlayerHavePassEvent
+import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.libs.event.EventStream
 
 fun GameId.buildStateFromEventStream(eventStream: EventStream<GameEvent, GameId>): GameState =

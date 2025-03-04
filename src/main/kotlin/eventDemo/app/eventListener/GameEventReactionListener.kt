@@ -1,8 +1,9 @@
-package eventDemo.app
+package eventDemo.app.eventListener
 
-import eventDemo.app.event.GameEvent
-import eventDemo.app.event.GameStartedEvent
+import eventDemo.app.entity.GameId
 import eventDemo.app.event.buildStateFromEventStream
+import eventDemo.app.event.event.GameEvent
+import eventDemo.app.event.event.GameStartedEvent
 import eventDemo.libs.event.EventBus
 import eventDemo.libs.event.EventStream
 

@@ -1,10 +1,10 @@
-package eventDemo.app.actions
+package eventDemo.app.query
 
-import eventDemo.app.GameId
 import eventDemo.app.entity.Card
+import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.CardIsPlayedEvent
 import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.configuration.configure
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.call.body

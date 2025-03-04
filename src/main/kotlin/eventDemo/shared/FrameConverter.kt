@@ -1,7 +1,7 @@
 package eventDemo.shared
 
-import eventDemo.app.command.GameCommand
-import eventDemo.app.event.GameEvent
+import eventDemo.app.command.command.GameCommand
+import eventDemo.app.event.event.GameEvent
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.serialization.json.Json

@@ -1,6 +1,7 @@
-package eventDemo.app
+package eventDemo.app.eventListener
 
-import eventDemo.app.event.GameEvent
+import eventDemo.app.entity.GameId
+import eventDemo.app.event.event.GameEvent
 import eventDemo.libs.event.EventBus
 import eventDemo.shared.toFrame
 import io.ktor.websocket.Frame

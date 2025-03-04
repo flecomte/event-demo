@@ -2,6 +2,7 @@ package eventDemo.app
 
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.Deck
+import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import kotlinx.serialization.Serializable
 

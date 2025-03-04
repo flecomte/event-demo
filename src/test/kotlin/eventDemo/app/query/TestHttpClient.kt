@@ -1,6 +1,6 @@
-package eventDemo.app.actions
+package eventDemo.app.query
 
-import eventDemo.configuration.UUIDSerializer
+import eventDemo.shared.UUIDSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
