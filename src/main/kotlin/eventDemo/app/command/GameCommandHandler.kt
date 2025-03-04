@@ -2,14 +2,12 @@ package eventDemo.app.command
 
 import eventDemo.app.GameState
 import eventDemo.app.command.command.GameCommand
+import eventDemo.app.command.command.IWantToPlayCardCommand
 import eventDemo.app.command.command.IamReadyToPlayCommand
-import eventDemo.app.command.command.IwantToPlayCardCommand
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.buildStateFromEventStream
-import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
-import eventDemo.app.event.event.PlayerReadyEvent
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +27,7 @@ class GameCommandHandler(
     outgoing: SendChannel<Frame>,
 ) {
     private val commandStream = GameCommandStream(incoming, outgoing)
-    private val playerNotifier = outgoing
+    private val playerNotifier: (String) -> Unit = { runBlocking { outgoing.send(Frame.Text(it)) } }
 
     /**
      * Init the handler
@@ -41,48 +39,20 @@ class GameCommandHandler(
                     nack()
                 }
 
-                val state = command.buildState()
+                val gameState = command.buildGameState()
 
                 when (command) {
-                    is IwantToPlayCardCommand -> {
-                        // Check the command can be executed
-                        if (state.commandCardCanBeExecuted(command)) {
-                            eventStream.publish(
-                                CardIsPlayedEvent(
-                                    command.payload.gameId,
-                                    command.payload.card,
-                                    command.payload.player,
-                                ),
-                            )
-                        } else {
-                            runBlocking {
-                                playerNotifier.send(Frame.Text("Command cannot be executed"))
-                            }
-                        }
+                    is IWantToPlayCardCommand -> {
+                        command.run(gameState, playerNotifier, eventStream)
                     }
 
                     is IamReadyToPlayCommand -> {
-                        if (state.playerIsAlreadyReady(command.payload.player)) {
-                            nack()
-                        } else {
-                            PlayerReadyEvent(
-                                command.payload.gameId,
-                                command.payload.player,
-                            )
-                        }
+                        command.run(gameState, playerNotifier, eventStream)
                     }
                 }
             }
         }
     }
 
-    private fun GameState.playerIsAlreadyReady(player: Player): Boolean = readyPlayers.contains(player)
-
-    private fun GameState.commandCardCanBeExecuted(command: IwantToPlayCardCommand): Boolean =
-        canBePlayThisCard(
-            command.payload.player,
-            command.payload.card,
-        )
-
-    private fun GameCommand.buildState(): GameState = payload.gameId.buildStateFromEventStream(eventStream)
+    private fun GameCommand.buildGameState(): GameState = payload.gameId.buildStateFromEventStream(eventStream)
 }

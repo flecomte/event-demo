@@ -1,29 +1,31 @@
 package eventDemo.app.command.command
 
 import eventDemo.app.GameState
+import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.event.PlayerReadyEvent
+import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.libs.command.CommandId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A command to set as ready to play
+ * A command to perform an action to play a new card
  */
 @Serializable
-@SerialName("Ready")
-data class IamReadyToPlayCommand(
+@SerialName("PlayCard")
+data class IWantToPlayCardCommand(
     override val payload: Payload,
 ) : GameCommand {
-    override val name: String = "Ready"
+    override val name: String = "PlayCard"
     override val id: CommandId = CommandId()
 
     @Serializable
     data class Payload(
         override val gameId: GameId,
         override val player: Player,
+        val card: Card,
     ) : GameCommand.Payload
 
     fun run(
@@ -31,17 +33,22 @@ data class IamReadyToPlayCommand(
         playerNotifier: (String) -> Unit,
         eventStream: GameEventStream,
     ) {
-        val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(payload.player)
+        val commandCardCanBeExecuted: Boolean =
+            state.canBePlayThisCard(
+                payload.player,
+                payload.card,
+            )
 
-        if (playerIsAlreadyReady) {
-            playerNotifier("You are already ready")
-        } else {
+        if (commandCardCanBeExecuted) {
             eventStream.publish(
-                PlayerReadyEvent(
+                CardIsPlayedEvent(
                     payload.gameId,
+                    payload.card,
                     payload.player,
                 ),
             )
+        } else {
+            playerNotifier("Command cannot be executed")
         }
     }
 }
