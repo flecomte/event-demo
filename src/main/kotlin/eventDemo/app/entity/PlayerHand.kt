@@ -1,11 +1,14 @@
 package eventDemo.app.entity
 
-import kotlinx.serialization.Serializable
+typealias PlayerHands = Map<Player, List<Card>>
 
-@Serializable
-data class PlayerHand(
-    val player: Player,
-    val cards: List<Card> = emptyList(),
-) {
-    val count = lazy { cards.count() }
+fun PlayerHands.addCard(
+    player: Player,
+    card: Card,
+) = mapValues { (p, cards) ->
+    if (p == player) {
+        cards - card
+    } else {
+        cards
+    }
 }

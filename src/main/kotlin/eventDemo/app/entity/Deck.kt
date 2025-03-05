@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 data class Deck(
     val stack: Set<Card> = emptySet(),
     val discard: Set<Card> = emptySet(),
-    val playersHands: List<PlayerHand> = emptyList(),
+    val playersHands: PlayerHands = emptyMap(),
 ) {
-    constructor(players: List<Player>) : this(playersHands = players.map { PlayerHand(it) })
+    constructor(players: List<Player>) : this(playersHands = players.associateWith { emptyList<Card>() })
 
     fun putOneCardOnDiscard(): Deck {
         val takenCard = stack.first()
@@ -16,11 +16,45 @@ data class Deck(
         return copy(stack = newStack)
     }
 
-    fun take(n: Int): Pair<Deck, List<Card>> {
+    private fun take(n: Int): Pair<Deck, List<Card>> {
         val takenCards = stack.take(n)
         val newStack = stack.filterNot { takenCards.contains(it) }.toSet()
         return Pair(copy(stack = newStack), takenCards)
     }
+
+    private fun takeOne(): Pair<Deck, Card> = take(1).let { (deck, cards) -> Pair(deck, cards.first()) }
+
+    fun takeOneCardTo(player: Player): Deck =
+        takeOne().let { (deck, newPlayerCard) ->
+            val newHands =
+                deck.playersHands.mapValues { (p, cards) ->
+                    if (p == player) {
+                        cards + newPlayerCard
+                    } else {
+                        cards
+                    }
+                }
+            deck.copy(playersHands = newHands)
+        }
+
+    fun putOneCardFromHand(
+        player: Player,
+        card: Card,
+    ): Deck =
+        run {
+            // Validate parameters
+            val playerHand =
+                playersHands[player]
+                    ?: error("No player on this game")
+            if (playerHand.none { it == card }) {
+                error("No card exist on the player hand")
+            }
+        }.let {
+            copy(
+                discard = discard + card,
+                playersHands = playersHands.addCard(player, card),
+            )
+        }
 
     companion object {
         fun initHands(
@@ -28,8 +62,8 @@ data class Deck(
             handSize: Int = 7,
         ): Deck {
             val deck = new()
-            val playersHands = players.map { PlayerHand(it, deck.stack.take(handSize)) }
-            val allTakenCards = playersHands.flatMap { it.cards }
+            val playersHands = players.associateWith { deck.stack.take(handSize) }
+            val allTakenCards = playersHands.flatMap { it.value }
             val newStack = deck.stack.filterNot { allTakenCards.contains(it) }.toSet()
             return deck.copy(
                 stack = newStack,

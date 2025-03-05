@@ -37,6 +37,7 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
                     lastPlayer = event.player,
                     direction = direction,
                     lastColor = color,
+                    deck = state.deck.putOneCardFromHand(event.player, event.card),
                 )
             }
 
@@ -57,6 +58,7 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
             is PlayerHavePassEvent -> {
                 state.copy(
                     lastPlayer = event.player,
+                    deck = state.deck.takeOneCardTo(event.player),
                 )
             }
 
@@ -69,7 +71,7 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
             is GameStartedEvent -> {
                 state.copy(
                     lastColor = (event.deck.discard.first() as? Card.ColorCard)?.color,
-                    lastCard = eventDemo.app.GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
+                    lastCard = GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
                     lastPlayer = event.firstPlayer,
                     deck = event.deck,
                     isStarted = true,
