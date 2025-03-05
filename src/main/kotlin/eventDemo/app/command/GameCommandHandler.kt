@@ -2,6 +2,7 @@ package eventDemo.app.command
 
 import eventDemo.app.GameState
 import eventDemo.app.command.command.GameCommand
+import eventDemo.app.command.command.ICantPlayCommand
 import eventDemo.app.command.command.IWantToJoinTheGameCommand
 import eventDemo.app.command.command.IWantToPlayCardCommand
 import eventDemo.app.command.command.IamReadyToPlayCommand
@@ -46,6 +47,7 @@ class GameCommandHandler(
                     is IWantToPlayCardCommand -> command.run(gameState, playerNotifier, eventStream)
                     is IamReadyToPlayCommand -> command.run(gameState, playerNotifier, eventStream)
                     is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
+                    is ICantPlayCommand -> command.run(gameState, playerNotifier, eventStream)
                 }
             }
         }

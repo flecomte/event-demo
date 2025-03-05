@@ -1,11 +1,10 @@
 package eventDemo.app.command.command
 
 import eventDemo.app.GameState
-import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.event.CardIsPlayedEvent
+import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.libs.command.CommandId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,8 +13,8 @@ import kotlinx.serialization.Serializable
  * A command to perform an action to play a new card
  */
 @Serializable
-@SerialName("PlayCard")
-data class IWantToPlayCardCommand(
+@SerialName("Pass")
+data class ICantPlayCommand(
     override val payload: Payload,
 ) : GameCommand {
     override val id: CommandId = CommandId()
@@ -24,7 +23,6 @@ data class IWantToPlayCardCommand(
     data class Payload(
         override val gameId: GameId,
         override val player: Player,
-        val card: Card,
     ) : GameCommand.Payload
 
     fun run(
@@ -32,21 +30,16 @@ data class IWantToPlayCardCommand(
         playerNotifier: (String) -> Unit,
         eventStream: GameEventStream,
     ) {
-        if (!state.isReady) {
-            playerNotifier("The game is Not started")
-            return
-        }
-
-        if (state.canBePlayThisCard(payload.player, payload.card)) {
+        val playableCards = state.playableCards(payload.player)
+        if (playableCards.isEmpty()) {
             eventStream.publish(
-                CardIsPlayedEvent(
+                PlayerHavePassEvent(
                     payload.gameId,
-                    payload.card,
                     payload.player,
                 ),
             )
         } else {
-            playerNotifier("You cannot play this card")
+            playerNotifier("You can and must play one card, like ${playableCards.first()::class.simpleName}")
         }
     }
 }

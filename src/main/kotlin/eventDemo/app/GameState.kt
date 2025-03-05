@@ -76,4 +76,75 @@ data class GameState(
         if (lastCard == null) error("No card")
         return this.playerDiffIndex(lastCard.player) == 1
     }
+
+    fun playableCards(player: Player): List<Card> =
+        deck
+            .playersHands[player]
+            ?.filter { canBePlayThisCard(player, it) }
+            ?: emptyList()
+
+    fun canBePlayThisCard(
+        player: Player,
+        card: Card,
+    ): Boolean {
+        val cardOnBoard = lastCard?.card ?: return false
+        return when (cardOnBoard) {
+            is Card.NumericCard -> {
+                when (card) {
+                    is Card.AllColorCard -> true
+                    is Card.NumericCard -> card.number == cardOnBoard.number || card.color == cardOnBoard.color
+                    is Card.ColorCard -> card.color == cardOnBoard.color
+                }
+            }
+
+            is Card.ReverseCard -> {
+                when (card) {
+                    is Card.ReverseCard -> true
+                    is Card.AllColorCard -> true
+                    is Card.ColorCard -> card.color == cardOnBoard.color
+                }
+            }
+
+            is Card.PassCard -> {
+                if (player.cardOnBoardIsForYou) {
+                    false
+                } else {
+                    when (card) {
+                        is Card.AllColorCard -> true
+                        is Card.ColorCard -> card.color == cardOnBoard.color
+                    }
+                }
+            }
+
+            is Card.ChangeColorCard -> {
+                when (card) {
+                    is Card.AllColorCard -> true
+                    is Card.ColorCard -> card.color == lastColor
+                }
+            }
+
+            is Card.Plus2Card -> {
+                if (player.cardOnBoardIsForYou && card is Card.Plus2Card) {
+                    true
+                } else {
+                    when (card) {
+                        is Card.AllColorCard -> true
+                        is Card.Plus2Card -> true
+                        is Card.ColorCard -> card.color == cardOnBoard.color
+                    }
+                }
+            }
+
+            is Card.Plus4Card -> {
+                if (player.cardOnBoardIsForYou && card is Card.Plus4Card) {
+                    true
+                } else {
+                    when (card) {
+                        is Card.AllColorCard -> true
+                        is Card.ColorCard -> card.color == lastColor
+                    }
+                }
+            }
+        }
+    }
 }
