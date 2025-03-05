@@ -3,9 +3,10 @@ package eventDemo.app.event.event
 import eventDemo.app.entity.Deck
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
+import eventDemo.app.entity.initHands
 
 /**
- * This [GameEvent] is sent when all players is ready.
+ * This [GameEvent] is sent when all players are ready.
  */
 data class GameStartedEvent(
     override val id: GameId,
@@ -20,7 +21,7 @@ data class GameStartedEvent(
             GameStartedEvent(
                 id = id,
                 firstPlayer = players.random(),
-                deck = Deck.initHands(players).putOneCardOnDiscard(),
+                deck = Deck.newWithoutPlayers().initHands(players).placeFirstCardOnDiscard(),
             )
     }
 }

@@ -4,27 +4,21 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Deck(
-    val stack: Set<Card> = emptySet(),
+    val stack: Stack = emptySet(),
     val discard: Set<Card> = emptySet(),
     val playersHands: PlayerHands = emptyMap(),
 ) {
     constructor(players: List<Player>) : this(playersHands = players.associateWith { emptyList<Card>() })
 
-    fun putOneCardOnDiscard(): Deck {
+    fun placeFirstCardOnDiscard(): Deck {
         val takenCard = stack.first()
-        val newStack = stack.filterNot { it != takenCard }.toSet()
-        return copy(stack = newStack)
+        return copy(
+            stack = stack - takenCard,
+            discard = discard + takenCard,
+        )
     }
 
-    private fun take(n: Int): Pair<Deck, List<Card>> {
-        val takenCards = stack.take(n)
-        val newStack = stack.filterNot { takenCards.contains(it) }.toSet()
-        return Pair(copy(stack = newStack), takenCards)
-    }
-
-    private fun takeOne(): Pair<Deck, Card> = take(1).let { (deck, cards) -> Pair(deck, cards.first()) }
-
-    fun takeOneCardTo(player: Player): Deck =
+    fun takeOneCardFromStackTo(player: Player): Deck =
         takeOne().let { (deck, newPlayerCard) ->
             val newHands =
                 deck.playersHands.mapValues { (p, cards) ->
@@ -52,26 +46,20 @@ data class Deck(
         }.let {
             copy(
                 discard = discard + card,
-                playersHands = playersHands.addCard(player, card),
+                playersHands = playersHands.removeCard(player, card),
             )
         }
+
+    private fun take(n: Int): Pair<Deck, List<Card>> {
+        val takenCards = stack.take(n)
+        val newStack = stack.filterNot { takenCards.contains(it) }.toSet()
+        return Pair(copy(stack = newStack), takenCards)
+    }
+
+    private fun takeOne(): Pair<Deck, Card> = take(1).let { (deck, cards) -> Pair(deck, cards.first()) }
 
     companion object {
-        fun initHands(
-            players: Set<Player>,
-            handSize: Int = 7,
-        ): Deck {
-            val deck = new()
-            val playersHands = players.associateWith { deck.stack.take(handSize) }
-            val allTakenCards = playersHands.flatMap { it.value }
-            val newStack = deck.stack.filterNot { allTakenCards.contains(it) }.toSet()
-            return deck.copy(
-                stack = newStack,
-                playersHands = playersHands,
-            )
-        }
-
-        private fun new(): Deck =
+        fun newWithoutPlayers(): Deck =
             listOf(Card.Color.Red, Card.Color.Blue, Card.Color.Yellow, Card.Color.Green)
                 .flatMap { color ->
                     ((0..9) + (1..9)).map { Card.NumericCard(it, color) } +
@@ -79,9 +67,27 @@ data class Deck(
                         (1..2).map { Card.ReverseCard(color) } +
                         (1..2).map { Card.PassCard(color) }
                 }.let {
-                    (1..4).map { Card.Plus4Card() }
+                    it + (1..4).map { Card.Plus4Card() }
                 }.shuffled()
                 .toSet()
                 .let { Deck(it) }
     }
 }
+
+fun Deck.initHands(
+    players: Set<Player>,
+    handSize: Int = 7,
+): Deck {
+    // Copy cards from stack to the player hands
+    val deckWithEmptyHands = copy(playersHands = players.associateWith { listOf() })
+    return players.fold(deckWithEmptyHands) { acc: Deck, player: Player ->
+        val hand = acc.stack.take(handSize)
+        val newStack = acc.stack.filterNot { card: Card -> hand.contains(card) }.toSet()
+        copy(
+            stack = newStack,
+            playersHands = acc.playersHands.addCards(player, hand),
+        )
+    }
+}
+
+typealias Stack = Set<Card>

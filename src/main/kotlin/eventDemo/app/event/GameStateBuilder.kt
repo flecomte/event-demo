@@ -58,7 +58,7 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
             is PlayerHavePassEvent -> {
                 state.copy(
                     lastPlayer = event.player,
-                    deck = state.deck.takeOneCardTo(event.player),
+                    deck = state.deck.takeOneCardFromStackTo(event.player),
                 )
             }
 
