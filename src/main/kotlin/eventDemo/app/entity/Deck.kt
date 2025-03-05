@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Deck(
-    val stack: Stack = emptySet(),
-    val discard: Set<Card> = emptySet(),
+    val stack: Stack = Stack(),
+    val discard: Discard = Discard(),
     val playersHands: PlayerHands = emptyMap(),
 ) {
     constructor(players: List<Player>) : this(playersHands = players.associateWith { emptyList<Card>() })
@@ -52,7 +52,7 @@ data class Deck(
 
     private fun take(n: Int): Pair<Deck, List<Card>> {
         val takenCards = stack.take(n)
-        val newStack = stack.filterNot { takenCards.contains(it) }.toSet()
+        val newStack = stack.filterNot { takenCards.contains(it) }.toStack()
         return Pair(copy(stack = newStack), takenCards)
     }
 
@@ -69,7 +69,7 @@ data class Deck(
                 }.let {
                     it + (1..4).map { Card.Plus4Card() }
                 }.shuffled()
-                .toSet()
+                .toStack()
                 .let { Deck(it) }
     }
 }
@@ -82,7 +82,7 @@ fun Deck.initHands(
     val deckWithEmptyHands = copy(playersHands = players.associateWith { listOf() })
     return players.fold(deckWithEmptyHands) { acc: Deck, player: Player ->
         val hand = acc.stack.take(handSize)
-        val newStack = acc.stack.filterNot { card: Card -> hand.contains(card) }.toSet()
+        val newStack = acc.stack.filterNot { card: Card -> hand.contains(card) }.toStack()
         copy(
             stack = newStack,
             playersHands = acc.playersHands.addCards(player, hand),
@@ -90,4 +90,30 @@ fun Deck.initHands(
     }
 }
 
-typealias Stack = Set<Card>
+@JvmInline
+@Serializable
+value class Stack(
+    val elems: Set<Card> = emptySet(),
+) : Set<Card> by elems {
+    operator fun plus(card: Card): Stack = elems.plus(card).toStack()
+
+    operator fun minus(card: Card): Stack = elems.minus(card).toStack()
+}
+
+fun List<Card>.toStack(): Stack = Stack(this.toSet())
+
+fun Set<Card>.toStack(): Stack = Stack(this)
+
+@JvmInline
+@Serializable
+value class Discard(
+    val elems: Set<Card> = emptySet(),
+) : Set<Card> by elems {
+    operator fun plus(card: Card): Discard = elems.plus(card).toDiscard()
+
+    operator fun minus(card: Card): Discard = elems.minus(card).toDiscard()
+}
+
+fun List<Card>.toDiscard(): Discard = Discard(this.toSet())
+
+fun Set<Card>.toDiscard(): Discard = Discard(this)
