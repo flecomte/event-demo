@@ -1,5 +1,8 @@
 package eventDemo.libs.command
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 /**
@@ -11,7 +14,7 @@ interface CommandStream<C : Command> {
     /**
      * Send a new [Command] to the queue.
      */
-    suspend fun send(
+    fun send(
         type: KClass<C>,
         command: C,
     )
@@ -19,7 +22,7 @@ interface CommandStream<C : Command> {
     /**
      * Send multiple [Command] to the queue.
      */
-    suspend fun send(
+    fun send(
         type: KClass<C>,
         vararg commands: C,
     ) {
@@ -39,6 +42,13 @@ interface CommandStream<C : Command> {
      * Apply an action to all command income in the stream.
      */
     suspend fun process(action: CommandBlock<C>)
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun blockAndProcess(action: CommandBlock<C>) {
+        GlobalScope.launch {
+            process(action)
+        }
+    }
 }
 
 suspend inline fun <reified C : Command> CommandStream<C>.send(vararg command: C) = send(C::class, *command)

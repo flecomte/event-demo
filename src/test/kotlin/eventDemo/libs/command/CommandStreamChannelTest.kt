@@ -5,8 +5,6 @@ import io.ktor.websocket.Frame
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class CommandTest(
     override val id: CommandId,
@@ -30,19 +28,13 @@ class CommandStreamChannelTest :
                 )
 
             val spyCall: () -> Unit = mockk(relaxed = true)
-            runBlocking {
-                launch {
-                    stream.process {
-                        println("In action ${it.id}")
-                        spyCall()
-                    }
-                }
-                launch {
-                    stream.send(command, command2)
-                    stream.send(command3)
-                    channel.close()
-                }.join()
-                verify(exactly = 3) { spyCall() }
+
+            stream.blockAndProcess {
+                println("In action ${it.id}")
+                spyCall()
             }
+            stream.send(command, command2)
+            stream.send(command3)
+            verify(exactly = 3) { spyCall() }
         }
     })

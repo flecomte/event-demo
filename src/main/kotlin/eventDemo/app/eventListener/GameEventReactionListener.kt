@@ -1,15 +1,14 @@
 package eventDemo.app.eventListener
 
-import eventDemo.app.entity.GameId
+import eventDemo.app.event.GameEventBus
+import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
-import eventDemo.libs.event.EventBus
-import eventDemo.libs.event.EventStream
 
 class GameEventReactionListener(
-    private val eventBus: EventBus<GameEvent, GameId>,
-    private val eventStream: EventStream<GameEvent, GameId>,
+    private val eventBus: GameEventBus,
+    private val eventStream: GameEventStream,
 ) {
     fun init() {
         eventBus.subscribe { event: GameEvent ->

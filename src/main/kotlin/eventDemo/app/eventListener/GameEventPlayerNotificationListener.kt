@@ -1,22 +1,18 @@
 package eventDemo.app.eventListener
 
-import eventDemo.app.entity.GameId
+import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.event.GameEvent
-import eventDemo.libs.event.EventBus
 import eventDemo.shared.toFrame
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 
 class GameEventPlayerNotificationListener(
-    private val eventBus: EventBus<GameEvent, GameId>,
-    private val outgoing: SendChannel<Frame>,
+    private val eventBus: GameEventBus,
 ) {
-    fun init() {
+    fun startListening(outgoing: SendChannel<Frame>) {
         eventBus.subscribe { event: GameEvent ->
-            runBlocking {
-                outgoing.send(event.toFrame())
-            }
+            outgoing.trySendBlocking(event.toFrame())
         }
     }
 }

@@ -3,9 +3,10 @@ package eventDemo.libs.command
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlin.reflect.KClass
 
-typealias CommandBlock<C> = CommandStream.ComputeStatus.(C) -> Unit
+typealias CommandBlock<C> = suspend CommandStream.ComputeStatus.(C) -> Unit
 
 /**
  * Manage [Command]'s
@@ -14,7 +15,6 @@ typealias CommandBlock<C> = CommandStream.ComputeStatus.(C) -> Unit
  */
 abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
-    private val failedCommand = mutableListOf<Command>()
     private val queue: Channel<C> =
         Channel(onUndeliveredElement = {
             logger.atWarn { "${it::class.simpleName} command not send" }
@@ -23,7 +23,7 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
     /**
      * Send a new [Command] to the queue.
      */
-    override suspend fun send(
+    override fun send(
         type: KClass<C>,
         command: C,
     ) {
@@ -31,7 +31,7 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
             message = "Command published: $command"
             payload = mapOf("command" to command)
         }
-        queue.send(command)
+        queue.trySendBlocking(command)
     }
 
     override suspend fun process(action: CommandBlock<C>) {
@@ -43,7 +43,7 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
         }
     }
 
-    private fun compute(
+    private suspend fun compute(
         command: C,
         action: CommandBlock<C>,
     ) {
@@ -51,12 +51,12 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
             object : CommandStream.ComputeStatus {
                 var isSet: Boolean = false
 
-                override fun ack() {
+                override suspend fun ack() {
                     if (!isSet) markAsSuccess(command) else error("Already NACK")
                     isSet = true
                 }
 
-                override fun nack() {
+                override suspend fun nack() {
                     if (!isSet) markAsFailed(command) else error("Already ACK")
                     isSet = true
                 }
@@ -77,7 +77,6 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
     }
 
     private fun <C : Command> markAsFailed(command: C) {
-        failedCommand.add(command)
         logger.atWarn {
             message = "Compute command FAILED and it put it ot the top of the stack : $command"
             payload = mapOf("command" to command)

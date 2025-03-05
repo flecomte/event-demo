@@ -1,16 +1,16 @@
 package eventDemo.configuration
 
+import eventDemo.app.command.GameCommandHandler
 import eventDemo.app.command.gameSocket
-import eventDemo.app.event.GameEventBus
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.eventListener.GameEventPlayerNotificationListener
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 
 fun Application.declareWebSocketsGameRoute(
-    eventStream: GameEventStream,
-    eventBus: GameEventBus,
+    playerNotificationListener: GameEventPlayerNotificationListener,
+    commandHandler: GameCommandHandler,
 ) {
     routing {
-        gameSocket(eventStream, eventBus)
+        gameSocket(playerNotificationListener, commandHandler)
     }
 }

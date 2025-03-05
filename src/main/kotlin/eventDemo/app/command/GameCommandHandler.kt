@@ -10,10 +10,15 @@ import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.app.event.event.GameEvent
+import eventDemo.libs.command.CommandBlock
 import io.ktor.websocket.Frame
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.launch
 
 /**
  * Listen [GameCommand] on [GameCommandStream], check the validity and execute an action.
@@ -22,21 +27,31 @@ import kotlinx.coroutines.runBlocking
  */
 class GameCommandHandler(
     private val eventStream: GameEventStream,
-    incoming: ReceiveChannel<Frame>,
-    outgoing: SendChannel<Frame>,
 ) {
-    private val commandStream = GameCommandStream(incoming, outgoing)
-    private val playerNotifier: (String) -> Unit = { runBlocking { outgoing.send(Frame.Text(it)) } }
-
     /**
      * Init the handler
      */
-    suspend fun init(player: Player) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun handle(
+        player: Player,
+        incoming: ReceiveChannel<Frame>,
+        outgoing: SendChannel<Frame>,
+    ): Job {
+        val commandStream = GameCommandStream(incoming, outgoing)
+        val playerNotifier: (String) -> Unit = { outgoing.trySendBlocking(Frame.Text(it)) }
+        return GlobalScope.launch {
+            init(player, commandStream, playerNotifier)
+        }
+    }
+
+    private suspend fun init(
+        player: Player,
+        commandStream: GameCommandStream,
+        playerNotifier: (String) -> Unit,
+    ) {
         commandStream.process { command ->
             if (command.payload.player.id != player.id) {
-                runBlocking {
-                    nack()
-                }
+                nack()
             }
 
             val gameState = command.buildGameState()
@@ -47,7 +62,7 @@ class GameCommandHandler(
                 is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
                 is ICantPlayCommand -> command.run(gameState, playerNotifier, eventStream)
             }
-        }
+        } as CommandBlock<GameCommand>
     }
 
     private fun GameCommand.buildGameState(): GameState = payload.gameId.buildStateFromEventStream(eventStream)

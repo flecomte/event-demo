@@ -1,8 +1,6 @@
 package eventDemo.app.command
 
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventBus
-import eventDemo.app.event.GameEventStream
 import eventDemo.app.eventListener.GameEventPlayerNotificationListener
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
@@ -10,18 +8,15 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.websocket.webSocket
-import kotlinx.coroutines.launch
 
 fun Route.gameSocket(
-    eventStream: GameEventStream,
-    eventBus: GameEventBus,
+    playerNotificationListener: GameEventPlayerNotificationListener,
+    commandHandler: GameCommandHandler,
 ) {
     authenticate {
         webSocket("/game") {
-            launch {
-                GameCommandHandler(eventStream, incoming, outgoing).init(call.getPlayer())
-            }
-            GameEventPlayerNotificationListener(eventBus, outgoing).init()
+            commandHandler.handle(call.getPlayer(), incoming, outgoing)
+            playerNotificationListener.startListening(outgoing)
         }
     }
 }

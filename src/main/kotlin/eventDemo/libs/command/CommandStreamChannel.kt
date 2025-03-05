@@ -3,10 +3,11 @@ package eventDemo.libs.command
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.onSuccess
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlin.reflect.KClass
 
 /**
@@ -19,23 +20,30 @@ class CommandStreamChannel<C : Command>(
     private val deserializer: (String) -> C,
 ) : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
-    private val failedCommand = mutableListOf<C>()
 
     /**
      * Send a new [Command] to the queue.
      */
-    override suspend fun send(
+    override fun send(
         type: KClass<C>,
         command: C,
     ) {
-        outgoing.send(Frame.Text(serializer(command)))
-        logger.atInfo {
-            message = "Command published: $command"
-            payload = mapOf("command" to command)
-        }
+        outgoing
+            .trySendBlocking(Frame.Text(serializer(command)))
+            .onSuccess {
+                logger.atInfo {
+                    message = "Command published: $command"
+                    payload = mapOf("command" to command)
+                }
+            }.onFailure {
+                logger.atError {
+                    message = "Command FAILED: $command"
+                    payload = mapOf("command" to command)
+                }
+            }
     }
 
-    override suspend fun process(action: CommandStream.ComputeStatus.(C) -> Unit) {
+    override suspend fun process(action: CommandBlock<C>) {
 //        incoming.consumeEach { commandAsFrame ->
 //            if (commandAsFrame is Frame.Text) {
 //                compute(deserializer(commandAsFrame.readText()), action)
@@ -50,7 +58,7 @@ class CommandStreamChannel<C : Command>(
 
     private suspend fun compute(
         command: C,
-        action: CommandStream.ComputeStatus.(C) -> Unit,
+        action: CommandBlock<C>,
     ) {
         val status =
             object : CommandStream.ComputeStatus {
@@ -67,12 +75,12 @@ class CommandStreamChannel<C : Command>(
                 }
             }
 
-        val action = runCatching { status.action(command) }
-        if (action.isFailure) {
+        val actionResult = runCatching { status.action(command) }
+        if (actionResult.isFailure) {
             logger.atInfo {
-                message = "Error"
+                message = "Error on compute the Command"
                 payload = mapOf("command" to command)
-                cause = action.exceptionOrNull()
+                cause = actionResult.exceptionOrNull()
             }
             markAsFailed(command)
         } else if (!status.isSet) {
@@ -82,20 +90,17 @@ class CommandStreamChannel<C : Command>(
 
     private suspend fun markAsSuccess(command: C) {
         logger.atInfo {
-            message = "Compute command SUCCESS and it removed of the stack : $command"
+            message = "Compute command SUCCESS and it removed of the stack"
             payload = mapOf("command" to command)
         }
-        GlobalScope.launch {
-//            outgoing.send(Frame.Text("Command executed successfully"))
-        }
+//        outgoing.trySendBlocking(Frame.Text("Command executed successfully"))
     }
 
     private suspend fun markAsFailed(command: C) {
-        failedCommand.add(command)
         logger.atWarn {
-            message = "Compute command FAILED and it put it ot the top of the stack : $command"
+            message = "Compute command FAILED"
             payload = mapOf("command" to command)
         }
-        outgoing.send(Frame.Text("Command execution failed"))
+//        outgoing.trySendBlocking(Frame.Text("Command execution failed"))
     }
 }
