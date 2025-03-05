@@ -6,9 +6,10 @@ import kotlinx.serialization.Serializable
 data class Deck(
     val stack: Stack = Stack(),
     val discard: Discard = Discard(),
-    val playersHands: PlayerHands = emptyMap(),
+    val playersHands: PlayersHands = PlayersHands(),
 ) {
-    constructor(players: List<Player>) : this(playersHands = players.associateWith { emptyList<Card>() })
+    constructor(players: Set<Player>) :
+        this(playersHands = PlayersHands(players))
 
     fun placeFirstCardOnDiscard(): Deck {
         val takenCard = stack.first()
@@ -21,13 +22,14 @@ data class Deck(
     fun takeOneCardFromStackTo(player: Player): Deck =
         takeOne().let { (deck, newPlayerCard) ->
             val newHands =
-                deck.playersHands.mapValues { (p, cards) ->
-                    if (p == player) {
-                        cards + newPlayerCard
-                    } else {
-                        cards
-                    }
-                }
+                deck.playersHands
+                    .mapValues { (p, cards) ->
+                        if (p == player) {
+                            cards + newPlayerCard
+                        } else {
+                            cards
+                        }
+                    }.toPlayersHands()
             deck.copy(playersHands = newHands)
         }
 
@@ -79,7 +81,7 @@ fun Deck.initHands(
     handSize: Int = 7,
 ): Deck {
     // Copy cards from stack to the player hands
-    val deckWithEmptyHands = copy(playersHands = players.associateWith { listOf() })
+    val deckWithEmptyHands = copy(playersHands = PlayersHands(players))
     return players.fold(deckWithEmptyHands) { acc: Deck, player: Player ->
         val hand = acc.stack.take(handSize)
         val newStack = acc.stack.filterNot { card: Card -> hand.contains(card) }.toStack()
@@ -93,11 +95,11 @@ fun Deck.initHands(
 @JvmInline
 @Serializable
 value class Stack(
-    val elems: Set<Card> = emptySet(),
-) : Set<Card> by elems {
-    operator fun plus(card: Card): Stack = elems.plus(card).toStack()
+    private val cards: Set<Card> = emptySet(),
+) : Set<Card> by cards {
+    operator fun plus(card: Card): Stack = cards.plus(card).toStack()
 
-    operator fun minus(card: Card): Stack = elems.minus(card).toStack()
+    operator fun minus(card: Card): Stack = cards.minus(card).toStack()
 }
 
 fun List<Card>.toStack(): Stack = Stack(this.toSet())
@@ -107,11 +109,11 @@ fun Set<Card>.toStack(): Stack = Stack(this)
 @JvmInline
 @Serializable
 value class Discard(
-    val elems: Set<Card> = emptySet(),
-) : Set<Card> by elems {
-    operator fun plus(card: Card): Discard = elems.plus(card).toDiscard()
+    private val cards: Set<Card> = emptySet(),
+) : Set<Card> by cards {
+    operator fun plus(card: Card): Discard = cards.plus(card).toDiscard()
 
-    operator fun minus(card: Card): Discard = elems.minus(card).toDiscard()
+    operator fun minus(card: Card): Discard = cards.minus(card).toDiscard()
 }
 
 fun List<Card>.toDiscard(): Discard = Discard(this.toSet())

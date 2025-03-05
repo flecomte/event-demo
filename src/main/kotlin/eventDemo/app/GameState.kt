@@ -15,7 +15,7 @@ data class GameState(
     val lastColor: Card.Color? = null,
     val direction: Direction = Direction.CLOCKWISE,
     val readyPlayers: List<Player> = emptyList(),
-    val deck: Deck = Deck(players.toList()),
+    val deck: Deck = Deck(players),
     val isStarted: Boolean = false,
 ) {
     @Serializable
