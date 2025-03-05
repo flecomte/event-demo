@@ -10,6 +10,7 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.websocket.webSocket
+import kotlinx.coroutines.launch
 
 fun Route.gameSocket(
     eventStream: GameEventStream,
@@ -17,7 +18,9 @@ fun Route.gameSocket(
 ) {
     authenticate {
         webSocket("/game") {
-            GameCommandHandler(eventStream, incoming, outgoing).init(call.getPlayer())
+            launch {
+                GameCommandHandler(eventStream, incoming, outgoing).init(call.getPlayer())
+            }
             GameEventPlayerNotificationListener(eventBus, outgoing).init()
         }
     }

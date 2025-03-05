@@ -30,9 +30,9 @@ interface CommandStream<C : Command> {
      * A class to implement success/failed action.
      */
     interface ComputeStatus {
-        fun ack()
+        suspend fun ack()
 
-        fun nack()
+        suspend fun nack()
     }
 
     /**

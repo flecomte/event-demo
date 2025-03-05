@@ -11,11 +11,8 @@ import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.app.event.event.GameEvent
 import io.ktor.websocket.Frame
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -34,21 +31,21 @@ class GameCommandHandler(
     /**
      * Init the handler
      */
-    fun init(player: Player) {
-        CoroutineScope(Dispatchers.IO).launch {
-            commandStream.process { command ->
-                if (command.payload.player.id != player.id) {
+    suspend fun init(player: Player) {
+        commandStream.process { command ->
+            if (command.payload.player.id != player.id) {
+                runBlocking {
                     nack()
                 }
+            }
 
-                val gameState = command.buildGameState()
+            val gameState = command.buildGameState()
 
-                when (command) {
-                    is IWantToPlayCardCommand -> command.run(gameState, playerNotifier, eventStream)
-                    is IamReadyToPlayCommand -> command.run(gameState, playerNotifier, eventStream)
-                    is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
-                    is ICantPlayCommand -> command.run(gameState, playerNotifier, eventStream)
-                }
+            when (command) {
+                is IWantToPlayCardCommand -> command.run(gameState, playerNotifier, eventStream)
+                is IamReadyToPlayCommand -> command.run(gameState, playerNotifier, eventStream)
+                is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
+                is ICantPlayCommand -> command.run(gameState, playerNotifier, eventStream)
             }
         }
     }
