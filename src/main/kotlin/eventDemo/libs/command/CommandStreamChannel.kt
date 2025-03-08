@@ -4,44 +4,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.onFailure
-import kotlinx.coroutines.channels.onSuccess
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlin.reflect.KClass
 
 /**
  * Manage [Command]'s with kotlin Channel
  */
 class CommandStreamChannel<C : Command>(
     private val incoming: ReceiveChannel<Frame>,
-    private val outgoing: SendChannel<Frame>,
-    private val serializer: (C) -> String,
     private val deserializer: (String) -> C,
 ) : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
-
-    /**
-     * Send a new [Command] to the queue.
-     */
-    override fun send(
-        type: KClass<C>,
-        command: C,
-    ) {
-        outgoing
-            .trySendBlocking(Frame.Text(serializer(command)))
-            .onSuccess {
-                logger.atInfo {
-                    message = "Command published: $command"
-                    payload = mapOf("command" to command)
-                }
-            }.onFailure {
-                logger.atError {
-                    message = "Command FAILED: $command"
-                    payload = mapOf("command" to command)
-                }
-            }
-    }
 
     override suspend fun process(action: CommandBlock<C>) {
 //        incoming.consumeEach { commandAsFrame ->
@@ -90,17 +61,15 @@ class CommandStreamChannel<C : Command>(
 
     private suspend fun markAsSuccess(command: C) {
         logger.atInfo {
-            message = "Compute command SUCCESS and it removed of the stack"
+            message = "Compute command SUCCESS: $command"
             payload = mapOf("command" to command)
         }
-//        outgoing.trySendBlocking(Frame.Text("Command executed successfully"))
     }
 
     private suspend fun markAsFailed(command: C) {
         logger.atWarn {
-            message = "Compute command FAILED"
+            message = "Compute command FAILED: $command"
             payload = mapOf("command" to command)
         }
-//        outgoing.trySendBlocking(Frame.Text("Command execution failed"))
     }
 }

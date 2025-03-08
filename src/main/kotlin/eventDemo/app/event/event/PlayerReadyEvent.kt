@@ -7,6 +7,6 @@ import eventDemo.app.entity.Player
  * This [GameEvent] is sent when a player is ready.
  */
 data class PlayerReadyEvent(
-    override val id: GameId,
+    override val gameId: GameId,
     val player: Player,
 ) : GameEvent

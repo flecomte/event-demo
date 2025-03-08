@@ -1,5 +1,7 @@
 package eventDemo.configuration
 
+import eventDemo.app.entity.GameId
+import eventDemo.shared.GameIdSerializer
 import eventDemo.shared.UUIDSerializer
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -16,6 +18,7 @@ fun Application.configureSerialization() {
                 serializersModule =
                     SerializersModule {
                         contextual(UUID::class) { UUIDSerializer }
+                        contextual(GameId::class) { GameIdSerializer }
                     }
             },
         )

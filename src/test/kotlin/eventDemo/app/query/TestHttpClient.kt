@@ -1,5 +1,6 @@
 package eventDemo.app.query
-
+import eventDemo.app.entity.GameId
+import eventDemo.shared.GameIdSerializer
 import eventDemo.shared.UUIDSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -17,6 +18,7 @@ fun ApplicationTestBuilder.httpClient(): HttpClient =
                     serializersModule =
                         SerializersModule {
                             contextual(UUID::class) { UUIDSerializer }
+                            contextual(GameId::class) { GameIdSerializer }
                         }
                 },
             )

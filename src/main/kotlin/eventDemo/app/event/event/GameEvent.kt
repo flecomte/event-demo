@@ -9,5 +9,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed interface GameEvent : Event<GameId> {
-    override val id: GameId
+    override val gameId: GameId
 }

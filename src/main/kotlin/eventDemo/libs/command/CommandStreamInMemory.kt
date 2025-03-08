@@ -3,8 +3,6 @@ package eventDemo.libs.command
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlin.reflect.KClass
 
 typealias CommandBlock<C> = suspend CommandStream.ComputeStatus.(C) -> Unit
 
@@ -19,20 +17,6 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
         Channel(onUndeliveredElement = {
             logger.atWarn { "${it::class.simpleName} command not send" }
         })
-
-    /**
-     * Send a new [Command] to the queue.
-     */
-    override fun send(
-        type: KClass<C>,
-        command: C,
-    ) {
-        logger.atInfo {
-            message = "Command published: $command"
-            payload = mapOf("command" to command)
-        }
-        queue.trySendBlocking(command)
-    }
 
     override suspend fun process(action: CommandBlock<C>) {
         queue.consumeEach { command ->
@@ -71,14 +55,14 @@ abstract class CommandStreamInMemory<C : Command> : CommandStream<C> {
 
     private fun <C : Command> markAsSuccess(command: C) {
         logger.atInfo {
-            message = "Compute command SUCCESS and it removed of the stack : $command"
+            message = "Compute command SUCCESS : $command"
             payload = mapOf("command" to command)
         }
     }
 
     private fun <C : Command> markAsFailed(command: C) {
         logger.atWarn {
-            message = "Compute command FAILED and it put it ot the top of the stack : $command"
+            message = "Compute command FAILED : $command"
             payload = mapOf("command" to command)
         }
     }

@@ -55,9 +55,9 @@ class DeckTest :
             modifiedDeck.discard.size shouldBeExactly 0
             modifiedDeck.stack.size shouldBeExactly totalCardsNumber - (playerNumbers * 7) - 1
             modifiedDeck.playersHands.size shouldBeExactly playerNumbers
-            assertNotNull(modifiedDeck.playersHands[firstPlayer]).size shouldBeExactly 7 + 1
+            assertNotNull(modifiedDeck.playersHands.getHand(firstPlayer)).size shouldBeExactly 7 + 1
             modifiedDeck.playersHands
-                .filterKeys { it != firstPlayer }
+                .filterKeys { it != firstPlayer.id }
                 .forEach { (_, cards) -> cards.size shouldBeExactly 7 }
             modifiedDeck.allCardCount() shouldBeExactly totalCardsNumber
         }
@@ -70,16 +70,16 @@ class DeckTest :
             val firstPlayer = players.first()
 
             // When
-            val card = deck.playersHands[firstPlayer]!!.first()
+            val card = deck.playersHands.getHand(firstPlayer)!!.first()
             val modifiedDeck = deck.putOneCardFromHand(firstPlayer, card)
 
             // Then
             modifiedDeck.discard.size shouldBeExactly 1
             modifiedDeck.stack.size shouldBeExactly totalCardsNumber - (playerNumbers * 7)
             modifiedDeck.playersHands.size shouldBeExactly playerNumbers
-            assertNotNull(modifiedDeck.playersHands[firstPlayer]).size shouldBeExactly 6
+            assertNotNull(modifiedDeck.playersHands.getHand(firstPlayer)).size shouldBeExactly 6
             modifiedDeck.playersHands
-                .filterKeys { it != firstPlayer }
+                .filterKeys { it != firstPlayer.id }
                 .forEach { (_, cards) -> cards.size shouldBeExactly 7 }
             modifiedDeck.allCardCount() shouldBeExactly totalCardsNumber
         }

@@ -8,7 +8,7 @@ import eventDemo.app.entity.Player
  * An [GameEvent] to represent a played card.
  */
 data class CardIsPlayedEvent(
-    override val id: GameId,
+    override val gameId: GameId,
     val card: Card,
     val player: Player,
 ) : GameEvent

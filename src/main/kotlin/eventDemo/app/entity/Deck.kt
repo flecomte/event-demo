@@ -11,6 +11,8 @@ data class Deck(
     constructor(players: Set<Player>) :
         this(playersHands = PlayersHands(players))
 
+    fun shuffle(): Deck = copy(stack = stack.shuffle())
+
     fun placeFirstCardOnDiscard(): Deck {
         val takenCard = stack.first()
         return copy(
@@ -21,16 +23,9 @@ data class Deck(
 
     fun takeOneCardFromStackTo(player: Player): Deck =
         takeOne().let { (deck, newPlayerCard) ->
-            val newHands =
-                deck.playersHands
-                    .mapValues { (p, cards) ->
-                        if (p == player) {
-                            cards + newPlayerCard
-                        } else {
-                            cards
-                        }
-                    }.toPlayersHands()
-            deck.copy(playersHands = newHands)
+            deck.copy(
+                playersHands = deck.playersHands.addCard(player, newPlayerCard),
+            )
         }
 
     fun putOneCardFromHand(
@@ -40,7 +35,7 @@ data class Deck(
         run {
             // Validate parameters
             val playerHand =
-                playersHands[player]
+                playersHands.getHand(player)
                     ?: error("No player on this game")
             if (playerHand.none { it == card }) {
                 error("No card exist on the player hand")
@@ -70,8 +65,7 @@ data class Deck(
                         (1..2).map { Card.PassCard(color) }
                 }.let {
                     it + (1..4).map { Card.Plus4Card() }
-                }.shuffled()
-                .toStack()
+                }.toStack()
                 .let { Deck(it) }
     }
 }
@@ -100,6 +94,8 @@ value class Stack(
     operator fun plus(card: Card): Stack = cards.plus(card).toStack()
 
     operator fun minus(card: Card): Stack = cards.minus(card).toStack()
+
+    fun shuffle(): Stack = shuffled().toStack()
 }
 
 fun List<Card>.toStack(): Stack = Stack(this.toSet())

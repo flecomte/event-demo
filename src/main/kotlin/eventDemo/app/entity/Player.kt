@@ -18,6 +18,7 @@ data class Player(
         PlayerId(UUID.fromString(id)),
     )
 
+    @Serializable
     @JvmInline
     value class PlayerId(
         @Serializable(with = UUIDSerializer::class)

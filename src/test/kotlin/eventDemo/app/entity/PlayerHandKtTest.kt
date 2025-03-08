@@ -17,8 +17,8 @@ class PlayerHandKtTest :
             // When
             val newHands: PlayersHands = playersHands.addCards(firstPlayer, listOf(card))
 
-            assertNotNull(newHands[firstPlayer]).size shouldBeExactly 1
-            assertNotNull(newHands[players.last()]).size shouldBeExactly 0
+            assertNotNull(newHands.getHand(firstPlayer)).size shouldBeExactly 1
+            assertNotNull(newHands.getHand(players.last())).size shouldBeExactly 0
         }
 
         test("removeCard") {
@@ -35,7 +35,7 @@ class PlayerHandKtTest :
             // When
             val newHands: PlayersHands = playersHands.removeCard(firstPlayer, card1)
 
-            assertNotNull(newHands[firstPlayer]).size shouldBeExactly 1
-            assertNotNull(newHands[players.last()]).size shouldBeExactly 0
+            assertNotNull(newHands.getHand(firstPlayer)).size shouldBeExactly 1
+            assertNotNull(newHands.getHand(players.last())).size shouldBeExactly 0
         }
     })

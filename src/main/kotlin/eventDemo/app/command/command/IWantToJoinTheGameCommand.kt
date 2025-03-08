@@ -6,14 +6,13 @@ import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.NewPlayerEvent
 import eventDemo.libs.command.CommandId
-import kotlinx.serialization.SerialName
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 
 /**
  * A command to perform an action to play a new card
  */
 @Serializable
-@SerialName("JoinGame")
 data class IWantToJoinTheGameCommand(
     override val payload: Payload,
 ) : GameCommand {
@@ -27,9 +26,10 @@ data class IWantToJoinTheGameCommand(
 
     fun run(
         state: GameState,
-        playerNotifier: (String) -> Unit,
+        playerErrorNotifier: (String) -> Unit,
         eventStream: GameEventStream,
     ) {
+        val logger = KotlinLogging.logger {}
         if (!state.isStarted) {
             eventStream.publish(
                 NewPlayerEvent(
@@ -38,7 +38,11 @@ data class IWantToJoinTheGameCommand(
                 ),
             )
         } else {
-            playerNotifier("The game is already started")
+            logger.atWarn {
+                message = "The game is already started"
+                payload = mapOf("player" to this@IWantToJoinTheGameCommand.payload.player)
+            }
+            playerErrorNotifier("The game is already started")
         }
     }
 }

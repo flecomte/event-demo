@@ -32,7 +32,7 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
     ): R? =
         events
             .filterIsInstance(eventType.java)
-            .lastOrNull { it.id == aggregateId }
+            .lastOrNull { it.gameId == aggregateId }
 
     override fun readAll(aggregateId: ID): List<E> = events
 }

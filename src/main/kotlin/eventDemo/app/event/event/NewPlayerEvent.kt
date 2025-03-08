@@ -7,6 +7,6 @@ import eventDemo.app.entity.Player
  * An [GameEvent] to represent a new player joining the game.
  */
 data class NewPlayerEvent(
-    override val id: GameId,
+    override val gameId: GameId,
     val player: Player,
 ) : GameEvent

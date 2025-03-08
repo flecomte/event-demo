@@ -2,6 +2,7 @@ package eventDemo.configuration
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import eventDemo.app.entity.Player
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -11,13 +12,15 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.serialization.json.Json
 import java.util.Date
 
+// TODO: read the jwt property from the config file
+private val jwtRealm = "Play card game"
+private val jwtIssuer = "PlayCardGame"
+private val jwtSecret = "secret"
+
 fun Application.configureSecurity() {
-    // TODO: read the jwt property from the config file
-    val jwtRealm = "Play card game"
-    val jwtIssuer = "PlayCardGame"
-    val jwtSecret = "secret"
     authentication {
         jwt {
             realm = jwtRealm
@@ -42,17 +45,19 @@ fun Application.configureSecurity() {
 
     routing {
         post("login/{username}") {
-            val username = call.parameters["username"]
+            val username = call.parameters["username"]!!
+            val player = Player(name = username)
 
-            val token =
-                JWT
-                    .create()
-                    .withIssuer(jwtIssuer)
-                    .withClaim("username", username)
-                    .withExpiresAt(Date(System.currentTimeMillis() + 60000))
-                    .sign(Algorithm.HMAC256(jwtSecret))
-
-            call.respond(hashMapOf("token" to token))
+            call.respond(hashMapOf("token" to player.makeJwt()))
         }
     }
 }
+
+fun Player.makeJwt(): String =
+    JWT
+        .create()
+        .withIssuer(jwtIssuer)
+        .withClaim("username", name)
+        .withPayload(Json.encodeToString(this))
+        .withExpiresAt(Date(System.currentTimeMillis() + 60000))
+        .sign(Algorithm.HMAC256(jwtSecret))

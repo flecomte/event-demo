@@ -5,7 +5,10 @@ import io.ktor.websocket.Frame
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.channels.Channel
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
+@Serializable
 class CommandTest(
     override val id: CommandId,
 ) : Command
@@ -15,16 +18,12 @@ class CommandStreamChannelTest :
 
         test("send and receive") {
             val command = CommandTest(CommandId())
-            val command2 = CommandTest(CommandId())
-            val command3 = CommandTest(CommandId())
 
             val channel = Channel<Frame>()
             val stream =
                 CommandStreamChannel<CommandTest>(
                     incoming = channel,
-                    outgoing = channel,
-                    serializer = { it.id.toString() },
-                    deserializer = { CommandTest(CommandId(it)) },
+                    deserializer = { Json.decodeFromString(it) },
                 )
 
             val spyCall: () -> Unit = mockk(relaxed = true)
@@ -33,8 +32,7 @@ class CommandStreamChannelTest :
                 println("In action ${it.id}")
                 spyCall()
             }
-            stream.send(command, command2)
-            stream.send(command3)
-            verify(exactly = 3) { spyCall() }
+            channel.send(Frame.Text(Json.encodeToString(command)))
+            verify(exactly = 1) { spyCall() }
         }
     })

@@ -14,7 +14,7 @@ data class GameState(
     val lastCard: LastCard? = null,
     val lastColor: Card.Color? = null,
     val direction: Direction = Direction.CLOCKWISE,
-    val readyPlayers: List<Player> = emptyList(),
+    val readyPlayers: Set<Player> = emptySet(),
     val deck: Deck = Deck(players),
     val isStarted: Boolean = false,
 ) {
@@ -51,6 +51,8 @@ data class GameState(
     }
 
     private val nextPlayerIndex: Int get() {
+        if (players.size == 0) return 0
+
         val y =
             if (direction == Direction.CLOCKWISE) {
                 +1
@@ -61,7 +63,13 @@ data class GameState(
         return ((lastPlayerIndex ?: 0) + y) % players.size
     }
 
-    val nextPlayer: Player = players.elementAt(nextPlayerIndex)
+    val nextPlayer: Player? by lazy {
+        if (players.isEmpty()) {
+            null
+        } else {
+            players.elementAt(nextPlayerIndex)
+        }
+    }
 
     val Player.currentIndex: Int get() = players.indexOf(this)
 
@@ -79,7 +87,8 @@ data class GameState(
 
     fun playableCards(player: Player): List<Card> =
         deck
-            .playersHands[player]
+            .playersHands
+            .getHand(player)
             ?.filter { canBePlayThisCard(player, it) }
             ?: emptyList()
 

@@ -5,28 +5,38 @@ import kotlinx.serialization.Serializable
 @Serializable
 @JvmInline
 value class PlayersHands(
-    private val map: Map<Player, List<Card>> = emptyMap(),
-) : Map<Player, List<Card>> by map {
-    constructor(players: Set<Player>) : this(players.associateWith { emptyList<Card>() }.toPlayersHands())
+    private val map: Map<Player.PlayerId, List<Card>> = emptyMap(),
+) : Map<Player.PlayerId, List<Card>> by map {
+    constructor(players: Set<Player>) :
+        this(players.map { it.id }.associateWith { emptyList<Card>() }.toPlayersHands())
+
+    fun getHand(player: Player): List<Card>? = this[player.id]
 
     fun removeCard(
         player: Player,
         card: Card,
     ): PlayersHands =
-        mapValues { (p, cards) ->
-            if (p == player) {
+        mapValues { (playerId, cards) ->
+            if (playerId == player.id) {
+                if (!cards.contains(card)) error("The hand no contain the card")
                 cards - card
             } else {
                 cards
             }
         }.toPlayersHands()
 
+    fun addCard(
+        player: Player,
+        newCard: Card,
+    ): PlayersHands = addCards(player, listOf(newCard))
+
     fun addCards(
         player: Player,
         newCards: List<Card>,
     ): PlayersHands =
         mapValues { (p, cards) ->
-            if (p == player) {
+            if (p == player.id) {
+                if (cards.intersect(newCards).isNotEmpty()) error("The hand already contain the card")
                 cards + newCards
             } else {
                 cards
@@ -34,4 +44,4 @@ value class PlayersHands(
         }.toPlayersHands()
 }
 
-fun Map<Player, List<Card>>.toPlayersHands(): PlayersHands = PlayersHands(this)
+fun Map<Player.PlayerId, List<Card>>.toPlayersHands(): PlayersHands = PlayersHands(this)

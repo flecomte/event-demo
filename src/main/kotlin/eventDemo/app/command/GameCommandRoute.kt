@@ -8,15 +8,22 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.websocket.webSocket
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
+@DelicateCoroutinesApi
 fun Route.gameSocket(
     playerNotificationListener: GameEventPlayerNotificationListener,
     commandHandler: GameCommandHandler,
 ) {
     authenticate {
         webSocket("/game") {
-            commandHandler.handle(call.getPlayer(), incoming, outgoing)
-            playerNotificationListener.startListening(outgoing)
+            val currentPlayer = call.getPlayer()
+            GlobalScope.launch {
+                commandHandler.handle(currentPlayer, incoming, outgoing)
+            }
+            playerNotificationListener.startListening(outgoing, currentPlayer)
         }
     }
 }

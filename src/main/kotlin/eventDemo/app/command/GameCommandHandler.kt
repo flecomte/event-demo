@@ -10,15 +10,13 @@ import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.app.event.event.GameEvent
-import eventDemo.libs.command.CommandBlock
+import eventDemo.app.notification.ErrorNotification
+import eventDemo.shared.toFrame
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.websocket.Frame
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.launch
 
 /**
  * Listen [GameCommand] on [GameCommandStream], check the validity and execute an action.
@@ -28,26 +26,32 @@ import kotlinx.coroutines.launch
 class GameCommandHandler(
     private val eventStream: GameEventStream,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     /**
      * Init the handler
      */
-    @OptIn(DelicateCoroutinesApi::class)
-    fun handle(
+    suspend fun handle(
         player: Player,
         incoming: ReceiveChannel<Frame>,
         outgoing: SendChannel<Frame>,
-    ): Job {
-        val commandStream = GameCommandStream(incoming, outgoing)
-        val playerNotifier: (String) -> Unit = { outgoing.trySendBlocking(Frame.Text(it)) }
-        return GlobalScope.launch {
-            init(player, commandStream, playerNotifier)
+    ) {
+        val commandStream = GameCommandStream(incoming)
+        val playerErrorNotifier: (String) -> Unit = {
+            val notification = ErrorNotification(message = it)
+            logger.atInfo {
+                message = "Notification send ERROR: ${notification.message}"
+                payload = mapOf("notification" to notification)
+            }
+            outgoing.trySendBlocking(notification.toFrame())
         }
+        return init(player, commandStream, playerErrorNotifier)
     }
 
     private suspend fun init(
         player: Player,
         commandStream: GameCommandStream,
-        playerNotifier: (String) -> Unit,
+        playerErrorNotifier: (String) -> Unit,
     ) {
         commandStream.process { command ->
             if (command.payload.player.id != player.id) {
@@ -57,12 +61,12 @@ class GameCommandHandler(
             val gameState = command.buildGameState()
 
             when (command) {
-                is IWantToPlayCardCommand -> command.run(gameState, playerNotifier, eventStream)
-                is IamReadyToPlayCommand -> command.run(gameState, playerNotifier, eventStream)
-                is IWantToJoinTheGameCommand -> command.run(gameState, playerNotifier, eventStream)
-                is ICantPlayCommand -> command.run(gameState, playerNotifier, eventStream)
+                is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventStream)
+                is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventStream)
+                is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventStream)
+                is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventStream)
             }
-        } as CommandBlock<GameCommand>
+        }
     }
 
     private fun GameCommand.buildGameState(): GameState = payload.gameId.buildStateFromEventStream(eventStream)

@@ -34,7 +34,7 @@ object PlayerIdSerializer : KSerializer<PlayerId> {
         encoder.encodeString(value.id.toString())
     }
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("GameId", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PlayerId", PrimitiveKind.STRING)
 }
 
 object GameIdSerializer : KSerializer<GameId> {

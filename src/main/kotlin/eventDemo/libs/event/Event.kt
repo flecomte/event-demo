@@ -15,5 +15,5 @@ interface AggregateId {
  * @see EventStream
  */
 interface Event<ID : AggregateId> {
-    val id: ID
+    val gameId: ID
 }
