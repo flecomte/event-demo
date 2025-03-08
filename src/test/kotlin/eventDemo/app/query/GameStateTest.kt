@@ -18,7 +18,7 @@ import eventDemo.app.notification.PlayerWasReadyNotification
 import eventDemo.app.notification.TheGameWasStartedNotification
 import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
-import eventDemo.send
+import eventDemo.shared.toFrame
 import eventDemo.shared.toNotification
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -43,8 +43,8 @@ class GameStateTest :
             val id = GameId()
             val player1 = Player(name = "Nikola")
             val player2 = Player(name = "Einstein")
-            val channelIn1 = Channel<Frame>(Channel.BUFFERED)
-            val channelIn2 = Channel<Frame>(Channel.BUFFERED)
+            val channelIn1 = Channel<Frame>()
+            val channelIn2 = Channel<Frame>()
             val channelOut1 = Channel<Frame>(Channel.BUFFERED)
             val channelOut2 = Channel<Frame>(Channel.BUFFERED)
 
@@ -63,13 +63,10 @@ class GameStateTest :
                     commandHandler.handle(player2, channelIn2, channelOut2)
                 }
 
-                launch(Dispatchers.IO) {
-                    channelIn1.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player1)))
-                }
-                launch(Dispatchers.IO) {
-                    delay(200)
-                    channelIn2.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player2)))
-                }
+                channelIn1.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player1)).toFrame())
+                delay(50)
+                channelIn2.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player2)).toFrame())
+                delay(50)
                 channelOut1.receive().toNotification().let {
                     assertIs<WelcomeToTheGameNotification>(it).players shouldBeEqual setOf(player1)
                 }
@@ -81,12 +78,10 @@ class GameStateTest :
                     assertIs<PlayerAsJoinTheGameNotification>(it).player shouldBeEqual player2
                 }
 
-                launch(Dispatchers.IO) {
-                    channelIn1.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player1)))
-                }
-                launch(Dispatchers.IO) {
-                    channelIn2.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player2)))
-                }
+                channelIn1.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player1)).toFrame())
+                delay(50)
+                channelIn2.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player2)).toFrame())
+                delay(50)
 
                 channelOut1.receive().toNotification().let {
                     assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player2
@@ -104,17 +99,15 @@ class GameStateTest :
                         assertIs<TheGameWasStartedNotification>(it).hand shouldHaveSize 7
                     }
 
-                launch {
-                    channelIn1.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player1, player1Hand.first())))
-                }
+                channelIn1.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player1, player1Hand.first())).toFrame())
+                delay(50)
                 channelOut2.receive().toNotification().let {
                     assertIs<PlayerAsPlayACardNotification>(it).player shouldBeEqual player1
                     assertIs<PlayerAsPlayACardNotification>(it).card shouldBeEqual player1Hand.first()
                 }
 
-                launch {
-                    channelIn2.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player2, player2Hand.first())))
-                }
+                channelIn2.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player2, player2Hand.first())).toFrame())
+                delay(50)
                 channelOut1.receive().toNotification().let {
                     assertIs<PlayerAsPlayACardNotification>(it).player shouldBeEqual player2
                     assertIs<PlayerAsPlayACardNotification>(it).card shouldBeEqual player2Hand.first()
