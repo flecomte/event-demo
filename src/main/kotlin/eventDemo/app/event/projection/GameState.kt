@@ -1,4 +1,4 @@
-package eventDemo.app
+package eventDemo.app.event.projection
 
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.Deck
@@ -17,6 +17,7 @@ data class GameState(
     val readyPlayers: Set<Player> = emptySet(),
     val deck: Deck = Deck(players),
     val isStarted: Boolean = false,
+    val playerWins: Set<Player> = emptySet(),
 ) {
     @Serializable
     data class LastCard(
@@ -91,6 +92,11 @@ data class GameState(
             .getHand(player)
             ?.filter { canBePlayThisCard(player, it) }
             ?: emptyList()
+
+    fun playerHasNoCardLeft(): List<Player> =
+        deck.playerHasNoCardLeft().map { playerId ->
+            players.find { it.id == playerId } ?: error("inconsistency detected between players")
+        }
 
     fun canBePlayThisCard(
         player: Player,

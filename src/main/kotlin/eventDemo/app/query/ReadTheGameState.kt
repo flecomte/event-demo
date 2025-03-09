@@ -1,10 +1,7 @@
 package eventDemo.app.query
 
 import eventDemo.app.entity.GameId
-import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.buildStateFromEventStream
-import eventDemo.app.event.event.CardIsPlayedEvent
-import eventDemo.libs.event.readLastOf
+import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.shared.GameIdSerializer
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
@@ -37,19 +34,21 @@ class Game(
 /**
  * API routes to read the game state.
  */
-fun Route.readTheGameState(eventStream: GameEventStream) {
+fun Route.readTheGameState(gameStateRepository: GameStateRepository) {
     authenticate {
         // Read the last played card on the game.
         get<Game.Card> { body ->
-            eventStream
-                .readLastOf<CardIsPlayedEvent, _, _>(body.game.id)
-                ?.let { call.respond(it.card) }
+            gameStateRepository
+                .get(body.game.id)
+                .lastCard
+                ?.card
+                ?.let { call.respond(it) }
                 ?: call.response.status(HttpStatusCode.BadRequest)
         }
 
         // Read the last played card on the game.
         get<Game.State> { body ->
-            val state = body.game.id.buildStateFromEventStream(eventStream)
+            val state = gameStateRepository.get(body.game.id)
             call.respond(state)
         }
     }

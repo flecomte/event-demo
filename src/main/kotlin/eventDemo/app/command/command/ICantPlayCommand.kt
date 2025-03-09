@@ -1,10 +1,10 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.GameState
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.PlayerHavePassEvent
+import eventDemo.app.event.projection.GameState
 import eventDemo.libs.command.CommandId
 import kotlinx.serialization.Serializable
 
@@ -26,13 +26,13 @@ data class ICantPlayCommand(
     fun run(
         state: GameState,
         playerErrorNotifier: (String) -> Unit,
-        eventStream: GameEventStream,
+        eventHandler: GameEventHandler,
     ) {
         val playableCards = state.playableCards(payload.player)
         if (playableCards.isEmpty()) {
             val takenCard = state.deck.stack.first()
 
-            eventStream.publish(
+            eventHandler.handle(
                 PlayerHavePassEvent(
                     gameId = payload.gameId,
                     player = payload.player,

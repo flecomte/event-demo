@@ -2,7 +2,9 @@ package eventDemo.configuration
 
 import eventDemo.app.command.GameCommandHandler
 import eventDemo.app.event.GameEventBus
+import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.eventListener.GameEventPlayerNotificationListener
 import eventDemo.libs.event.EventBusInMemory
 import eventDemo.libs.event.EventStreamInMemory
@@ -26,10 +28,16 @@ val appKoinModule =
             GameEventBus(EventBusInMemory())
         }
         single {
-            GameEventStream(get(), EventStreamInMemory())
+            GameEventStream(EventStreamInMemory())
         }
         single {
-            GameCommandHandler(get())
+            GameStateRepository(get(), get())
+        }
+        single {
+            GameEventHandler(get(), get())
+        }
+        single {
+            GameCommandHandler(get(), get())
         }
 
         singleOf(::GameEventPlayerNotificationListener)

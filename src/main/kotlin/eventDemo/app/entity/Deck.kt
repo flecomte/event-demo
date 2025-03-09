@@ -47,6 +47,11 @@ data class Deck(
             )
         }
 
+    fun playerHasNoCardLeft(): List<Player.PlayerId> =
+        playersHands
+            .filter { (playerId, hand) -> hand.isEmpty() }
+            .map { (playerId, hand) -> playerId }
+
     private fun take(n: Int): Pair<Deck, List<Card>> {
         val takenCards = stack.take(n)
         val newStack = stack.filterNot { takenCards.contains(it) }.toStack()

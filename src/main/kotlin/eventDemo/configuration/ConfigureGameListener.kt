@@ -5,6 +5,6 @@ import io.ktor.server.application.Application
 import org.koin.ktor.ext.get
 
 fun Application.configureGameListener() {
-    GameEventReactionListener(get(), get())
+    GameEventReactionListener(get(), get(), get())
         .init()
 }

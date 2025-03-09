@@ -3,7 +3,6 @@ package eventDemo.app.eventListener
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.buildStateFromEventStreamTo
 import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
@@ -11,11 +10,14 @@ import eventDemo.app.event.event.NewPlayerEvent
 import eventDemo.app.event.event.PlayerChoseColorEvent
 import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
+import eventDemo.app.event.event.PlayerWinEvent
+import eventDemo.app.event.projection.buildStateFromEventStreamTo
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
 import eventDemo.app.notification.PlayerAsPlayACardNotification
 import eventDemo.app.notification.PlayerHavePassNotification
 import eventDemo.app.notification.PlayerWasChoseTheCardColorNotification
 import eventDemo.app.notification.PlayerWasReadyNotification
+import eventDemo.app.notification.PlayerWinNotification
 import eventDemo.app.notification.TheGameWasStartedNotification
 import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.app.notification.YourNewCardNotification
@@ -102,7 +104,14 @@ class GameEventPlayerNotificationListener(
                             null
                         }
                     }
+
+                    is PlayerWinEvent -> {
+                        PlayerWinNotification(
+                            player = event.player,
+                        )
+                    }
                 }
+
             if (notification == null) {
                 logger.atInfo {
                     message = "Notification Ignore: $event"

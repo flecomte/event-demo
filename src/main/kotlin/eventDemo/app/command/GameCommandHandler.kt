@@ -1,15 +1,14 @@
 package eventDemo.app.command
 
-import eventDemo.app.GameState
 import eventDemo.app.command.command.GameCommand
 import eventDemo.app.command.command.ICantPlayCommand
 import eventDemo.app.command.command.IWantToJoinTheGameCommand
 import eventDemo.app.command.command.IWantToPlayCardCommand
 import eventDemo.app.command.command.IamReadyToPlayCommand
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.buildStateFromEventStream
+import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.GameEvent
+import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.notification.ErrorNotification
 import eventDemo.shared.toFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,7 +23,8 @@ import kotlinx.coroutines.channels.trySendBlocking
  * This action can be executing an action and produce a new [GameEvent] after verification.
  */
 class GameCommandHandler(
-    private val eventStream: GameEventStream,
+    private val eventHandler: GameEventHandler,
+    private val gameStateRepository: GameStateRepository,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -58,16 +58,14 @@ class GameCommandHandler(
                 nack()
             }
 
-            val gameState = command.buildGameState()
+            val gameState = gameStateRepository.get(command.payload.gameId)
 
             when (command) {
-                is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventStream)
-                is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventStream)
-                is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventStream)
-                is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventStream)
+                is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+                is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+                is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+                is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
             }
         }
     }
-
-    private fun GameCommand.buildGameState(): GameState = payload.gameId.buildStateFromEventStream(eventStream)
 }

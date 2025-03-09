@@ -1,8 +1,8 @@
-package eventDemo.app.event
+package eventDemo.app.event.projection
 
-import eventDemo.app.GameState
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
+import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
@@ -10,19 +10,33 @@ import eventDemo.app.event.event.NewPlayerEvent
 import eventDemo.app.event.event.PlayerChoseColorEvent
 import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
+import eventDemo.app.event.event.PlayerWinEvent
 
 fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState =
     buildStateFromEvents(
         eventStream.readAll(this),
     )
 
+/**
+ * Build the state to the specific event
+ */
 fun GameEvent.buildStateFromEventStreamTo(eventStream: GameEventStream): GameState =
     gameId.buildStateFromEvents(
         eventStream.readAll(gameId).takeWhile { it != this } + this,
     )
 
 private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
-    events.fold(GameState(this)) { state: GameState, event: GameEvent ->
+    events.fold(GameState(this)) { state, event ->
+        state.apply(event)
+    }
+
+fun List<GameEvent>.buildStateFromEvents(): GameState =
+    fold(GameState(this.first().gameId)) { state, event ->
+        state.apply(event)
+    }
+
+fun GameState.apply(event: GameEvent): GameState =
+    let { state ->
         when (event) {
             is CardIsPlayedEvent -> {
                 val direction =
@@ -81,6 +95,12 @@ private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
                     lastPlayer = event.firstPlayer,
                     deck = event.deck,
                     isStarted = true,
+                )
+            }
+
+            is PlayerWinEvent -> {
+                copy(
+                    playerWins = playerWins + event.player,
                 )
             }
         }

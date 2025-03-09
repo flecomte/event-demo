@@ -1,10 +1,10 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.GameState
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.NewPlayerEvent
+import eventDemo.app.event.projection.GameState
 import eventDemo.libs.command.CommandId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -27,11 +27,11 @@ data class IWantToJoinTheGameCommand(
     fun run(
         state: GameState,
         playerErrorNotifier: (String) -> Unit,
-        eventStream: GameEventStream,
+        eventHandler: GameEventHandler,
     ) {
         val logger = KotlinLogging.logger {}
         if (!state.isStarted) {
-            eventStream.publish(
+            eventHandler.handle(
                 NewPlayerEvent(
                     payload.gameId,
                     payload.player,

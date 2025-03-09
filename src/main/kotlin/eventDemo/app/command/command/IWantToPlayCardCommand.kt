@@ -1,11 +1,11 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.GameState
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.CardIsPlayedEvent
+import eventDemo.app.event.projection.GameState
 import eventDemo.libs.command.CommandId
 import kotlinx.serialization.Serializable
 
@@ -28,7 +28,7 @@ data class IWantToPlayCardCommand(
     fun run(
         state: GameState,
         playerErrorNotifier: (String) -> Unit,
-        eventStream: GameEventStream,
+        eventHandler: GameEventHandler,
     ) {
         if (!state.isStarted) {
             playerErrorNotifier("The game is Not started")
@@ -36,7 +36,7 @@ data class IWantToPlayCardCommand(
         }
 
         if (state.canBePlayThisCard(payload.player, payload.card)) {
-            eventStream.publish(
+            eventHandler.handle(
                 CardIsPlayedEvent(
                     payload.gameId,
                     payload.card,

@@ -1,6 +1,5 @@
 package eventDemo.app.query
 
-import eventDemo.app.GameState
 import eventDemo.app.command.GameCommandHandler
 import eventDemo.app.command.command.IWantToJoinTheGameCommand
 import eventDemo.app.command.command.IWantToPlayCardCommand
@@ -8,8 +7,9 @@ import eventDemo.app.command.command.IamReadyToPlayCommand
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
-import eventDemo.app.event.buildStateFromEventStream
 import eventDemo.app.event.event.disableShuffleDeck
+import eventDemo.app.event.projection.GameState
+import eventDemo.app.event.projection.buildStateFromEventStream
 import eventDemo.app.eventListener.GameEventPlayerNotificationListener
 import eventDemo.app.eventListener.GameEventReactionListener
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
@@ -52,7 +52,7 @@ class GameStateTest :
                 val commandHandler by inject<GameCommandHandler>()
                 val playerNotificationListener by inject<GameEventPlayerNotificationListener>()
                 val eventStream by inject<GameEventStream>()
-                GameEventReactionListener(get(), get()).init()
+                GameEventReactionListener(get(), get(), get()).init()
                 playerNotificationListener.startListening(channelOut1, player1)
                 playerNotificationListener.startListening(channelOut2, player2)
 

@@ -17,14 +17,15 @@ data class GameStartedEvent(
         fun new(
             id: GameId,
             players: Set<Player>,
+            shuffleIsDisabled: Boolean = isDisabled,
         ): GameStartedEvent =
             GameStartedEvent(
                 gameId = id,
-                firstPlayer = if (isDisabled) players.first() else players.random(),
+                firstPlayer = if (shuffleIsDisabled) players.first() else players.random(),
                 deck =
                     Deck
                         .newWithoutPlayers()
-                        .let { if (isDisabled) it else it.shuffle() }
+                        .let { if (shuffleIsDisabled) it else it.shuffle() }
                         .initHands(players)
                         .placeFirstCardOnDiscard(),
             )
