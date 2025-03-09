@@ -33,12 +33,8 @@ val appKoinModule =
         single {
             GameStateRepository(get(), get())
         }
-        single {
-            GameEventHandler(get(), get())
-        }
-        single {
-            GameCommandHandler(get(), get())
-        }
 
+        singleOf(::GameEventHandler)
+        singleOf(::GameCommandHandler)
         singleOf(::GameEventPlayerNotificationListener)
     }

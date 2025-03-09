@@ -3,6 +3,7 @@ package eventDemo.app.event.event
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
+import java.util.UUID
 
 /**
  * An [GameEvent] to represent a played card.
@@ -11,4 +12,5 @@ data class CardIsPlayedEvent(
     override val gameId: GameId,
     val card: Card,
     val player: Player,
+    override val eventId: UUID = UUID.randomUUID(),
 ) : GameEvent

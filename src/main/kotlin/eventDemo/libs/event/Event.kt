@@ -15,5 +15,6 @@ interface AggregateId {
  * @see EventStream
  */
 interface Event<ID : AggregateId> {
+    val eventId: UUID
     val gameId: ID
 }

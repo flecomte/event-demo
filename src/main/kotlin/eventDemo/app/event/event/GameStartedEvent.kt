@@ -4,6 +4,7 @@ import eventDemo.app.entity.Deck
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.entity.initHands
+import java.util.UUID
 
 /**
  * This [GameEvent] is sent when all players are ready.
@@ -13,6 +14,8 @@ data class GameStartedEvent(
     val firstPlayer: Player,
     val deck: Deck,
 ) : GameEvent {
+    override val eventId: UUID = UUID.randomUUID()
+
     companion object {
         fun new(
             id: GameId,

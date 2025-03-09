@@ -2,18 +2,17 @@ package eventDemo.app.eventListener
 
 import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
 import eventDemo.app.event.event.PlayerWinEvent
 import eventDemo.app.event.projection.GameState
-import eventDemo.app.event.projection.buildStateFromEventStreamTo
+import eventDemo.app.event.projection.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class GameEventReactionListener(
     private val eventBus: GameEventBus,
     private val eventHandler: GameEventHandler,
-    private val eventStream: GameEventStream,
+    private val gameStateRepository: GameStateRepository,
     private val priority: Int = DEFAULT_PRIORITY,
 ) {
     companion object Config {
@@ -24,7 +23,7 @@ class GameEventReactionListener(
 
     fun init() {
         eventBus.subscribe(priority) { event: GameEvent ->
-            val state = event.buildStateFromEventStreamTo(eventStream)
+            val state = gameStateRepository.getUntil(event)
             sendStartGameEvent(state, event)
             sendWinnerEvent(state, event)
         }
@@ -71,7 +70,7 @@ class GameEventReactionListener(
                         "reactionEvent" to reactionEvent,
                     )
             }
-            eventStream.publish(reactionEvent)
+            eventHandler.handle(reactionEvent)
         }
     }
 }

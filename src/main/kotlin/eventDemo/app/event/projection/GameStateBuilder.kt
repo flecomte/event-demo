@@ -12,28 +12,18 @@ import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
 
-fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState =
-    buildStateFromEvents(
-        eventStream.readAll(this),
-    )
+fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState {
+    val events = eventStream.readAll(this)
+    if (events.isEmpty()) return GameState(this)
+    return events.buildStateFromEvents()
+}
 
-/**
- * Build the state to the specific event
- */
-fun GameEvent.buildStateFromEventStreamTo(eventStream: GameEventStream): GameState =
-    gameId.buildStateFromEvents(
-        eventStream.readAll(gameId).takeWhile { it != this } + this,
-    )
-
-private fun GameId.buildStateFromEvents(events: List<GameEvent>): GameState =
-    events.fold(GameState(this)) { state, event ->
+fun List<GameEvent>.buildStateFromEvents(): GameState {
+    val gameId = this.firstOrNull()?.gameId ?: error("Cannot build GameState from an empty list")
+    return fold(GameState(gameId)) { state, event ->
         state.apply(event)
     }
-
-fun List<GameEvent>.buildStateFromEvents(): GameState =
-    fold(GameState(this.first().gameId)) { state, event ->
-        state.apply(event)
-    }
+}
 
 fun GameState.apply(event: GameEvent): GameState =
     let { state ->

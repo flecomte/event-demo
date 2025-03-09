@@ -2,7 +2,6 @@ package eventDemo.app.eventListener
 
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventBus
-import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
@@ -11,7 +10,7 @@ import eventDemo.app.event.event.PlayerChoseColorEvent
 import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
-import eventDemo.app.event.projection.buildStateFromEventStreamTo
+import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
 import eventDemo.app.notification.PlayerAsPlayACardNotification
 import eventDemo.app.notification.PlayerHavePassNotification
@@ -29,7 +28,7 @@ import kotlinx.coroutines.channels.trySendBlocking
 
 class GameEventPlayerNotificationListener(
     private val eventBus: GameEventBus,
-    private val eventStream: GameEventStream,
+    private val gameStateRepository: GameStateRepository,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -38,7 +37,7 @@ class GameEventPlayerNotificationListener(
         currentPlayer: Player,
     ) {
         eventBus.subscribe { event: GameEvent ->
-            val currentState = event.buildStateFromEventStreamTo(eventStream)
+            val currentState = gameStateRepository.getUntil(event)
             val notification =
                 when (event) {
                     is NewPlayerEvent -> {
