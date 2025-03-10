@@ -1,6 +1,6 @@
 package eventDemo.libs.command
 
-import eventDemo.shared.CommandIdSerializer
+import eventDemo.configuration.CommandIdSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

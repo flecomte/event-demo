@@ -2,7 +2,7 @@ package eventDemo.app.query
 
 import eventDemo.app.entity.GameId
 import eventDemo.app.event.projection.GameStateRepository
-import eventDemo.shared.GameIdSerializer
+import eventDemo.configuration.GameIdSerializer
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.call

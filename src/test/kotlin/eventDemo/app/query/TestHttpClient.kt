@@ -1,7 +1,7 @@
 package eventDemo.app.query
 import eventDemo.app.entity.GameId
-import eventDemo.shared.GameIdSerializer
-import eventDemo.shared.UUIDSerializer
+import eventDemo.configuration.GameIdSerializer
+import eventDemo.configuration.UUIDSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json

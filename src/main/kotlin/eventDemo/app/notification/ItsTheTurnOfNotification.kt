@@ -1,7 +1,7 @@
 package eventDemo.app.notification
 
 import eventDemo.app.entity.Player
-import eventDemo.shared.UUIDSerializer
+import eventDemo.configuration.UUIDSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
