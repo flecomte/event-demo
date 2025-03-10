@@ -40,7 +40,7 @@ fun Route.readTheGameState(gameStateRepository: GameStateRepository) {
         get<Game.Card> { body ->
             gameStateRepository
                 .get(body.game.id)
-                .lastCard
+                .cardOnCurrentStack
                 ?.card
                 ?.let { call.respond(it) }
                 ?: call.response.status(HttpStatusCode.BadRequest)

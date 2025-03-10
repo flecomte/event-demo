@@ -23,9 +23,9 @@ data class IamReadyToPlayCommand(
         override val player: Player,
     ) : GameCommand.Payload
 
-    fun run(
+    suspend fun run(
         state: GameState,
-        playerErrorNotifier: (String) -> Unit,
+        playerErrorNotifier: suspend (String) -> Unit,
         eventHandler: GameEventHandler,
     ) {
         val playerExist: Boolean = state.players.contains(payload.player)

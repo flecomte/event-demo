@@ -23,11 +23,15 @@ data class ICantPlayCommand(
         override val player: Player,
     ) : GameCommand.Payload
 
-    fun run(
+    suspend fun run(
         state: GameState,
-        playerErrorNotifier: (String) -> Unit,
+        playerErrorNotifier: suspend (String) -> Unit,
         eventHandler: GameEventHandler,
     ) {
+        if (state.currentPlayerTurn != payload.player) {
+            playerErrorNotifier("Its not your turn!")
+            return
+        }
         val playableCards = state.playableCards(payload.player)
         if (playableCards.isEmpty()) {
             val takenCard = state.deck.stack.first()

@@ -7,18 +7,22 @@ import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
 import eventDemo.app.event.event.NewPlayerEvent
+import eventDemo.app.event.event.PlayerActionEvent
 import eventDemo.app.event.event.PlayerChoseColorEvent
 import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState {
     val events = eventStream.readAll(this)
     if (events.isEmpty()) return GameState(this)
-    return events.buildStateFromEvents()
+    return events.buildStateFromEvents().also {
+        KotlinLogging.logger {}.warn { "state is build from scratch for game: $this " }
+    }
 }
 
-fun List<GameEvent>.buildStateFromEvents(): GameState {
+fun Collection<GameEvent>.buildStateFromEvents(): GameState {
     val gameId = this.firstOrNull()?.gameId ?: error("Cannot build GameState from an empty list")
     return fold(GameState(gameId)) { state, event ->
         state.apply(event)
@@ -27,9 +31,14 @@ fun List<GameEvent>.buildStateFromEvents(): GameState {
 
 fun GameState.apply(event: GameEvent): GameState =
     let { state ->
+        if (event is PlayerActionEvent) {
+            if (state.currentPlayerTurn != event.player) {
+                error("inconsistent player turn. currentPlayerTurn: $currentPlayerTurn | player: ${event.player}")
+            }
+        }
         when (event) {
             is CardIsPlayedEvent -> {
-                val direction =
+                val nextDirectionAfterPlay =
                     when (event.card) {
                         is Card.ReverseCard -> state.direction.revert()
                         else -> state.direction
@@ -38,14 +47,21 @@ fun GameState.apply(event: GameEvent): GameState =
                 val color =
                     when (event.card) {
                         is Card.ColorCard -> event.card.color
-                        else -> state.lastColor
+                        is Card.AllColorCard -> null
+                    }
+
+                val currentPlayerAfterThePlay =
+                    if (event.card is Card.AllColorCard) {
+                        currentPlayerTurn
+                    } else {
+                        nextPlayer(nextDirectionAfterPlay)
                     }
 
                 state.copy(
-                    lastPlayer = event.player,
-                    direction = direction,
-                    lastColor = color,
-                    lastCard = GameState.LastCard(event.card, event.player),
+                    currentPlayerTurn = currentPlayerAfterThePlay,
+                    direction = nextDirectionAfterPlay,
+                    colorOnCurrentStack = color,
+                    cardOnCurrentStack = GameState.LastCard(event.card, event.player),
                     deck = state.deck.putOneCardFromHand(event.player, event.card),
                 )
             }
@@ -59,6 +75,7 @@ fun GameState.apply(event: GameEvent): GameState =
             }
 
             is PlayerReadyEvent -> {
+                if (state.isStarted) error("The game is already started")
                 state.copy(
                     readyPlayers = state.readyPlayers + event.player,
                 )
@@ -67,22 +84,23 @@ fun GameState.apply(event: GameEvent): GameState =
             is PlayerHavePassEvent -> {
                 if (event.takenCard != state.deck.stack.first()) error("taken card is not ot top of the stack")
                 state.copy(
-                    lastPlayer = event.player,
+                    currentPlayerTurn = nextPlayerTurn,
                     deck = state.deck.takeOneCardFromStackTo(event.player),
                 )
             }
 
             is PlayerChoseColorEvent -> {
                 state.copy(
-                    lastColor = event.color,
+                    currentPlayerTurn = nextPlayerTurn,
+                    colorOnCurrentStack = event.color,
                 )
             }
 
             is GameStartedEvent -> {
                 state.copy(
-                    lastColor = (event.deck.discard.first() as? Card.ColorCard)?.color ?: state.lastColor,
-                    lastCard = GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
-                    lastPlayer = event.firstPlayer,
+                    colorOnCurrentStack = (event.deck.discard.first() as? Card.ColorCard)?.color ?: state.colorOnCurrentStack,
+                    cardOnCurrentStack = GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
+                    currentPlayerTurn = event.firstPlayer,
                     deck = event.deck,
                     isStarted = true,
                 )

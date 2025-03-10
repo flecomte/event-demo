@@ -24,9 +24,9 @@ data class IWantToJoinTheGameCommand(
         override val player: Player,
     ) : GameCommand.Payload
 
-    fun run(
+    suspend fun run(
         state: GameState,
-        playerErrorNotifier: (String) -> Unit,
+        playerErrorNotifier: suspend (String) -> Unit,
         eventHandler: GameEventHandler,
     ) {
         val logger = KotlinLogging.logger {}

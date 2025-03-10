@@ -10,8 +10,9 @@ import java.util.UUID
  */
 data class PlayerHavePassEvent(
     override val gameId: GameId,
-    val player: Player,
+    override val player: Player,
     val takenCard: Card,
-) : GameEvent {
+) : GameEvent,
+    PlayerActionEvent {
     override val eventId: UUID = UUID.randomUUID()
 }

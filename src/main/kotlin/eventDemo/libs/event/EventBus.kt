@@ -8,6 +8,6 @@ interface EventBus<E : Event<ID>, ID : AggregateId> {
      */
     fun subscribe(
         priority: Int = 0,
-        block: (E) -> Unit,
+        block: suspend (E) -> Unit,
     )
 }

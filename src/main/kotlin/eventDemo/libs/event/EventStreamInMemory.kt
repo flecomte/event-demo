@@ -1,6 +1,8 @@
 package eventDemo.libs.event
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.util.Queue
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.reflect.KClass
 
 /**
@@ -10,7 +12,7 @@ import kotlin.reflect.KClass
  */
 class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> {
     private val logger = KotlinLogging.logger {}
-    private val events: MutableList<E> = mutableListOf()
+    private val events: Queue<E> = ConcurrentLinkedQueue()
 
     override fun publish(event: E) {
         events.add(event)
@@ -34,7 +36,7 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
             .filterIsInstance(eventType.java)
             .lastOrNull { it.gameId == aggregateId }
 
-    override fun readAll(aggregateId: ID): List<E> = events
+    override fun readAll(aggregateId: ID): Set<E> = events.toSet()
 }
 
 inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStream<E, ID>.readLastOf(aggregateId: ID): R? =

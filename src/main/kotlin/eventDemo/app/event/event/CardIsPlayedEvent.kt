@@ -11,6 +11,7 @@ import java.util.UUID
 data class CardIsPlayedEvent(
     override val gameId: GameId,
     val card: Card,
-    val player: Player,
+    override val player: Player,
     override val eventId: UUID = UUID.randomUUID(),
-) : GameEvent
+) : GameEvent,
+    PlayerActionEvent

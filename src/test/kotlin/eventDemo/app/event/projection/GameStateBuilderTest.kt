@@ -69,7 +69,7 @@ class GameStateBuilderTest :
                     val event = CardIsPlayedEvent(gameId, playedCard, player1)
                     apply(event).also { state ->
                         state.gameId shouldBeEqual gameId
-                        assertNotNull(state.lastCard).card shouldBeEqual playedCard
+                        assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
                         assertIs<Card.NumericCard>(playedCard).let {
                             it.number shouldBeEqual 0
                             it.color shouldBeEqual Card.Color.Red
@@ -80,7 +80,7 @@ class GameStateBuilderTest :
                     val event = CardIsPlayedEvent(gameId, playedCard, player2)
                     apply(event).also { state ->
                         state.gameId shouldBeEqual gameId
-                        assertNotNull(state.lastCard).card shouldBeEqual playedCard
+                        assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
                         assertIs<Card.NumericCard>(playedCard).let {
                             it.number shouldBeEqual 7
                             it.color shouldBeEqual Card.Color.Red

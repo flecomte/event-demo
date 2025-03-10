@@ -10,9 +10,9 @@ import kotlinx.serialization.Serializable
 data class GameState(
     val gameId: GameId,
     val players: Set<Player> = emptySet(),
-    val lastPlayer: Player? = null,
-    val lastCard: LastCard? = null,
-    val lastColor: Card.Color? = null,
+    val currentPlayerTurn: Player? = null,
+    val cardOnCurrentStack: LastCard? = null,
+    val colorOnCurrentStack: Card.Color? = null,
     val direction: Direction = Direction.CLOCKWISE,
     val readyPlayers: Set<Player> = emptySet(),
     val deck: Deck = Deck(players),
@@ -42,8 +42,8 @@ data class GameState(
         return players.size == readyPlayers.size && players.all { readyPlayers.contains(it) }
     }
 
-    private val lastPlayerIndex: Int? get() {
-        val i = players.indexOf(lastPlayer)
+    private val currentPlayerIndex: Int? get() {
+        val i = players.indexOf(currentPlayerTurn)
         return if (i == -1) {
             null
         } else {
@@ -51,28 +51,42 @@ data class GameState(
         }
     }
 
-    private val nextPlayerIndex: Int get() {
-        if (players.size == 0) return 0
+    private fun nextPlayerIndex(direction: Direction): Int {
+        if (players.isEmpty()) return 0
 
-        val y =
-            if (direction == Direction.CLOCKWISE) {
-                +1
-            } else {
-                -1
-            }
-
-        return ((lastPlayerIndex ?: 0) + y) % players.size
-    }
-
-    val nextPlayer: Player? by lazy {
-        if (players.isEmpty()) {
-            null
+        return if (direction == Direction.CLOCKWISE) {
+            sidePlayerIndexClockwise
         } else {
-            players.elementAt(nextPlayerIndex)
+            sidePlayerIndexCounterClockwise
         }
     }
 
-    val Player.currentIndex: Int get() = players.indexOf(this)
+    fun nextPlayer(direction: Direction): Player = players.elementAt(nextPlayerIndex(direction))
+
+    private val sidePlayerIndexClockwise: Int by lazy {
+        if (players.isEmpty()) {
+            0
+        } else {
+            ((currentPlayerIndex ?: 0) + 1) % players.size
+        }
+    }
+    private val sidePlayerIndexCounterClockwise: Int by lazy {
+        if (players.isEmpty()) {
+            0
+        } else {
+            ((currentPlayerIndex ?: 0) - 1) % players.size
+        }
+    }
+
+    val nextPlayerTurn: Player? by lazy {
+        if (players.isEmpty()) {
+            null
+        } else {
+            nextPlayer(direction)
+        }
+    }
+
+    private val Player.currentIndex: Int get() = players.indexOf(this)
 
     fun Player.playerDiffIndex(nextPlayer: Player): Int =
         if (direction == Direction.CLOCKWISE) {
@@ -82,8 +96,8 @@ data class GameState(
         }.let { it % players.size }
 
     val Player.cardOnBoardIsForYou: Boolean get() {
-        if (lastCard == null) error("No card")
-        return this.playerDiffIndex(lastCard.player) == 1
+        if (cardOnCurrentStack == null) error("No card")
+        return this.playerDiffIndex(cardOnCurrentStack.player) == 1
     }
 
     fun playableCards(player: Player): List<Card> =
@@ -102,7 +116,7 @@ data class GameState(
         player: Player,
         card: Card,
     ): Boolean {
-        val cardOnBoard = lastCard?.card ?: return false
+        val cardOnBoard = cardOnCurrentStack?.card ?: return false
         return when (cardOnBoard) {
             is Card.NumericCard -> {
                 when (card) {
@@ -134,7 +148,7 @@ data class GameState(
             is Card.ChangeColorCard -> {
                 when (card) {
                     is Card.AllColorCard -> true
-                    is Card.ColorCard -> card.color == lastColor
+                    is Card.ColorCard -> card.color == colorOnCurrentStack
                 }
             }
 
@@ -156,7 +170,7 @@ data class GameState(
                 } else {
                     when (card) {
                         is Card.AllColorCard -> true
-                        is Card.ColorCard -> card.color == lastColor
+                        is Card.ColorCard -> card.color == colorOnCurrentStack
                     }
                 }
             }

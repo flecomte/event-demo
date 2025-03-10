@@ -22,5 +22,5 @@ interface EventStream<E : Event<ID>, ID : AggregateId> {
     ): R?
 
     /** Reads all events associated with a given aggregate ID */
-    fun readAll(aggregateId: ID): List<E>
+    fun readAll(aggregateId: ID): Set<E>
 }

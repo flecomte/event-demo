@@ -1,5 +1,6 @@
 package eventDemo.app.eventListener
 
+import eventDemo.app.entity.Card
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.event.CardIsPlayedEvent
@@ -11,6 +12,8 @@ import eventDemo.app.event.event.PlayerHavePassEvent
 import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
 import eventDemo.app.event.projection.GameStateRepository
+import eventDemo.app.notification.ItsTheTurnOfNotification
+import eventDemo.app.notification.Notification
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
 import eventDemo.app.notification.PlayerAsPlayACardNotification
 import eventDemo.app.notification.PlayerHavePassNotification
@@ -33,100 +36,110 @@ class GameEventPlayerNotificationListener(
     private val logger = KotlinLogging.logger {}
 
     fun startListening(
-        outgoing: SendChannel<Frame>,
+        outgoingNotificationChannel: SendChannel<Frame>,
         currentPlayer: Player,
     ) {
         eventBus.subscribe { event: GameEvent ->
             val currentState = gameStateRepository.getUntil(event)
-            val notification =
-                when (event) {
-                    is NewPlayerEvent -> {
-                        if (currentPlayer != event.player) {
-                            PlayerAsJoinTheGameNotification(
-                                player = event.player,
-                            )
-                        } else {
-                            WelcomeToTheGameNotification(
-                                players = currentState.players,
-                            )
-                        }
-                    }
 
-                    is CardIsPlayedEvent -> {
-                        if (currentPlayer != event.player) {
-                            PlayerAsPlayACardNotification(
-                                player = event.player,
-                                card = event.card,
-                            )
-                        } else {
-                            null
-                        }
+            fun Notification.send() {
+                if (currentState.players.contains(currentPlayer)) {
+                    // Only notify players who have already joined the game.
+                    outgoingNotificationChannel.trySendBlocking(toFrame())
+                    logger.atInfo {
+                        message = "Notification for player ${currentPlayer.name} was SEND: ${this@send}"
+                        payload = mapOf("notification" to this@send, "event" to event)
                     }
-
-                    is GameStartedEvent -> {
-                        TheGameWasStartedNotification(
-                            hand =
-                                event.deck.playersHands.getHand(currentPlayer)
-                                    ?: error("You are not in the game"),
-                        )
+                } else {
+                    // Rare use case, when a connexion is created with the channel,
+                    // but the player was not already join in the game
+                    logger.atWarn {
+                        message = "Notification for player ${currentPlayer.name} was SKIP, No player on the game: ${this@send}"
+                        payload = mapOf("notification" to this@send, "event" to event)
                     }
+                }
+            }
 
-                    is PlayerChoseColorEvent -> {
-                        if (currentPlayer != event.player) {
-                            PlayerWasChoseTheCardColorNotification(
-                                player = event.player,
-                                color = event.color,
-                            )
-                        } else {
-                            null
-                        }
-                    }
+            fun sendNextTurnNotif() =
+                ItsTheTurnOfNotification(
+                    player = currentState.currentPlayerTurn ?: error("No player turn defined"),
+                ).send()
 
-                    is PlayerHavePassEvent -> {
-                        if (currentPlayer == event.player) {
-                            YourNewCardNotification(
-                                card = event.takenCard,
-                            )
-                        } else {
-                            PlayerHavePassNotification(
-                                player = event.player,
-                            )
-                        }
-                    }
-
-                    is PlayerReadyEvent -> {
-                        if (currentPlayer != event.player) {
-                            PlayerWasReadyNotification(
-                                player = event.player,
-                            )
-                        } else {
-                            null
-                        }
-                    }
-
-                    is PlayerWinEvent -> {
-                        PlayerWinNotification(
+            when (event) {
+                is NewPlayerEvent -> {
+                    if (currentPlayer != event.player) {
+                        PlayerAsJoinTheGameNotification(
                             player = event.player,
-                        )
+                        ).send()
+                    } else {
+                        WelcomeToTheGameNotification(
+                            players = currentState.players,
+                        ).send()
                     }
                 }
 
-            if (notification == null) {
-                logger.atInfo {
-                    message = "Notification Ignore: $event"
-                    payload = mapOf("event" to event)
+                is CardIsPlayedEvent -> {
+                    if (currentPlayer != event.player) {
+                        PlayerAsPlayACardNotification(
+                            player = event.player,
+                            card = event.card,
+                        ).send()
+                    }
+
+                    if (event.card !is Card.AllColorCard) {
+                        ItsTheTurnOfNotification(
+                            player = currentState.currentPlayerTurn ?: error("No player turn defined"),
+                        ).send()
+                    }
                 }
-            } else if (currentState.players.contains(currentPlayer)) {
-                // Only notify players who have already joined the game.
-                outgoing.trySendBlocking(notification.toFrame())
-                logger.atInfo {
-                    message = "Notification SEND: $notification"
-                    payload = mapOf("notification" to notification, "event" to event)
+
+                is GameStartedEvent -> {
+                    TheGameWasStartedNotification(
+                        hand =
+                            event.deck.playersHands.getHand(currentPlayer)
+                                ?: error("You are not in the game"),
+                    ).send()
+
+                    sendNextTurnNotif()
                 }
-            } else {
-                logger.atInfo {
-                    message = "Notification SKIP: $notification"
-                    payload = mapOf("notification" to notification, "event" to event)
+
+                is PlayerChoseColorEvent -> {
+                    if (currentPlayer != event.player) {
+                        PlayerWasChoseTheCardColorNotification(
+                            player = event.player,
+                            color = event.color,
+                        ).send()
+                    }
+
+                    sendNextTurnNotif()
+                }
+
+                is PlayerHavePassEvent -> {
+                    if (currentPlayer == event.player) {
+                        YourNewCardNotification(
+                            card = event.takenCard,
+                        ).send()
+                    } else {
+                        PlayerHavePassNotification(
+                            player = event.player,
+                        ).send()
+                    }
+
+                    sendNextTurnNotif()
+                }
+
+                is PlayerReadyEvent -> {
+                    if (currentPlayer != event.player) {
+                        PlayerWasReadyNotification(
+                            player = event.player,
+                        ).send()
+                    }
+                }
+
+                is PlayerWinEvent -> {
+                    PlayerWinNotification(
+                        player = event.player,
+                    ).send()
                 }
             }
         }

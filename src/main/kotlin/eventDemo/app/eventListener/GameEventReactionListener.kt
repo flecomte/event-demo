@@ -4,6 +4,7 @@ import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
+import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
 import eventDemo.app.event.projection.GameState
 import eventDemo.app.event.projection.GameStateRepository
@@ -29,7 +30,7 @@ class GameEventReactionListener(
         }
     }
 
-    private fun sendStartGameEvent(
+    private suspend fun sendStartGameEvent(
         state: GameState,
         event: GameEvent,
     ) {
@@ -40,7 +41,7 @@ class GameEventReactionListener(
                     state.players,
                 )
             logger.atInfo {
-                message = "Event Send on reaction of: $event"
+                message = "Reaction event was Send $reactionEvent on reaction of: $event"
                 payload =
                     mapOf(
                         "event" to event,
@@ -48,6 +49,10 @@ class GameEventReactionListener(
                     )
             }
             eventHandler.handle(reactionEvent)
+        } else {
+            if (event is PlayerReadyEvent) {
+                logger.info { "All players was not ready ${state.readyPlayers}" }
+            }
         }
     }
 
@@ -63,7 +68,7 @@ class GameEventReactionListener(
                     winner,
                 )
             logger.atInfo {
-                message = "Event Send on reaction of: $event"
+                message = "Reaction event was Send $reactionEvent on reaction of: $event"
                 payload =
                     mapOf(
                         "event" to event,

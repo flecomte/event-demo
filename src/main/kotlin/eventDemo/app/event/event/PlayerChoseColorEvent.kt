@@ -10,8 +10,9 @@ import java.util.UUID
  */
 data class PlayerChoseColorEvent(
     override val gameId: GameId,
-    val player: Player,
+    override val player: Player,
     val color: Card.Color,
-) : GameEvent {
+) : GameEvent,
+    PlayerActionEvent {
     override val eventId: UUID = UUID.randomUUID()
 }

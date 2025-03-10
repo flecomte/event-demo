@@ -22,8 +22,7 @@ class GameStateRepository(
             val projection = projections[event.gameId]
             if (projection == null) {
                 event
-                    .gameId
-                    .buildStateFromEventStream(eventStream)
+                    .buildStateFromEventStreamTo(eventStream)
                     .update()
             } else {
                 projection

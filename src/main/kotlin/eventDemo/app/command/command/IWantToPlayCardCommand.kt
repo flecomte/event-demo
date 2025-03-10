@@ -25,13 +25,17 @@ data class IWantToPlayCardCommand(
         val card: Card,
     ) : GameCommand.Payload
 
-    fun run(
+    suspend fun run(
         state: GameState,
-        playerErrorNotifier: (String) -> Unit,
+        playerErrorNotifier: suspend (String) -> Unit,
         eventHandler: GameEventHandler,
     ) {
         if (!state.isStarted) {
             playerErrorNotifier("The game is Not started")
+            return
+        }
+        if (state.currentPlayerTurn != payload.player) {
+            playerErrorNotifier("Its not your turn!")
             return
         }
 

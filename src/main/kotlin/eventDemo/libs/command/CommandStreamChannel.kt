@@ -49,7 +49,7 @@ class CommandStreamChannel<C : Command>(
         val actionResult = runCatching { status.action(command) }
         if (actionResult.isFailure) {
             logger.atInfo {
-                message = "Error on compute the Command"
+                message = "Error on compute the Command: $command"
                 payload = mapOf("command" to command)
                 cause = actionResult.exceptionOrNull()
             }

@@ -15,7 +15,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.trySendBlocking
 
 /**
  * Listen [GameCommand] on [GameCommandStream], check the validity and execute an action.
@@ -33,39 +32,29 @@ class GameCommandHandler(
      */
     suspend fun handle(
         player: Player,
-        incoming: ReceiveChannel<Frame>,
-        outgoing: SendChannel<Frame>,
-    ) {
-        val commandStream = GameCommandStream(incoming)
-        val playerErrorNotifier: (String) -> Unit = {
+        incomingCommandChannel: ReceiveChannel<Frame>,
+        outgoingErrorChannelNotification: SendChannel<Frame>,
+    ) = GameCommandStream(incomingCommandChannel).process { command ->
+        if (command.payload.player.id != player.id) {
+            nack()
+        }
+
+        val playerErrorNotifier: suspend (String) -> Unit = {
             val notification = ErrorNotification(message = it)
-            logger.atInfo {
+            logger.atWarn {
                 message = "Notification send ERROR: ${notification.message}"
                 payload = mapOf("notification" to notification)
             }
-            outgoing.trySendBlocking(notification.toFrame())
+            outgoingErrorChannelNotification.send(notification.toFrame())
         }
-        return init(player, commandStream, playerErrorNotifier)
-    }
 
-    private suspend fun init(
-        player: Player,
-        commandStream: GameCommandStream,
-        playerErrorNotifier: (String) -> Unit,
-    ) {
-        commandStream.process { command ->
-            if (command.payload.player.id != player.id) {
-                nack()
-            }
+        val gameState = gameStateRepository.get(command.payload.gameId)
 
-            val gameState = gameStateRepository.get(command.payload.gameId)
-
-            when (command) {
-                is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-                is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-                is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-                is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-            }
+        when (command) {
+            is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+            is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+            is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+            is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
         }
     }
 }
