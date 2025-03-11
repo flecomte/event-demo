@@ -31,9 +31,17 @@ fun Collection<GameEvent>.buildStateFromEvents(): GameState {
 
 fun GameState.apply(event: GameEvent): GameState =
     let { state ->
+        val logger = KotlinLogging.logger { }
         if (event is PlayerActionEvent) {
             if (state.currentPlayerTurn != event.player) {
-                error("inconsistent player turn. currentPlayerTurn: $currentPlayerTurn | player: ${event.player}")
+                logger.atError {
+                    message = "Inconsistent player turn. CurrentPlayerTurn: $currentPlayerTurn | Player: ${event.player}"
+                    payload =
+                        mapOf(
+                            "CurrentPlayerTurn" to (currentPlayerTurn ?: "No currentPlayerTurn"),
+                            "Player" to event.player,
+                        )
+                }
             }
         }
         when (event) {
@@ -67,7 +75,9 @@ fun GameState.apply(event: GameEvent): GameState =
             }
 
             is NewPlayerEvent -> {
-                if (state.isStarted) error("The game is already started")
+                if (state.isStarted) {
+                    logger.error { "The game is already started" }
+                }
 
                 state.copy(
                     players = state.players + event.player,
@@ -75,14 +85,18 @@ fun GameState.apply(event: GameEvent): GameState =
             }
 
             is PlayerReadyEvent -> {
-                if (state.isStarted) error("The game is already started")
+                if (state.isStarted) {
+                    logger.error { "The game is already started" }
+                }
                 state.copy(
                     readyPlayers = state.readyPlayers + event.player,
                 )
             }
 
             is PlayerHavePassEvent -> {
-                if (event.takenCard != state.deck.stack.first()) error("taken card is not ot top of the stack")
+                if (event.takenCard != state.deck.stack.first()) {
+                    logger.error { "taken card is not ot top of the stack: ${event.takenCard}" }
+                }
                 state.copy(
                     currentPlayerTurn = nextPlayerTurn,
                     deck = state.deck.takeOneCardFromStackTo(event.player),

@@ -17,7 +17,7 @@ fun errorNotifier(
         ErrorNotification(message = it)
             .let { notification ->
                 logger.atWarn {
-                    message = "Notification send ERROR: ${notification.message}"
+                    message = "Notification ERROR sent: ${notification.message}"
                     payload =
                         mapOf(
                             "notification" to notification,

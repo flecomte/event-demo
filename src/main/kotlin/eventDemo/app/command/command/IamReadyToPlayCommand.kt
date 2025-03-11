@@ -32,7 +32,9 @@ data class IamReadyToPlayCommand(
         val playerExist: Boolean = state.players.contains(payload.player)
         val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(payload.player)
 
-        if (!playerExist) {
+        if (state.isStarted) {
+            playerErrorNotifier("The game is already started")
+        } else if (!playerExist) {
             playerErrorNotifier("You are not in the game")
         } else if (playerIsAlreadyReady) {
             playerErrorNotifier("You are already ready")

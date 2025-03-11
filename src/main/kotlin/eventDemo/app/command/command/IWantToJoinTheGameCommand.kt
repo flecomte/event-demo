@@ -7,7 +7,6 @@ import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.NewPlayerEvent
 import eventDemo.app.event.projection.GameState
 import eventDemo.libs.command.CommandId
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 
 /**
@@ -30,7 +29,6 @@ data class IWantToJoinTheGameCommand(
         playerErrorNotifier: ErrorNotifier,
         eventHandler: GameEventHandler,
     ) {
-        val logger = KotlinLogging.logger {}
         if (!state.isStarted) {
             eventHandler.handle(
                 NewPlayerEvent(
@@ -39,10 +37,6 @@ data class IWantToJoinTheGameCommand(
                 ),
             )
         } else {
-            logger.atWarn {
-                message = "The game is already started"
-                payload = mapOf("player" to this@IWantToJoinTheGameCommand.payload.player)
-            }
             playerErrorNotifier("The game is already started")
         }
     }
