@@ -12,8 +12,8 @@ import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.disableShuffleDeck
 import eventDemo.app.event.projection.GameState
 import eventDemo.app.event.projection.buildStateFromEventStream
-import eventDemo.app.eventListener.GameEventPlayerNotificationListener
-import eventDemo.app.eventListener.GameEventReactionListener
+import eventDemo.app.eventListener.PlayerNotificationEventListener
+import eventDemo.app.eventListener.ReactionEventListener
 import eventDemo.app.notification.ItsTheTurnOfNotification
 import eventDemo.app.notification.Notification
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
@@ -131,8 +131,8 @@ class GameStateTest :
             koinApplication { modules(appKoinModule) }.koin.apply {
                 val commandHandler by inject<GameCommandHandler>()
                 val eventStream by inject<GameEventStream>()
-                val playerNotificationListener by inject<GameEventPlayerNotificationListener>()
-                GameEventReactionListener(get(), get(), get()).init()
+                val playerNotificationListener by inject<PlayerNotificationEventListener>()
+                ReactionEventListener(get(), get(), get()).init()
                 playerNotificationListener.startListening(channelNotification1, player1)
                 playerNotificationListener.startListening(channelNotification2, player2)
 

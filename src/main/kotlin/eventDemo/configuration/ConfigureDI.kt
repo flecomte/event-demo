@@ -6,7 +6,7 @@ import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.projection.GameStateRepository
-import eventDemo.app.eventListener.GameEventPlayerNotificationListener
+import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.libs.command.CommandStreamChannelBuilder
 import eventDemo.libs.event.EventBusInMemory
 import eventDemo.libs.event.EventStreamInMemory
@@ -41,5 +41,5 @@ val appKoinModule =
 
         singleOf(::GameEventHandler)
         singleOf(::GameCommandHandler)
-        singleOf(::GameEventPlayerNotificationListener)
+        singleOf(::PlayerNotificationEventListener)
     }

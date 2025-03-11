@@ -10,7 +10,7 @@ import eventDemo.app.event.projection.GameState
 import eventDemo.app.event.projection.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-class GameEventReactionListener(
+class ReactionEventListener(
     private val eventBus: GameEventBus,
     private val eventHandler: GameEventHandler,
     private val gameStateRepository: GameStateRepository,

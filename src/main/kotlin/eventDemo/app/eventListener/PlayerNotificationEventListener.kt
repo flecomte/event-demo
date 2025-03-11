@@ -27,7 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.trySendBlocking
 
-class GameEventPlayerNotificationListener(
+class PlayerNotificationEventListener(
     private val eventBus: GameEventBus,
     private val gameStateRepository: GameStateRepository,
 ) {

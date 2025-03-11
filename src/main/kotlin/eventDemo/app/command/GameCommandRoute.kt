@@ -1,7 +1,7 @@
 package eventDemo.app.command
 
 import eventDemo.app.entity.Player
-import eventDemo.app.eventListener.GameEventPlayerNotificationListener
+import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.app.notification.Notification
 import eventDemo.libs.fromFrameChannel
 import eventDemo.libs.toObjectChannel
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 @DelicateCoroutinesApi
 fun Route.gameSocket(
-    playerNotificationListener: GameEventPlayerNotificationListener,
+    playerNotificationListener: PlayerNotificationEventListener,
     commandHandler: GameCommandHandler,
 ) {
     authenticate {
