@@ -11,6 +11,7 @@ import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.notification.ErrorNotification
 import eventDemo.app.notification.Notification
+import eventDemo.libs.command.CommandStreamChannelBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -23,6 +24,7 @@ import kotlinx.coroutines.channels.SendChannel
 class GameCommandHandler(
     private val eventHandler: GameEventHandler,
     private val gameStateRepository: GameStateRepository,
+    private val commandStreamChannel: CommandStreamChannelBuilder<GameCommand>,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -33,27 +35,43 @@ class GameCommandHandler(
         player: Player,
         incomingCommandChannel: ReceiveChannel<GameCommand>,
         outgoingErrorChannelNotification: SendChannel<Notification>,
-    ) = GameCommandStream(incomingCommandChannel).process { command ->
-        if (command.payload.player.id != player.id) {
-            nack()
-        }
-
-        val playerErrorNotifier: suspend (String) -> Unit = {
-            val notification = ErrorNotification(message = it)
-            logger.atWarn {
-                message = "Notification send ERROR: ${notification.message}"
-                payload = mapOf("notification" to notification)
+    ) = commandStreamChannel(incomingCommandChannel)
+        .process { command ->
+            if (command.payload.player.id != player.id) {
+                logger.atWarn {
+                    message = "Handle command Refuse, the player of the command is not the same: $command"
+                    payload = mapOf("command" to command)
+                }
+                nack()
+            } else {
+                logger.atInfo {
+                    message = "Handle command: $command"
+                    payload = mapOf("command" to command)
+                }
+                command.run(outgoingErrorChannelNotification)
             }
-            outgoingErrorChannelNotification.send(notification)
         }
 
-        val gameState = gameStateRepository.get(command.payload.gameId)
+    private suspend fun GameCommand.run(outgoingErrorChannelNotification: SendChannel<Notification>) {
+        val gameState = gameStateRepository.get(payload.gameId)
+        val playerErrorNotifier = errorNotifier(outgoingErrorChannelNotification)
 
-        when (command) {
-            is IWantToPlayCardCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-            is IamReadyToPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-            is IWantToJoinTheGameCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
-            is ICantPlayCommand -> command.run(gameState, playerErrorNotifier, eventHandler)
+        when (this) {
+            is IWantToPlayCardCommand -> run(gameState, playerErrorNotifier, eventHandler)
+            is IamReadyToPlayCommand -> run(gameState, playerErrorNotifier, eventHandler)
+            is IWantToJoinTheGameCommand -> run(gameState, playerErrorNotifier, eventHandler)
+            is ICantPlayCommand -> run(gameState, playerErrorNotifier, eventHandler)
         }
     }
 }
+
+fun errorNotifier(channel: SendChannel<Notification>): suspend (String) -> Unit =
+    {
+        val logger = KotlinLogging.logger { }
+        val notification = ErrorNotification(message = it)
+        logger.atWarn {
+            message = "Notification send ERROR: ${notification.message}"
+            payload = mapOf("notification" to notification)
+        }
+        channel.send(notification)
+    }

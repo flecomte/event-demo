@@ -2,18 +2,48 @@ package eventDemo.libs.command
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+
+class CommandStreamChannelBuilder<C : Command>(
+    private val maxCacheTime: Duration = 10.minutes,
+) {
+    operator fun invoke(incoming: ReceiveChannel<C>): CommandStreamChannel<C> = CommandStreamChannel(incoming, maxCacheTime)
+}
 
 /**
  * Manage [Command]'s with kotlin Channel
  */
 class CommandStreamChannel<C : Command>(
     private val incoming: ReceiveChannel<C>,
+    private val maxCacheTime: Duration = 10.minutes,
 ) : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
+    private val executedCommand: ConcurrentHashMap<CommandId, Pair<Boolean, Instant>> = ConcurrentHashMap()
 
     override suspend fun process(action: CommandBlock<C>) {
         for (command in incoming) {
-            compute(command, action)
+            val now = Clock.System.now()
+            val (status, _) = executedCommand.computeIfAbsent(command.id) { Pair(false, now) }
+
+            if (status) {
+                logger.atWarn {
+                    message = "Command already executed: $command"
+                    payload = mapOf("command" to command)
+                }
+            } else {
+                compute(command, action)
+            }
+            executedCommand
+                .filterValues { (_, date) ->
+                    (date + maxCacheTime) > now
+                }.keys
+                .forEach {
+                    executedCommand.remove(it)
+                }
         }
     }
 

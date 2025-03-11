@@ -23,9 +23,7 @@ import eventDemo.app.notification.PlayerWinNotification
 import eventDemo.app.notification.TheGameWasStartedNotification
 import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.app.notification.YourNewCardNotification
-import eventDemo.shared.toFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.websocket.Frame
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.trySendBlocking
 
@@ -36,7 +34,7 @@ class GameEventPlayerNotificationListener(
     private val logger = KotlinLogging.logger {}
 
     fun startListening(
-        outgoingNotificationChannel: SendChannel<Frame>,
+        outgoingNotificationChannel: SendChannel<Notification>,
         currentPlayer: Player,
     ) {
         eventBus.subscribe { event: GameEvent ->
@@ -45,7 +43,7 @@ class GameEventPlayerNotificationListener(
             fun Notification.send() {
                 if (currentState.players.contains(currentPlayer)) {
                     // Only notify players who have already joined the game.
-                    outgoingNotificationChannel.trySendBlocking(toFrame())
+                    outgoingNotificationChannel.trySendBlocking(this)
                     logger.atInfo {
                         message = "Notification for player ${currentPlayer.name} was SEND: ${this@send}"
                         payload = mapOf("notification" to this@send, "event" to event)

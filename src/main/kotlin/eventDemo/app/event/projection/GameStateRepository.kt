@@ -12,10 +12,10 @@ class GameStateRepository(
     eventHandler: GameEventHandler,
     private val maxSnapshotCacheSize: Int = 20,
 ) {
-    private val projections: MutableMap<GameId, GameState> = ConcurrentHashMap()
+    private val projections: ConcurrentHashMap<GameId, GameState> = ConcurrentHashMap()
     private val version: AtomicInteger = AtomicInteger(0)
-    private val projectionsSnapshot: MutableMap<GameEvent, GameState> = ConcurrentHashMap()
-    private val sortedSnapshotByVersion: MutableMap<GameEvent, Int> = ConcurrentHashMap()
+    private val projectionsSnapshot: ConcurrentHashMap<GameEvent, GameState> = ConcurrentHashMap()
+    private val sortedSnapshotByVersion: ConcurrentHashMap<GameEvent, Int> = ConcurrentHashMap()
 
     init {
         eventHandler.registerProjectionBuilder { event ->
@@ -68,8 +68,9 @@ class GameStateRepository(
      * It fetches it from the local cache if possible, otherwise it builds it.
      */
     fun get(gameId: GameId): GameState =
-        projections[gameId]
-            ?: gameId.buildStateFromEventStream(eventStream)
+        projections.computeIfAbsent(gameId) {
+            gameId.buildStateFromEventStream(eventStream)
+        }
 
     /**
      * Get the [GameState] to the specific [event][GameEvent].
@@ -78,8 +79,9 @@ class GameStateRepository(
      * It fetches it from the local cache if possible, otherwise it builds it.
      */
     fun getUntil(event: GameEvent): GameState =
-        projectionsSnapshot[event]
-            ?: event.buildStateFromEventStreamTo(eventStream)
+        projectionsSnapshot.computeIfAbsent(event) {
+            event.buildStateFromEventStreamTo(eventStream)
+        }
 
     private fun GameState.update() {
         projections[gameId] = this

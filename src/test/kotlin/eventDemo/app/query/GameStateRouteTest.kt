@@ -50,7 +50,7 @@ class GameStateRouteTest :
                     }.apply {
                         assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
                         val state = call.body<GameState>()
-                        assertEquals(id, state.gameId)
+                        id shouldBeEqual state.gameId
                         state.players shouldHaveSize 0
                         state.isStarted shouldBeEqual false
                     }

@@ -24,7 +24,7 @@ class DeckTest :
             deck.allCards().map { it.id }.shouldBeUnique()
         }
 
-        test("initHands") {
+        test("initHands should be generate the hands of all players from the stack") {
             // Given
             val playerNumbers = 4
             val players = (1..playerNumbers).map { Player(name = "name $it") }.toSet()
@@ -41,7 +41,7 @@ class DeckTest :
             initDeck.allCardCount() shouldBeExactly totalCardsNumber
         }
 
-        test("takeOneCardFromStackTo") {
+        test("takeOneCardFromStackTo player") {
             // Given
             val playerNumbers = 4
             val players = (1..playerNumbers).map { Player(name = "name $it") }.toSet()
@@ -89,7 +89,6 @@ class DeckTest :
             val playerNumbers = 4
             val players = (1..playerNumbers).map { Player(name = "name $it") }.toSet()
             val deck = Deck.newWithoutPlayers().initHands(players)
-            val firstPlayer = players.first()
 
             // When
             val modifiedDeck = deck.placeFirstCardOnDiscard()
