@@ -1,5 +1,6 @@
 package eventDemo.app.command.command
 
+import eventDemo.app.command.ErrorNotifier
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
@@ -27,7 +28,7 @@ data class IWantToPlayCardCommand(
 
     suspend fun run(
         state: GameState,
-        playerErrorNotifier: suspend (String) -> Unit,
+        playerErrorNotifier: ErrorNotifier,
         eventHandler: GameEventHandler,
     ) {
         if (!state.isStarted) {
