@@ -20,16 +20,21 @@ import java.util.UUID
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
         json(
-            Json {
-                serializersModule =
-                    SerializersModule {
-                        contextual(UUID::class) { UUIDSerializer }
-                        contextual(GameId::class) { GameIdSerializer }
-                    }
-            },
+            defaultJsonSerializer(),
         )
     }
 }
+
+fun defaultJsonSerializer(): Json =
+    Json {
+        serializersModule =
+            SerializersModule {
+                contextual(UUID::class) { UUIDSerializer }
+                contextual(GameId::class) { GameIdSerializer }
+                contextual(CommandId::class) { CommandIdSerializer }
+                contextual(Player.PlayerId::class) { PlayerIdSerializer }
+            }
+    }
 
 object CommandIdSerializer : KSerializer<CommandId> {
     override fun deserialize(decoder: Decoder): CommandId = CommandId(decoder.decodeString())

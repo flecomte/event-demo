@@ -1,12 +1,10 @@
 package eventDemo.libs.command
 
 import io.kotest.core.spec.style.FunSpec
-import io.ktor.websocket.Frame
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.channels.Channel
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 @Serializable
 class CommandTest(
@@ -19,12 +17,9 @@ class CommandStreamChannelTest :
         test("send and receive") {
             val command = CommandTest(CommandId())
 
-            val channel = Channel<Frame>()
+            val channel = Channel<CommandTest>()
             val stream =
-                CommandStreamChannel<CommandTest>(
-                    incoming = channel,
-                    deserializer = { Json.decodeFromString(it) },
-                )
+                CommandStreamChannel(channel)
 
             val spyCall: () -> Unit = mockk(relaxed = true)
 
@@ -32,7 +27,7 @@ class CommandStreamChannelTest :
                 println("In action ${it.id}")
                 spyCall()
             }
-            channel.send(Frame.Text(Json.encodeToString(command)))
+            channel.send(command)
             verify(exactly = 1) { spyCall() }
         }
     })

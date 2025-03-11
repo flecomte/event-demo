@@ -20,6 +20,8 @@ import eventDemo.app.notification.PlayerWasReadyNotification
 import eventDemo.app.notification.TheGameWasStartedNotification
 import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
+import eventDemo.libs.fromFrameChannel
+import eventDemo.libs.toObjectChannel
 import eventDemo.shared.toFrame
 import eventDemo.shared.toNotification
 import io.kotest.core.spec.style.FunSpec
@@ -138,10 +140,10 @@ class GameStateTest :
                 playerNotificationListener.startListening(channelNotification2, player2)
 
                 GlobalScope.launch(Dispatchers.IO) {
-                    commandHandler.handle(player1, channelCommand1, channelNotification1)
+                    commandHandler.handle(player1, toObjectChannel(channelCommand1), fromFrameChannel(channelNotification1))
                 }
                 GlobalScope.launch(Dispatchers.IO) {
-                    commandHandler.handle(player2, channelCommand2, channelNotification2)
+                    commandHandler.handle(player2, toObjectChannel(channelCommand2), fromFrameChannel(channelNotification2))
                 }
 
                 joinAll(player1Job, player2Job)

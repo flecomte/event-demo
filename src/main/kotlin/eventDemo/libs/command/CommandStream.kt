@@ -31,3 +31,5 @@ interface CommandStream<C : Command> {
         }
     }
 }
+
+typealias CommandBlock<C> = suspend CommandStream.ComputeStatus.(C) -> Unit

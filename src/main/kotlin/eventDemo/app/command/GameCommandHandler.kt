@@ -10,9 +10,8 @@ import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.notification.ErrorNotification
-import eventDemo.shared.toFrame
+import eventDemo.app.notification.Notification
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.websocket.Frame
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 
@@ -32,8 +31,8 @@ class GameCommandHandler(
      */
     suspend fun handle(
         player: Player,
-        incomingCommandChannel: ReceiveChannel<Frame>,
-        outgoingErrorChannelNotification: SendChannel<Frame>,
+        incomingCommandChannel: ReceiveChannel<GameCommand>,
+        outgoingErrorChannelNotification: SendChannel<Notification>,
     ) = GameCommandStream(incomingCommandChannel).process { command ->
         if (command.payload.player.id != player.id) {
             nack()
@@ -45,7 +44,7 @@ class GameCommandHandler(
                 message = "Notification send ERROR: ${notification.message}"
                 payload = mapOf("notification" to notification)
             }
-            outgoingErrorChannelNotification.send(notification.toFrame())
+            outgoingErrorChannelNotification.send(notification)
         }
 
         val gameState = gameStateRepository.get(command.payload.gameId)

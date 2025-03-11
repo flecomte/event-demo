@@ -1,29 +1,19 @@
 package eventDemo.libs.command
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * Manage [Command]'s with kotlin Channel
  */
 class CommandStreamChannel<C : Command>(
-    private val incoming: ReceiveChannel<Frame>,
-    private val deserializer: (String) -> C,
+    private val incoming: ReceiveChannel<C>,
 ) : CommandStream<C> {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun process(action: CommandBlock<C>) {
-//        incoming.consumeEach { commandAsFrame ->
-//            if (commandAsFrame is Frame.Text) {
-//                compute(deserializer(commandAsFrame.readText()), action)
-//            }
-//        }
         for (command in incoming) {
-            if (command is Frame.Text) {
-                compute(deserializer(command.readText()), action)
-            }
+            compute(command, action)
         }
     }
 

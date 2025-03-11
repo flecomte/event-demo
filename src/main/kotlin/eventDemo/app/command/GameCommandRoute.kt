@@ -2,6 +2,8 @@ package eventDemo.app.command
 
 import eventDemo.app.entity.Player
 import eventDemo.app.eventListener.GameEventPlayerNotificationListener
+import eventDemo.libs.fromFrameChannel
+import eventDemo.libs.toObjectChannel
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -21,7 +23,11 @@ fun Route.gameSocket(
         webSocket("/game") {
             val currentPlayer = call.getPlayer()
             GlobalScope.launch {
-                commandHandler.handle(currentPlayer, incoming, outgoing)
+                commandHandler.handle(
+                    currentPlayer,
+                    toObjectChannel(incoming),
+                    fromFrameChannel(outgoing),
+                )
             }
             playerNotificationListener.startListening(outgoing, currentPlayer)
         }
