@@ -1,5 +1,6 @@
 package eventDemo.libs.event
 
+import kotlinx.datetime.Instant
 import java.util.UUID
 
 /**
@@ -16,5 +17,7 @@ interface AggregateId {
  */
 interface Event<ID : AggregateId> {
     val eventId: UUID
-    val gameId: ID
+    val aggregateId: ID
+    val createdAt: Instant
+    val version: Int
 }

@@ -11,9 +11,12 @@ import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.libs.command.CommandStreamChannelBuilder
 import eventDemo.libs.event.EventBusInMemory
 import eventDemo.libs.event.EventStreamInMemory
+import eventDemo.libs.event.VersionBuilder
+import eventDemo.libs.event.VersionBuilderLocal
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -40,6 +43,7 @@ val appKoinModule =
             CommandStreamChannelBuilder<GameCommand>()
         }
 
+        singleOf(::VersionBuilderLocal) bind VersionBuilder::class
         singleOf(::GameEventHandler)
         singleOf(::GameCommandRunner)
         singleOf(::GameCommandHandler)

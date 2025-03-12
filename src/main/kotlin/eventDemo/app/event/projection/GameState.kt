@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GameState(
-    val gameId: GameId,
+    override val aggregateId: GameId,
+    override val lastEventVersion: Int = 0,
     val players: Set<Player> = emptySet(),
     val currentPlayerTurn: Player? = null,
     val cardOnCurrentStack: LastCard? = null,
@@ -18,7 +19,7 @@ data class GameState(
     val deck: Deck = Deck(players),
     val isStarted: Boolean = false,
     val playerWins: Set<Player> = emptySet(),
-) {
+) : Projection<GameId> {
     @Serializable
     data class LastCard(
         val card: Card,

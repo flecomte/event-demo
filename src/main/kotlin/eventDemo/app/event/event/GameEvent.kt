@@ -11,5 +11,6 @@ import java.util.UUID
 @Serializable
 sealed interface GameEvent : Event<GameId> {
     override val eventId: UUID
-    override val gameId: GameId
+    override val aggregateId: GameId
+    override val version: Int
 }

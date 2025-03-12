@@ -8,6 +8,7 @@ import eventDemo.app.event.event.GameStartedEvent
 import eventDemo.app.event.event.NewPlayerEvent
 import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.disableShuffleDeck
+import eventDemo.libs.event.VersionBuilderLocal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlin.test.assertIs
@@ -17,34 +18,55 @@ class GameStateBuilderTest :
     FunSpec({
         test("apply") {
             disableShuffleDeck()
+            val versionBuilder = VersionBuilderLocal()
             val gameId = GameId()
             val player1 = Player(name = "Nikola")
             val player2 = Player(name = "Einstein")
 
             GameState(gameId)
                 .run {
-                    val event = NewPlayerEvent(gameId, player1)
+                    val event =
+                        NewPlayerEvent(
+                            aggregateId = gameId,
+                            player = player1,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         state.isReady shouldBeEqual false
                         state.isStarted shouldBeEqual false
                     }
                 }.run {
-                    val event = NewPlayerEvent(gameId, player2)
+                    val event =
+                        NewPlayerEvent(
+                            aggregateId = gameId,
+                            player = player2,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         state.players shouldBeEqual setOf(player1, player2)
                     }
                 }.run {
-                    val event = PlayerReadyEvent(gameId, player1)
+                    val event =
+                        PlayerReadyEvent(
+                            aggregateId = gameId,
+                            player = player1,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         state.readyPlayers shouldBeEqual setOf(player1)
                     }
                 }.run {
-                    val event = PlayerReadyEvent(gameId, player2)
+                    val event =
+                        PlayerReadyEvent(
+                            aggregateId = gameId,
+                            player = player2,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         state.readyPlayers shouldBeEqual setOf(player1, player2)
                         state.isReady shouldBeEqual true
                         state.isStarted shouldBeEqual false
@@ -52,12 +74,13 @@ class GameStateBuilderTest :
                 }.run {
                     val event =
                         GameStartedEvent.new(
-                            gameId,
-                            setOf(player1, player2),
+                            id = gameId,
+                            players = setOf(player1, player2),
                             shuffleIsDisabled = true,
+                            version = versionBuilder.buildNextVersion(),
                         )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         state.isStarted shouldBeEqual true
                         assertIs<Card.NumericCard>(state.deck.stack.first()).let {
                             it.number shouldBeEqual 6
@@ -66,9 +89,15 @@ class GameStateBuilderTest :
                     }
                 }.run {
                     val playedCard = playableCards(player1)[0]
-                    val event = CardIsPlayedEvent(gameId, playedCard, player1)
+                    val event =
+                        CardIsPlayedEvent(
+                            aggregateId = gameId,
+                            card = playedCard,
+                            player = player1,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
                         assertIs<Card.NumericCard>(playedCard).let {
                             it.number shouldBeEqual 0
@@ -77,9 +106,15 @@ class GameStateBuilderTest :
                     }
                 }.run {
                     val playedCard = playableCards(player2)[0]
-                    val event = CardIsPlayedEvent(gameId, playedCard, player2)
+                    val event =
+                        CardIsPlayedEvent(
+                            aggregateId = gameId,
+                            card = playedCard,
+                            player = player2,
+                            version = versionBuilder.buildNextVersion(),
+                        )
                     apply(event).also { state ->
-                        state.gameId shouldBeEqual gameId
+                        state.aggregateId shouldBeEqual gameId
                         assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
                         assertIs<Card.NumericCard>(playedCard).let {
                             it.number shouldBeEqual 7

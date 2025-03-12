@@ -23,27 +23,28 @@ fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState {
 }
 
 fun Collection<GameEvent>.buildStateFromEvents(): GameState {
-    val gameId = this.firstOrNull()?.gameId ?: error("Cannot build GameState from an empty list")
+    val gameId = this.firstOrNull()?.aggregateId ?: error("Cannot build GameState from an empty list")
     return fold(GameState(gameId)) { state, event ->
         state.apply(event)
     }
 }
 
-fun GameState.apply(event: GameEvent): GameState =
-    let { state ->
+fun GameState?.apply(event: GameEvent): GameState =
+    (this ?: GameState(event.aggregateId)).let { state ->
         val logger = KotlinLogging.logger { }
         if (event is PlayerActionEvent) {
             if (state.currentPlayerTurn != event.player) {
                 logger.atError {
-                    message = "Inconsistent player turn. CurrentPlayerTurn: $currentPlayerTurn | Player: ${event.player}"
+                    message = "Inconsistent player turn. CurrentPlayerTurn: $state.currentPlayerTurn | Player: ${event.player}"
                     payload =
                         mapOf(
-                            "CurrentPlayerTurn" to (currentPlayerTurn ?: "No currentPlayerTurn"),
+                            "CurrentPlayerTurn" to (state.currentPlayerTurn ?: "No currentPlayerTurn"),
                             "Player" to event.player,
                         )
                 }
             }
         }
+
         when (event) {
             is CardIsPlayedEvent -> {
                 val nextDirectionAfterPlay =
@@ -60,9 +61,9 @@ fun GameState.apply(event: GameEvent): GameState =
 
                 val currentPlayerAfterThePlay =
                     if (event.card is Card.AllColorCard) {
-                        currentPlayerTurn
+                        state.currentPlayerTurn
                     } else {
-                        nextPlayer(nextDirectionAfterPlay)
+                        state.nextPlayer(nextDirectionAfterPlay)
                     }
 
                 state.copy(
@@ -98,14 +99,14 @@ fun GameState.apply(event: GameEvent): GameState =
                     logger.error { "taken card is not ot top of the stack: ${event.takenCard}" }
                 }
                 state.copy(
-                    currentPlayerTurn = nextPlayerTurn,
+                    currentPlayerTurn = state.nextPlayerTurn,
                     deck = state.deck.takeOneCardFromStackTo(event.player),
                 )
             }
 
             is PlayerChoseColorEvent -> {
                 state.copy(
-                    currentPlayerTurn = nextPlayerTurn,
+                    currentPlayerTurn = state.nextPlayerTurn,
                     colorOnCurrentStack = event.color,
                 )
             }
@@ -121,9 +122,11 @@ fun GameState.apply(event: GameEvent): GameState =
             }
 
             is PlayerWinEvent -> {
-                copy(
-                    playerWins = playerWins + event.player,
+                state.copy(
+                    playerWins = state.playerWins + event.player,
                 )
             }
-        }
+        }.copy(
+            lastEventVersion = event.version,
+        )
     }

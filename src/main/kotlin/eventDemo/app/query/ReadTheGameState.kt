@@ -39,7 +39,7 @@ fun Route.readTheGameState(gameStateRepository: GameStateRepository) {
         // Read the last played card on the game.
         get<Game.Card> { body ->
             gameStateRepository
-                .get(body.game.id)
+                .getLast(body.game.id)
                 .cardOnCurrentStack
                 ?.card
                 ?.let { call.respond(it) }
@@ -48,7 +48,7 @@ fun Route.readTheGameState(gameStateRepository: GameStateRepository) {
 
         // Read the last played card on the game.
         get<Game.State> { body ->
-            val state = gameStateRepository.get(body.game.id)
+            val state = gameStateRepository.getLast(body.game.id)
             call.respond(state)
         }
     }

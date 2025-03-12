@@ -18,7 +18,7 @@ class GameCommandRunner(
         command: GameCommand,
         outgoingErrorChannelNotification: SendChannel<Notification>,
     ) {
-        val gameState = gameStateRepository.get(command.payload.gameId)
+        val gameState = gameStateRepository.getLast(command.payload.aggregateId)
         val errorNotifier = errorNotifier(command, outgoingErrorChannelNotification)
 
         when (command) {

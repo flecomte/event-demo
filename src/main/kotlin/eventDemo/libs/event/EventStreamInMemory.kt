@@ -34,11 +34,11 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
     ): R? =
         events
             .filterIsInstance(eventType.java)
-            .lastOrNull { it.gameId == aggregateId }
+            .lastOrNull { it.aggregateId == aggregateId }
 
     override fun readAll(aggregateId: ID): Set<E> =
         events
-            .filter { it.gameId == aggregateId }
+            .filter { it.aggregateId == aggregateId }
             .toSet()
 }
 

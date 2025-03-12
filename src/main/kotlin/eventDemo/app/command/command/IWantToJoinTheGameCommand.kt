@@ -20,7 +20,7 @@ data class IWantToJoinTheGameCommand(
 
     @Serializable
     data class Payload(
-        override val gameId: GameId,
+        override val aggregateId: GameId,
         override val player: Player,
     ) : GameCommand.Payload
 
@@ -30,12 +30,13 @@ data class IWantToJoinTheGameCommand(
         eventHandler: GameEventHandler,
     ) {
         if (!state.isStarted) {
-            eventHandler.handle(
+            eventHandler.handle {
                 NewPlayerEvent(
-                    payload.gameId,
-                    payload.player,
-                ),
-            )
+                    aggregateId = payload.aggregateId,
+                    player = payload.player,
+                    version = it,
+                )
+            }
         } else {
             playerErrorNotifier("The game is already started")
         }

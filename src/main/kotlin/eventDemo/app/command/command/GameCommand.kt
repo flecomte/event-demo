@@ -11,7 +11,7 @@ sealed interface GameCommand : Command {
 
     @Serializable
     sealed interface Payload {
-        val gameId: GameId
+        val aggregateId: GameId
         val player: Player
     }
 }

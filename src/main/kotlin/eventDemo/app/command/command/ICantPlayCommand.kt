@@ -20,7 +20,7 @@ data class ICantPlayCommand(
 
     @Serializable
     data class Payload(
-        override val gameId: GameId,
+        override val aggregateId: GameId,
         override val player: Player,
     ) : GameCommand.Payload
 
@@ -37,13 +37,14 @@ data class ICantPlayCommand(
         if (playableCards.isEmpty()) {
             val takenCard = state.deck.stack.first()
 
-            eventHandler.handle(
+            eventHandler.handle {
                 PlayerHavePassEvent(
-                    gameId = payload.gameId,
+                    aggregateId = payload.aggregateId,
                     player = payload.player,
                     takenCard = takenCard,
-                ),
-            )
+                    version = it,
+                )
+            }
         } else {
             playerErrorNotifier("You can and must play one card, like ${playableCards.first()::class.simpleName}")
         }

@@ -11,12 +11,14 @@ import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.koin.dsl.koinApplication
 import kotlin.test.assertIs
 
+@OptIn(DelicateCoroutinesApi::class)
 class GameCommandHandlerTest :
     FunSpec({
         test("handle a command should execute the command") {

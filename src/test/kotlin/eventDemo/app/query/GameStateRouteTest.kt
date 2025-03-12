@@ -50,7 +50,7 @@ class GameStateRouteTest :
                     }.apply {
                         assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
                         val state = call.body<GameState>()
-                        id shouldBeEqual state.gameId
+                        id shouldBeEqual state.aggregateId
                         state.players shouldHaveSize 0
                         state.isStarted shouldBeEqual false
                     }
@@ -71,19 +71,20 @@ class GameStateRouteTest :
                     val eventHandler by inject<GameEventHandler>()
                     val stateRepo by inject<GameStateRepository>()
                     runBlocking {
-                        eventHandler.handle(
-                            NewPlayerEvent(gameId, player1),
-                            NewPlayerEvent(gameId, player2),
-                            PlayerReadyEvent(gameId, player1),
-                            PlayerReadyEvent(gameId, player2),
+                        eventHandler.handle { NewPlayerEvent(gameId, player1, it) }
+                        eventHandler.handle { NewPlayerEvent(gameId, player2, it) }
+                        eventHandler.handle { PlayerReadyEvent(gameId, player1, it) }
+                        eventHandler.handle { PlayerReadyEvent(gameId, player2, it) }
+                        eventHandler.handle {
                             GameStartedEvent.new(
                                 gameId,
                                 setOf(player1, player2),
                                 shuffleIsDisabled = true,
-                            ),
-                        )
+                                it,
+                            )
+                        }
                         delay(100)
-                        lastPlayedCard = stateRepo.get(gameId).playableCards(player1).first()
+                        lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
                         assertNotNull(lastPlayedCard)
                             .let { assertIs<Card.NumericCard>(lastPlayedCard) }
                             .let {
@@ -91,13 +92,14 @@ class GameStateRouteTest :
                                 it.color shouldBeEqual Card.Color.Red
                             }
                         delay(100)
-                        eventHandler.handle(
+                        eventHandler.handle {
                             CardIsPlayedEvent(
                                 gameId,
                                 assertNotNull(lastPlayedCard),
                                 player1,
-                            ),
-                        )
+                                it,
+                            )
+                        }
                         delay(100)
                     }
                 }

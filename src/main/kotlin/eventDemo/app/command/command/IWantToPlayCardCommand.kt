@@ -21,7 +21,7 @@ data class IWantToPlayCardCommand(
 
     @Serializable
     data class Payload(
-        override val gameId: GameId,
+        override val aggregateId: GameId,
         override val player: Player,
         val card: Card,
     ) : GameCommand.Payload
@@ -41,13 +41,14 @@ data class IWantToPlayCardCommand(
         }
 
         if (state.canBePlayThisCard(payload.player, payload.card)) {
-            eventHandler.handle(
+            eventHandler.handle {
                 CardIsPlayedEvent(
-                    payload.gameId,
-                    payload.card,
-                    payload.player,
-                ),
-            )
+                    aggregateId = payload.aggregateId,
+                    card = payload.card,
+                    player = payload.player,
+                    version = it,
+                )
+            }
         } else {
             playerErrorNotifier("You cannot play this card")
         }

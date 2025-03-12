@@ -20,7 +20,7 @@ data class IamReadyToPlayCommand(
 
     @Serializable
     data class Payload(
-        override val gameId: GameId,
+        override val aggregateId: GameId,
         override val player: Player,
     ) : GameCommand.Payload
 
@@ -39,12 +39,13 @@ data class IamReadyToPlayCommand(
         } else if (playerIsAlreadyReady) {
             playerErrorNotifier("You are already ready")
         } else {
-            eventHandler.handle(
+            eventHandler.handle {
                 PlayerReadyEvent(
-                    payload.gameId,
-                    payload.player,
-                ),
-            )
+                    aggregateId = payload.aggregateId,
+                    player = payload.player,
+                    version = it,
+                )
+            }
         }
     }
 }

@@ -36,10 +36,13 @@ class ReactionEventListener(
     ) {
         if (state.isReady && !state.isStarted) {
             val reactionEvent =
-                GameStartedEvent.new(
-                    state.gameId,
-                    state.players,
-                )
+                eventHandler.handle {
+                    GameStartedEvent.new(
+                        id = state.aggregateId,
+                        players = state.players,
+                        version = it,
+                    )
+                }
             logger.atInfo {
                 message = "Reaction event was Send $reactionEvent on reaction of: $event"
                 payload =
@@ -48,7 +51,6 @@ class ReactionEventListener(
                         "reactionEvent" to reactionEvent,
                     )
             }
-            eventHandler.handle(reactionEvent)
         } else {
             if (event is PlayerReadyEvent) {
                 logger.info { "All players was not ready ${state.readyPlayers}" }
@@ -63,10 +65,14 @@ class ReactionEventListener(
         val winner = state.playerHasNoCardLeft().firstOrNull()
         if (winner != null) {
             val reactionEvent =
-                PlayerWinEvent(
-                    state.gameId,
-                    winner,
-                )
+                eventHandler.handle {
+                    PlayerWinEvent(
+                        aggregateId = state.aggregateId,
+                        player = winner,
+                        version = it,
+                    )
+                }
+
             logger.atInfo {
                 message = "Reaction event was Send $reactionEvent on reaction of: $event"
                 payload =
@@ -75,7 +81,6 @@ class ReactionEventListener(
                         "reactionEvent" to reactionEvent,
                     )
             }
-            eventHandler.handle(reactionEvent)
         }
     }
 }
