@@ -1,7 +1,7 @@
 package eventDemo.libs.event
 
 interface VersionBuilder {
-    fun buildNextVersion(): Int
+    fun buildNextVersion(aggregateId: AggregateId): Int
 
-    fun getLastVersion(): Int
+    fun getLastVersion(aggregateId: AggregateId): Int
 }

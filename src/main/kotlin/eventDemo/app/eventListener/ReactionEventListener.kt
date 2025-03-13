@@ -36,7 +36,7 @@ class ReactionEventListener(
     ) {
         if (state.isReady && !state.isStarted) {
             val reactionEvent =
-                eventHandler.handle {
+                eventHandler.handle(state.aggregateId) {
                     GameStartedEvent.new(
                         id = state.aggregateId,
                         players = state.players,
@@ -65,7 +65,7 @@ class ReactionEventListener(
         val winner = state.playerHasNoCardLeft().firstOrNull()
         if (winner != null) {
             val reactionEvent =
-                eventHandler.handle {
+                eventHandler.handle(state.aggregateId) {
                     PlayerWinEvent(
                         aggregateId = state.aggregateId,
                         player = winner,

@@ -11,7 +11,8 @@ import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.disableShuffleDeck
 import eventDemo.app.event.projection.GameState
-import eventDemo.app.event.projection.buildStateFromEventStream
+import eventDemo.app.event.projection.ProjectionSnapshotRepositoryInMemory
+import eventDemo.app.event.projection.apply
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.app.eventListener.ReactionEventListener
 import eventDemo.app.notification.ItsTheTurnOfNotification
@@ -148,7 +149,12 @@ class GameStateTest :
 
                     joinAll(player1Job, player2Job)
 
-                    val state = id.buildStateFromEventStream(eventStream)
+                    val state =
+                        ProjectionSnapshotRepositoryInMemory(
+                            eventStream = eventStream,
+                            initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },
+                            applyToProjection = GameState::apply,
+                        ).getLast(id)
 
                     state.aggregateId shouldBeEqual id
                     assertTrue(state.isStarted)

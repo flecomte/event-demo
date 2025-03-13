@@ -28,7 +28,7 @@ class GameStateRepositoryTest :
                 val repo = get<GameStateRepository>()
                 val eventHandler = get<GameEventHandler>()
                 eventHandler
-                    .handle { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
+                    .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
                     .also { event ->
                         assertNotNull(repo.getUntil(event)).also {
                             assertNotNull(it.players) shouldBeEqual setOf(player1)
@@ -48,7 +48,7 @@ class GameStateRepositoryTest :
                 val eventHandler = get<GameEventHandler>()
 
                 eventHandler
-                    .handle { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
+                    .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
                     .also {
                         assertNotNull(repo.getLast(aggregateId)).also {
                             assertNotNull(it.players) shouldBeEqual setOf(player1)
@@ -56,7 +56,7 @@ class GameStateRepositoryTest :
                     }
 
                 eventHandler
-                    .handle { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
+                    .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
                     .also {
                         assertNotNull(repo.getLast(aggregateId)).also {
                             assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
@@ -74,7 +74,7 @@ class GameStateRepositoryTest :
 
                     val event1 =
                         eventHandler
-                            .handle { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
+                            .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
                             .also { event1 ->
                                 assertNotNull(repo.getUntil(event1)).also {
                                     assertNotNull(it.players) shouldBeEqual setOf(player1)
@@ -82,7 +82,7 @@ class GameStateRepositoryTest :
                             }
 
                     eventHandler
-                        .handle { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
+                        .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
                         .also { event2 ->
                             assertNotNull(repo.getUntil(event2)).also {
                                 assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
@@ -108,7 +108,7 @@ class GameStateRepositoryTest :
                                 repeat(100) { r2 ->
                                     val playerX = Player("player$r$r2")
                                     eventHandler
-                                        .handle {
+                                        .handle(aggregateId) {
                                             NewPlayerEvent(
                                                 aggregateId = aggregateId,
                                                 player = playerX,
@@ -119,8 +119,10 @@ class GameStateRepositoryTest :
                             }
                     }.joinAll()
 
-                repo.getLast(aggregateId).players shouldHaveSize 1000
-                repo.getLast(aggregateId).lastEventVersion shouldBeEqual 1000
+                repo.getLast(aggregateId).run {
+                    lastEventVersion shouldBeEqual 1000
+                    players shouldHaveSize 1000
+                }
             }
         }
 

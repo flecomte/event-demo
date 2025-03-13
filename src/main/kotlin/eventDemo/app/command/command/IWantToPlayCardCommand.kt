@@ -41,7 +41,7 @@ data class IWantToPlayCardCommand(
         }
 
         if (state.canBePlayThisCard(payload.player, payload.card)) {
-            eventHandler.handle {
+            eventHandler.handle(payload.aggregateId) {
                 CardIsPlayedEvent(
                     aggregateId = payload.aggregateId,
                     card = payload.card,

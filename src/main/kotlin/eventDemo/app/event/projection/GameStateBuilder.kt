@@ -1,8 +1,6 @@
 package eventDemo.app.event.projection
 
 import eventDemo.app.entity.Card
-import eventDemo.app.entity.GameId
-import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.CardIsPlayedEvent
 import eventDemo.app.event.event.GameEvent
 import eventDemo.app.event.event.GameStartedEvent
@@ -14,23 +12,8 @@ import eventDemo.app.event.event.PlayerReadyEvent
 import eventDemo.app.event.event.PlayerWinEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-fun GameId.buildStateFromEventStream(eventStream: GameEventStream): GameState {
-    val events = eventStream.readAll(this)
-    if (events.isEmpty()) return GameState(this)
-    return events.buildStateFromEvents().also {
-        KotlinLogging.logger {}.warn { "state is build from scratch for game: $this " }
-    }
-}
-
-fun Collection<GameEvent>.buildStateFromEvents(): GameState {
-    val gameId = this.firstOrNull()?.aggregateId ?: error("Cannot build GameState from an empty list")
-    return fold(GameState(gameId)) { state, event ->
-        state.apply(event)
-    }
-}
-
-fun GameState?.apply(event: GameEvent): GameState =
-    (this ?: GameState(event.aggregateId)).let { state ->
+fun GameState.apply(event: GameEvent): GameState =
+    this.let { state ->
         val logger = KotlinLogging.logger { }
         if (event is PlayerActionEvent) {
             if (state.currentPlayerTurn != event.player) {

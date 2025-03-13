@@ -71,11 +71,11 @@ class GameStateRouteTest :
                     val eventHandler by inject<GameEventHandler>()
                     val stateRepo by inject<GameStateRepository>()
                     runBlocking {
-                        eventHandler.handle { NewPlayerEvent(gameId, player1, it) }
-                        eventHandler.handle { NewPlayerEvent(gameId, player2, it) }
-                        eventHandler.handle { PlayerReadyEvent(gameId, player1, it) }
-                        eventHandler.handle { PlayerReadyEvent(gameId, player2, it) }
-                        eventHandler.handle {
+                        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+                        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+                        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+                        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+                        eventHandler.handle(gameId) {
                             GameStartedEvent.new(
                                 gameId,
                                 setOf(player1, player2),
@@ -92,7 +92,7 @@ class GameStateRouteTest :
                                 it.color shouldBeEqual Card.Color.Red
                             }
                         delay(100)
-                        eventHandler.handle {
+                        eventHandler.handle(gameId) {
                             CardIsPlayedEvent(
                                 gameId,
                                 assertNotNull(lastPlayedCard),

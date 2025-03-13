@@ -2,53 +2,172 @@ package eventDemo.app.event.projection
 
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
+import eventDemo.libs.event.EventStream
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+
+data class SnapshotConfig(
+    val maxSnapshotCacheSize: Int = 20,
+    val maxSnapshotCacheTtl: Duration = 10.minutes,
+)
 
 class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID : AggregateId>(
-    private val maxSnapshotCacheSize: Int = 20,
-    private val applyToProjection: P?.(event: E) -> P,
+    private val eventStream: EventStream<E, ID>,
+    private val initialStateBuilder: (ID) -> P,
+    private val snapshotCacheConfig: SnapshotConfig = SnapshotConfig(),
+    private val applyToProjection: P.(event: E) -> P,
 ) {
-    private val projectionsSnapshot: ConcurrentHashMap<E, P> = ConcurrentHashMap()
+    private val projectionsSnapshot: ConcurrentHashMap<ID, ConcurrentLinkedQueue<Pair<P, Instant>>> = ConcurrentHashMap()
 
-    fun applyAndPutToCache(event: E): P {
-        // lock here
-        return projectionsSnapshot
-            .filterKeys { it.aggregateId == event.aggregateId }
-            .toList()
-            .find { (e, _) -> e.version == (event.version - 1) }
-            ?.second
-            .applyToProjection(event)
-            .also { projectionsSnapshot.put(event, it) }
-            .also { removeOldSnapshot() }
-        // Unlock here
+    /**
+     * Create a snapshot for the event
+     *
+     * 1. get the last snapshot with a version lower than that of the event
+     * 2. get the events with a greater version of the snapshot
+     * 3. apply the event to the snapshot
+     * 4. apply the new event to the projection
+     * 5. save it
+     * 6. remove old one
+     */
+    fun applyAndPutToCache(event: E): P =
+        getUntil(event)
+            .also {
+                save(it)
+                removeOldSnapshot(it.aggregateId)
+            }
+
+    /**
+     * Build the last version of the [Projection] from the cache.
+     *
+     * 1. get the last snapshot
+     * 2. get the missing event to the snapshot
+     * 3. apply the missing events to the snapshot
+     */
+    fun getLast(aggregateId: ID): P {
+        val lastSnapshot = getLastSnapshot(aggregateId)?.first
+        val missingEventOfSnapshot = getEventAfterTheSnapshot(aggregateId, lastSnapshot)
+        return lastSnapshot.applyEvents(aggregateId, missingEventOfSnapshot)
     }
 
-    private fun removeOldSnapshot() {
-        if (projectionsSnapshot.size > maxSnapshotCacheSize) {
-            val numberToRemove = projectionsSnapshot.size - maxSnapshotCacheSize
+    /**
+     * Build the [Projection] to the specific [event][Event].
+     *
+     * It does not contain the [events][Event] it after this one.
+     *
+     * 1. get the last snapshot before the event
+     * 2. get the events with a greater version of the snapshot but lower of passed event
+     * 3. apply the events to the snapshot
+     */
+    fun getUntil(event: E): P {
+        val lastSnapshot = getLastSnapshotBeforeOrEqualEvent(event)?.first
+        if (lastSnapshot?.lastEventVersion == event.version) {
+            return lastSnapshot
+        }
 
-            projectionsSnapshot
-                .keys
-                .sortedBy { it.version }
-                .take(numberToRemove)
-                .forEach { event ->
-                    projectionsSnapshot.remove(event)
-                }
+        val missingEventOfSnapshot =
+            eventStream.readGreaterOfVersion(
+                event.aggregateId,
+                lastSnapshot?.lastEventVersion ?: 0,
+            )
+
+        return if (lastSnapshot?.lastEventVersion == event.version) {
+            lastSnapshot
+        } else {
+            lastSnapshot.applyEvents(event.aggregateId, missingEventOfSnapshot)
         }
     }
 
     /**
-     * Get the last version of the [Projection] from the cache.
+     * Remove the oldest snapshot.
+     *
+     * The rules are pass in the controller.
      */
-    fun getLast(aggregateId: ID): P? =
-        projectionsSnapshot
-            .filter { it.key.aggregateId == aggregateId }
-            .maxByOrNull { (event, _) -> event.version }
-            ?.value
+    private fun removeOldSnapshot(aggregateId: ID) {
+        projectionsSnapshot[aggregateId]?.let { queue ->
+            // never remove the last one
+            val theLastOne = getLastSnapshot(aggregateId)
+
+            // remove the oldest by time
+            val now = Clock.System.now()
+            val deadLine = now - snapshotCacheConfig.maxSnapshotCacheTtl
+            val toRemove = queue.filter { deadLine > it.second }
+            (toRemove - theLastOne).forEach { queue.remove(it) }
+
+            // Remove if size exceeds the limit
+            if (queue.size > snapshotCacheConfig.maxSnapshotCacheSize) {
+                val numberToRemove = projectionsSnapshot.size - snapshotCacheConfig.maxSnapshotCacheSize
+                if (numberToRemove > 0) {
+                    queue
+                        .sortedByDescending { it.first.lastEventVersion }
+                        .take(numberToRemove)
+                        .let { it - theLastOne }
+                        .forEach { queue.remove(it) }
+                }
+            }
+        }
+    }
 
     /**
-     * Get the [Projection] to the specific [event][Event].
-     * It does not contain the [events][Event] it after this one.
+     * Save the snapshot.
      */
-    fun getUntil(event: E): P? = projectionsSnapshot.get(event)
+    private fun save(projection: P) {
+        projectionsSnapshot
+            .computeIfAbsent(projection.aggregateId) { ConcurrentLinkedQueue() }
+            .add(Pair(projection, Clock.System.now()))
+    }
+
+    /**
+     * Get the last snapshot when the version is lower of then event version
+     */
+    private fun getLastSnapshotBeforeOrEqualEvent(event: E) =
+        projectionsSnapshot[event.aggregateId]
+            ?.sortedByDescending { it.first.lastEventVersion }
+            ?.find { it.first.lastEventVersion <= event.version }
+
+    /**
+     * Get the last snapshot (with the higher version).
+     */
+    private fun getLastSnapshot(aggregateId: ID) =
+        projectionsSnapshot[aggregateId]
+            ?.maxByOrNull { it.first.lastEventVersion }
+
+    /**
+     * Get the events from the [event stream][EventStream] when the version is higher of the snapshot.
+     *
+     * If the snapshot is null, it takes all events from the event [event stream][EventStream]
+     */
+    private fun getEventAfterTheSnapshot(
+        aggregateId: ID,
+        snapshot: P?,
+    ) = eventStream
+        .readGreaterOfVersion(aggregateId, snapshot?.lastEventVersion ?: 0)
+
+    /**
+     * Apply events to the projection.
+     */
+    private fun P?.applyEvents(
+        aggregateId: ID,
+        eventsToApply: Set<E>,
+    ): P =
+        eventsToApply
+            .fold(this ?: initialStateBuilder(aggregateId), applyToProjectionSecure)
+
+    /**
+     * Wrap the [applyToProjection] lambda to avoid duplicate apply of the same event.
+     */
+    private val applyToProjectionSecure: P.(event: E) -> P = { event ->
+        if (event.version == lastEventVersion + 1) {
+            applyToProjection(event)
+        } else if (event.version <= lastEventVersion) {
+            KotlinLogging.logger { }.warn { "Event is already is the Projection, skip apply." }
+            this
+        } else {
+            error("The version of the event must follow directly after the version of the projection.")
+        }
+    }
 }

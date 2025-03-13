@@ -15,10 +15,12 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
     private val events: Queue<E> = ConcurrentLinkedQueue()
 
     override fun publish(event: E) {
-        events.add(event)
-        logger.atInfo {
-            message = "Event published: $event"
-            payload = mapOf("event" to event)
+        if (events.none { it.eventId == event.eventId }) {
+            events.add(event)
+            logger.atInfo {
+                message = "Event published: $event"
+                payload = mapOf("event" to event)
+            }
         }
     }
 
@@ -39,6 +41,15 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
     override fun readAll(aggregateId: ID): Set<E> =
         events
             .filter { it.aggregateId == aggregateId }
+            .toSet()
+
+    override fun readGreaterOfVersion(
+        aggregateId: ID,
+        version: Int,
+    ): Set<E> =
+        events
+            .filter { it.aggregateId == aggregateId }
+            .filter { it.version > version }
             .toSet()
 }
 

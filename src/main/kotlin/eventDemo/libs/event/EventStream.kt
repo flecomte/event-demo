@@ -23,4 +23,9 @@ interface EventStream<E : Event<ID>, ID : AggregateId> {
 
     /** Reads all events associated with a given aggregate ID */
     fun readAll(aggregateId: ID): Set<E>
+
+    fun readGreaterOfVersion(
+        aggregateId: ID,
+        version: Int,
+    ): Set<E>
 }

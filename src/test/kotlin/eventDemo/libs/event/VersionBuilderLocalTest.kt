@@ -6,6 +6,12 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import java.util.UUID
+
+@JvmInline
+private value class IdTest(
+    override val id: UUID = UUID.randomUUID(),
+) : AggregateId
 
 @OptIn(DelicateCoroutinesApi::class)
 class VersionBuilderLocalTest :
@@ -13,30 +19,34 @@ class VersionBuilderLocalTest :
 
         test("buildNextVersion") {
             VersionBuilderLocal().run {
-                buildNextVersion() shouldBeEqual 1
-                buildNextVersion() shouldBeEqual 2
-                buildNextVersion() shouldBeEqual 3
+                val id = IdTest()
+                buildNextVersion(id) shouldBeEqual 1
+                buildNextVersion(id) shouldBeEqual 2
+                buildNextVersion(IdTest()) shouldBeEqual 1
+                buildNextVersion(id) shouldBeEqual 3
             }
         }
 
         test("buildNextVersion concurrently") {
             val versionBuilder = VersionBuilderLocal()
+            val id = IdTest()
             (1..20)
                 .map {
                     GlobalScope.launch {
                         (1..1000).map {
-                            versionBuilder.buildNextVersion()
+                            versionBuilder.buildNextVersion(id)
                         }
                     }
                 }.joinAll()
-            versionBuilder.getLastVersion() shouldBeEqual 20 * 1000
+            versionBuilder.getLastVersion(id) shouldBeEqual 20 * 1000
         }
 
         test("getLastVersion") {
             VersionBuilderLocal().run {
-                getLastVersion() shouldBeEqual 0
-                getLastVersion() shouldBeEqual 0
-                getLastVersion() shouldBeEqual 0
+                val id = IdTest()
+                getLastVersion(id) shouldBeEqual 0
+                getLastVersion(id) shouldBeEqual 0
+                getLastVersion(id) shouldBeEqual 0
             }
         }
     })

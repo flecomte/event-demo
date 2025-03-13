@@ -37,7 +37,7 @@ data class ICantPlayCommand(
         if (playableCards.isEmpty()) {
             val takenCard = state.deck.stack.first()
 
-            eventHandler.handle {
+            eventHandler.handle(payload.aggregateId) {
                 PlayerHavePassEvent(
                     aggregateId = payload.aggregateId,
                     player = payload.player,

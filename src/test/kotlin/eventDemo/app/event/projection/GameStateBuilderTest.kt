@@ -29,7 +29,7 @@ class GameStateBuilderTest :
                         NewPlayerEvent(
                             aggregateId = gameId,
                             player = player1,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -41,7 +41,7 @@ class GameStateBuilderTest :
                         NewPlayerEvent(
                             aggregateId = gameId,
                             player = player2,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -52,7 +52,7 @@ class GameStateBuilderTest :
                         PlayerReadyEvent(
                             aggregateId = gameId,
                             player = player1,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -63,7 +63,7 @@ class GameStateBuilderTest :
                         PlayerReadyEvent(
                             aggregateId = gameId,
                             player = player2,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -77,7 +77,7 @@ class GameStateBuilderTest :
                             id = gameId,
                             players = setOf(player1, player2),
                             shuffleIsDisabled = true,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -94,7 +94,7 @@ class GameStateBuilderTest :
                             aggregateId = gameId,
                             card = playedCard,
                             player = player1,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId
@@ -111,7 +111,7 @@ class GameStateBuilderTest :
                             aggregateId = gameId,
                             card = playedCard,
                             player = player2,
-                            version = versionBuilder.buildNextVersion(),
+                            version = versionBuilder.buildNextVersion(gameId),
                         )
                     apply(event).also { state ->
                         state.aggregateId shouldBeEqual gameId

@@ -39,7 +39,7 @@ data class IamReadyToPlayCommand(
         } else if (playerIsAlreadyReady) {
             playerErrorNotifier("You are already ready")
         } else {
-            eventHandler.handle {
+            eventHandler.handle(payload.aggregateId) {
                 PlayerReadyEvent(
                     aggregateId = payload.aggregateId,
                     player = payload.player,

@@ -7,6 +7,7 @@ import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
 import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.projection.GameStateRepository
+import eventDemo.app.event.projection.SnapshotConfig
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.libs.command.CommandStreamChannelBuilder
 import eventDemo.libs.event.EventBusInMemory
@@ -37,7 +38,7 @@ val appKoinModule =
             GameEventStream(EventStreamInMemory())
         }
         single {
-            GameStateRepository(get(), get())
+            GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())
         }
         single {
             CommandStreamChannelBuilder<GameCommand>()

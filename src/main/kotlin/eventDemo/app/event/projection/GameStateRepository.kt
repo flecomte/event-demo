@@ -6,14 +6,16 @@ import eventDemo.app.event.GameEventStream
 import eventDemo.app.event.event.GameEvent
 
 class GameStateRepository(
-    private val eventStream: GameEventStream,
+    eventStream: GameEventStream,
     eventHandler: GameEventHandler,
-    maxSnapshotCacheSize: Int = 20,
+    snapshotConfig: SnapshotConfig = SnapshotConfig(),
 ) {
     private val projectionsSnapshot =
         ProjectionSnapshotRepositoryInMemory(
-            applyToProjection = GameState?::apply,
-            maxSnapshotCacheSize = maxSnapshotCacheSize,
+            eventStream = eventStream,
+            snapshotCacheConfig = snapshotConfig,
+            applyToProjection = GameState::apply,
+            initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },
         )
 
     init {
@@ -27,9 +29,7 @@ class GameStateRepository(
      *
      * It fetches it from the local cache if possible, otherwise it builds it.
      */
-    fun getLast(gameId: GameId): GameState =
-        projectionsSnapshot.getLast(gameId)
-            ?: gameId.buildStateFromEventStream(eventStream)
+    fun getLast(gameId: GameId): GameState = projectionsSnapshot.getLast(gameId)
 
     /**
      * Get the [GameState] to the specific [event][GameEvent].
@@ -37,8 +37,5 @@ class GameStateRepository(
      *
      * It fetches it from the local cache if possible, otherwise it builds it.
      */
-    fun getUntil(event: GameEvent): GameState =
-        projectionsSnapshot.getUntil(event)
-            ?: (eventStream.readAll(event.aggregateId).takeWhile { it != event } + event)
-                .buildStateFromEvents()
+    fun getUntil(event: GameEvent): GameState = projectionsSnapshot.getUntil(event)
 }

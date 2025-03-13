@@ -30,7 +30,7 @@ data class IWantToJoinTheGameCommand(
         eventHandler: GameEventHandler,
     ) {
         if (!state.isStarted) {
-            eventHandler.handle {
+            eventHandler.handle(payload.aggregateId) {
                 NewPlayerEvent(
                     aggregateId = payload.aggregateId,
                     player = payload.player,
