@@ -28,4 +28,9 @@ interface EventStream<E : Event<ID>, ID : AggregateId> {
         aggregateId: ID,
         version: Int,
     ): Set<E>
+
+    fun readVersionBetween(
+        aggregateId: ID,
+        version: IntRange,
+    ): Set<E>
 }

@@ -51,6 +51,15 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
             .filter { it.aggregateId == aggregateId }
             .filter { it.version > version }
             .toSet()
+
+    override fun readVersionBetween(
+        aggregateId: ID,
+        version: IntRange,
+    ): Set<E> =
+        events
+            .filter { it.aggregateId == aggregateId }
+            .filter { version.contains(it.version) }
+            .toSet()
 }
 
 inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStream<E, ID>.readLastOf(aggregateId: ID): R? =

@@ -14,6 +14,10 @@ import kotlin.time.Duration.Companion.minutes
 data class SnapshotConfig(
     val maxSnapshotCacheSize: Int = 20,
     val maxSnapshotCacheTtl: Duration = 10.minutes,
+    /**
+     * Only create [snapshots][Projection] every [X][modulo] [events][Event]
+     */
+    val modulo: Int = 10,
 )
 
 class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID : AggregateId>(
@@ -34,12 +38,15 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
      * 5. save it
      * 6. remove old one
      */
-    fun applyAndPutToCache(event: E): P =
-        getUntil(event)
-            .also {
-                save(it)
-                removeOldSnapshot(it.aggregateId)
-            }
+    fun applyAndPutToCache(event: E) {
+        if ((event.version % snapshotCacheConfig.modulo) == 0) {
+            getUntil(event)
+                .also {
+                    save(it)
+                    removeOldSnapshot(it.aggregateId)
+                }
+        }
+    }
 
     /**
      * Build the last version of the [Projection] from the cache.
@@ -70,9 +77,9 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
         }
 
         val missingEventOfSnapshot =
-            eventStream.readGreaterOfVersion(
+            eventStream.readVersionBetween(
                 event.aggregateId,
-                lastSnapshot?.lastEventVersion ?: 0,
+                (lastSnapshot?.lastEventVersion ?: 1)..event.version,
             )
 
         return if (lastSnapshot?.lastEventVersion == event.version) {
@@ -91,25 +98,38 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
         projectionsSnapshot[aggregateId]?.let { queue ->
             // never remove the last one
             val theLastOne = getLastSnapshot(aggregateId)
+            removeByDate(queue, theLastOne)
+            removeBySize(queue, theLastOne)
+        }
+    }
 
-            // remove the oldest by time
-            val now = Clock.System.now()
-            val deadLine = now - snapshotCacheConfig.maxSnapshotCacheTtl
-            val toRemove = queue.filter { deadLine > it.second }
-            (toRemove - theLastOne).forEach { queue.remove(it) }
-
-            // Remove if size exceeds the limit
-            if (queue.size > snapshotCacheConfig.maxSnapshotCacheSize) {
-                val numberToRemove = projectionsSnapshot.size - snapshotCacheConfig.maxSnapshotCacheSize
-                if (numberToRemove > 0) {
-                    queue
-                        .sortedByDescending { it.first.lastEventVersion }
-                        .take(numberToRemove)
-                        .let { it - theLastOne }
-                        .forEach { queue.remove(it) }
-                }
+    private fun removeBySize(
+        queue: ConcurrentLinkedQueue<Pair<P, Instant>>,
+        theLastOne: Pair<P, Instant>?,
+    ) {
+        // Remove if size exceeds the limit
+        val size = queue.size
+        if (size > snapshotCacheConfig.maxSnapshotCacheSize) {
+            val numberToRemove = size - snapshotCacheConfig.maxSnapshotCacheSize
+            if (numberToRemove > 0) {
+                queue
+                    .sortedBy { it.first.lastEventVersion }
+                    .take(numberToRemove)
+                    .let { it - theLastOne }
+                    .forEach { queue.remove(it) }
             }
         }
+    }
+
+    private fun removeByDate(
+        queue: ConcurrentLinkedQueue<Pair<P, Instant>>,
+        theLastOne: Pair<P, Instant>?,
+    ) {
+        // remove the oldest by time
+        val now = Clock.System.now()
+        val deadLine = now - snapshotCacheConfig.maxSnapshotCacheTtl
+        val toRemove = queue.filter { deadLine > it.second }
+        (toRemove - theLastOne).forEach { queue.remove(it) }
     }
 
     /**
