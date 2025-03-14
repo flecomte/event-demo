@@ -3,7 +3,6 @@ package eventDemo.app.entity
 import eventDemo.configuration.PlayerIdSerializer
 import eventDemo.configuration.UUIDSerializer
 import eventDemo.libs.event.AggregateId
-import io.ktor.server.auth.Principal
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -12,7 +11,7 @@ data class Player(
     val name: String,
     @Serializable(with = PlayerIdSerializer::class)
     val id: PlayerId = PlayerId(UUID.randomUUID()),
-) : Principal {
+) {
     constructor(id: String, name: String) : this(
         name,
         PlayerId(UUID.fromString(id)),
