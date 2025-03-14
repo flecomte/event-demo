@@ -1,7 +1,7 @@
 package eventDemo.configuration
 
+import eventDemo.app.command.GameCommandActionRunner
 import eventDemo.app.command.GameCommandHandler
-import eventDemo.app.command.GameCommandRunner
 import eventDemo.app.command.command.GameCommand
 import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
@@ -46,7 +46,7 @@ val appKoinModule =
 
     singleOf(::VersionBuilderLocal) bind VersionBuilder::class
     singleOf(::GameEventHandler)
-    singleOf(::GameCommandRunner)
+    singleOf(::GameCommandActionRunner)
     singleOf(::GameCommandHandler)
     singleOf(::PlayerNotificationEventListener)
   }

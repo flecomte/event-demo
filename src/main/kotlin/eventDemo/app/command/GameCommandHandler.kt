@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.SendChannel
  */
 class GameCommandHandler(
   private val commandStreamChannel: CommandStreamChannelBuilder<GameCommand>,
-  private val runner: GameCommandRunner,
+  private val runner: GameCommandActionRunner,
 ) {
   private val logger = KotlinLogging.logger { }
 

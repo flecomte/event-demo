@@ -10,7 +10,7 @@ import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.notification.Notification
 import kotlinx.coroutines.channels.SendChannel
 
-class GameCommandRunner(
+class GameCommandActionRunner(
   private val eventHandler: GameEventHandler,
   private val gameStateRepository: GameStateRepository,
 ) {
