@@ -21,43 +21,43 @@ private val jwtIssuer = "PlayCardGame"
 private val jwtSecret = "secret"
 
 fun Application.configureSecurity() {
-    authentication {
-        jwt {
-            realm = jwtRealm
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256(jwtSecret))
-                    .withIssuer(jwtIssuer)
-                    .build(),
-            )
-            validate { credential ->
-                if (credential.payload.getClaim("username").asString() != "") {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
-                }
-            }
-            challenge { defaultScheme, realm ->
-                call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
-            }
+  authentication {
+    jwt {
+      realm = jwtRealm
+      verifier(
+        JWT
+          .require(Algorithm.HMAC256(jwtSecret))
+          .withIssuer(jwtIssuer)
+          .build(),
+      )
+      validate { credential ->
+        if (credential.payload.getClaim("username").asString() != "") {
+          JWTPrincipal(credential.payload)
+        } else {
+          null
         }
+      }
+      challenge { defaultScheme, realm ->
+        call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
+      }
     }
+  }
 
-    routing {
-        post("login/{username}") {
-            val username = call.parameters["username"]!!
-            val player = Player(name = username)
+  routing {
+    post("login/{username}") {
+      val username = call.parameters["username"]!!
+      val player = Player(name = username)
 
-            call.respond(hashMapOf("token" to player.makeJwt()))
-        }
+      call.respond(hashMapOf("token" to player.makeJwt()))
     }
+  }
 }
 
 fun Player.makeJwt(): String =
-    JWT
-        .create()
-        .withIssuer(jwtIssuer)
-        .withClaim("username", name)
-        .withPayload(Json.encodeToString(this))
-        .withExpiresAt(Date(System.currentTimeMillis() + 60000))
-        .sign(Algorithm.HMAC256(jwtSecret))
+  JWT
+    .create()
+    .withIssuer(jwtIssuer)
+    .withClaim("username", name)
+    .withPayload(Json.encodeToString(this))
+    .withExpiresAt(Date(System.currentTimeMillis() + 60000))
+    .sign(Algorithm.HMAC256(jwtSecret))

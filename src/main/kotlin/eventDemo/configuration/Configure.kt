@@ -4,17 +4,17 @@ import io.ktor.server.application.Application
 import org.koin.ktor.ext.get
 
 fun Application.configure() {
-    configureKoin()
+  configureKoin()
 
-    configureSecurity()
+  configureSecurity()
 
-    configureSerialization()
+  configureSerialization()
 
-    configureWebSockets()
-    declareWebSocketsGameRoute(get(), get())
+  configureWebSockets()
+  declareWebSocketsGameRoute(get(), get())
 
-    configureHttpRouting()
-    declareHttpGameRoute()
+  configureHttpRouting()
+  declareHttpGameRoute()
 
-    configureGameListener()
+  configureGameListener()
 }

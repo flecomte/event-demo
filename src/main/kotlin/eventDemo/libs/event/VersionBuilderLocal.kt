@@ -5,17 +5,18 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 class VersionBuilderLocal : VersionBuilder {
-    private val logger = KotlinLogging.logger { }
-    private val versions: ConcurrentHashMap<AggregateId, AtomicInteger> = ConcurrentHashMap()
+  private val logger = KotlinLogging.logger { }
+  private val versions: ConcurrentHashMap<AggregateId, AtomicInteger> = ConcurrentHashMap()
 
-    override fun buildNextVersion(aggregateId: AggregateId): Int =
-        versionOfAggregate(aggregateId)
-            .addAndGet(1)
-            .also { logger.debug { "New version $it" } }
+  override fun buildNextVersion(aggregateId: AggregateId): Int =
+    versionOfAggregate(aggregateId)
+      .addAndGet(1)
+      .also { logger.debug { "New version $it" } }
 
-    override fun getLastVersion(aggregateId: AggregateId): Int = versionOfAggregate(aggregateId).toInt()
+  override fun getLastVersion(aggregateId: AggregateId): Int =
+    versionOfAggregate(aggregateId).toInt()
 
-    private fun versionOfAggregate(aggregateId: AggregateId) =
-        versions
-            .computeIfAbsent(aggregateId) { AtomicInteger(0) }
+  private fun versionOfAggregate(aggregateId: AggregateId) =
+    versions
+      .computeIfAbsent(aggregateId) { AtomicInteger(0) }
 }

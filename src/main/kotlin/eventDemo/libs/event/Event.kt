@@ -8,7 +8,7 @@ import java.util.UUID
  * @see Event
  */
 interface AggregateId {
-    val id: UUID
+  val id: UUID
 }
 
 /**
@@ -16,8 +16,8 @@ interface AggregateId {
  * @see EventStream
  */
 interface Event<ID : AggregateId> {
-    val eventId: UUID
-    val aggregateId: ID
-    val createdAt: Instant
-    val version: Int
+  val eventId: UUID
+  val aggregateId: ID
+  val createdAt: Instant
+  val version: Int
 }

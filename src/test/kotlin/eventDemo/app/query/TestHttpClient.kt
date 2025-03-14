@@ -6,10 +6,10 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 
 fun ApplicationTestBuilder.httpClient(): HttpClient =
-    createClient {
-        install(ContentNegotiation) {
-            json(
-                defaultJsonSerializer(),
-            )
-        }
+  createClient {
+    install(ContentNegotiation) {
+      json(
+        defaultJsonSerializer(),
+      )
     }
+  }

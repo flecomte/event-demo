@@ -12,41 +12,41 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.respondText
 
 fun Application.configureHttpRouting() {
-    install(CORS) {
-        allowMethod(HttpMethod.Options)
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Post)
-        allowMethod(HttpMethod.Delete)
-        allowMethod(HttpMethod.Patch)
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader("MyCustomHeader")
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+  install(CORS) {
+    allowMethod(HttpMethod.Options)
+    allowMethod(HttpMethod.Put)
+    allowMethod(HttpMethod.Post)
+    allowMethod(HttpMethod.Delete)
+    allowMethod(HttpMethod.Patch)
+    allowHeader(HttpHeaders.Authorization)
+    allowHeader("MyCustomHeader")
+    anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+  }
+  install(AutoHeadResponse)
+  install(Resources)
+  install(StatusPages) {
+    exception<BadRequestException> { call, cause ->
+      call.respondText(text = "400: $cause", status = HttpStatusCode.BadRequest)
     }
-    install(AutoHeadResponse)
-    install(Resources)
-    install(StatusPages) {
-        exception<BadRequestException> { call, cause ->
-            call.respondText(text = "400: $cause", status = HttpStatusCode.BadRequest)
-        }
-        exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
-        }
+    exception<Throwable> { call, cause ->
+      call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
     }
+  }
 }
 
 class BadRequestException(
-    val httpError: HttpErrorBadRequest,
+  val httpError: HttpErrorBadRequest,
 ) : Exception()
 
 class HttpErrorBadRequest(
-    statusCode: HttpStatusCode,
-    val title: String = statusCode.description,
-    val invalidParams: List<InvalidParam>,
+  statusCode: HttpStatusCode,
+  val title: String = statusCode.description,
+  val invalidParams: List<InvalidParam>,
 ) {
-    val statusCode: Int = statusCode.value
+  val statusCode: Int = statusCode.value
 
-    data class InvalidParam(
-        val name: String,
-        val reason: String,
-    )
+  data class InvalidParam(
+    val name: String,
+    val reason: String,
+  )
 }

@@ -10,43 +10,43 @@ import java.util.UUID
 
 @JvmInline
 private value class IdTest(
-    override val id: UUID = UUID.randomUUID(),
+  override val id: UUID = UUID.randomUUID(),
 ) : AggregateId
 
 @OptIn(DelicateCoroutinesApi::class)
 class VersionBuilderLocalTest :
-    FunSpec({
+  FunSpec({
 
-        test("buildNextVersion") {
-            VersionBuilderLocal().run {
-                val id = IdTest()
-                buildNextVersion(id) shouldBeEqual 1
-                buildNextVersion(id) shouldBeEqual 2
-                buildNextVersion(IdTest()) shouldBeEqual 1
-                buildNextVersion(id) shouldBeEqual 3
+    test("buildNextVersion") {
+      VersionBuilderLocal().run {
+        val id = IdTest()
+        buildNextVersion(id) shouldBeEqual 1
+        buildNextVersion(id) shouldBeEqual 2
+        buildNextVersion(IdTest()) shouldBeEqual 1
+        buildNextVersion(id) shouldBeEqual 3
+      }
+    }
+
+    test("buildNextVersion concurrently") {
+      val versionBuilder = VersionBuilderLocal()
+      val id = IdTest()
+      (1..20)
+        .map {
+          GlobalScope.launch {
+            (1..1000).map {
+              versionBuilder.buildNextVersion(id)
             }
-        }
+          }
+        }.joinAll()
+      versionBuilder.getLastVersion(id) shouldBeEqual 20 * 1000
+    }
 
-        test("buildNextVersion concurrently") {
-            val versionBuilder = VersionBuilderLocal()
-            val id = IdTest()
-            (1..20)
-                .map {
-                    GlobalScope.launch {
-                        (1..1000).map {
-                            versionBuilder.buildNextVersion(id)
-                        }
-                    }
-                }.joinAll()
-            versionBuilder.getLastVersion(id) shouldBeEqual 20 * 1000
-        }
-
-        test("getLastVersion") {
-            VersionBuilderLocal().run {
-                val id = IdTest()
-                getLastVersion(id) shouldBeEqual 0
-                getLastVersion(id) shouldBeEqual 0
-                getLastVersion(id) shouldBeEqual 0
-            }
-        }
-    })
+    test("getLastVersion") {
+      VersionBuilderLocal().run {
+        val id = IdTest()
+        getLastVersion(id) shouldBeEqual 0
+        getLastVersion(id) shouldBeEqual 0
+        getLastVersion(id) shouldBeEqual 0
+      }
+    }
+  })

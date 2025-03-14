@@ -14,38 +14,38 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class IamReadyToPlayCommand(
-    override val payload: Payload,
+  override val payload: Payload,
 ) : GameCommand {
-    override val id: CommandId = CommandId()
+  override val id: CommandId = CommandId()
 
-    @Serializable
-    data class Payload(
-        override val aggregateId: GameId,
-        override val player: Player,
-    ) : GameCommand.Payload
+  @Serializable
+  data class Payload(
+    override val aggregateId: GameId,
+    override val player: Player,
+  ) : GameCommand.Payload
 
-    suspend fun run(
-        state: GameState,
-        playerErrorNotifier: ErrorNotifier,
-        eventHandler: GameEventHandler,
-    ) {
-        val playerExist: Boolean = state.players.contains(payload.player)
-        val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(payload.player)
+  suspend fun run(
+    state: GameState,
+    playerErrorNotifier: ErrorNotifier,
+    eventHandler: GameEventHandler,
+  ) {
+    val playerExist: Boolean = state.players.contains(payload.player)
+    val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(payload.player)
 
-        if (state.isStarted) {
-            playerErrorNotifier("The game is already started")
-        } else if (!playerExist) {
-            playerErrorNotifier("You are not in the game")
-        } else if (playerIsAlreadyReady) {
-            playerErrorNotifier("You are already ready")
-        } else {
-            eventHandler.handle(payload.aggregateId) {
-                PlayerReadyEvent(
-                    aggregateId = payload.aggregateId,
-                    player = payload.player,
-                    version = it,
-                )
-            }
-        }
+    if (state.isStarted) {
+      playerErrorNotifier("The game is already started")
+    } else if (!playerExist) {
+      playerErrorNotifier("You are not in the game")
+    } else if (playerIsAlreadyReady) {
+      playerErrorNotifier("You are already ready")
+    } else {
+      eventHandler.handle(payload.aggregateId) {
+        PlayerReadyEvent(
+          aggregateId = payload.aggregateId,
+          player = payload.player,
+          version = it,
+        )
+      }
     }
+  }
 }

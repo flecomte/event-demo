@@ -10,11 +10,12 @@ import java.util.UUID
 @JvmInline
 @Serializable(with = CommandIdSerializer::class)
 value class CommandId(
-    private val id: UUID = UUID.randomUUID(),
+  private val id: UUID = UUID.randomUUID(),
 ) {
-    constructor(id: String) : this(UUID.fromString(id))
+  constructor(id: String) : this(UUID.fromString(id))
 
-    override fun toString(): String = id.toString()
+  override fun toString(): String =
+    id.toString()
 }
 
 /**
@@ -23,5 +24,5 @@ value class CommandId(
  * A command is a request for an action.
  */
 interface Command {
-    val id: CommandId
+  val id: CommandId
 }

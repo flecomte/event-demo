@@ -20,26 +20,26 @@ import kotlin.test.assertIs
 
 @OptIn(DelicateCoroutinesApi::class)
 class GameCommandHandlerTest :
-    FunSpec({
-        test("handle a command should execute the command") {
-            koinApplication { modules(appKoinModule) }.koin.apply {
-                val commandHandler by inject<GameCommandHandler>()
-                val notificationListener by inject<PlayerNotificationEventListener>()
-                val gameId = GameId()
-                val player = Player("Tesla")
-                val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
-                val channelNotification = Channel<Notification>(Channel.BUFFERED)
-                ReactionEventListener(get(), get(), get()).init()
-                notificationListener.startListening(channelNotification, player)
+  FunSpec({
+    test("handle a command should execute the command") {
+      koinApplication { modules(appKoinModule) }.koin.apply {
+        val commandHandler by inject<GameCommandHandler>()
+        val notificationListener by inject<PlayerNotificationEventListener>()
+        val gameId = GameId()
+        val player = Player("Tesla")
+        val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
+        val channelNotification = Channel<Notification>(Channel.BUFFERED)
+        ReactionEventListener(get(), get(), get()).init()
+        notificationListener.startListening(channelNotification, player)
 
-                GlobalScope.launch {
-                    commandHandler.handle(player, channelCommand, channelNotification)
-                }
-
-                channelCommand.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)))
-                assertIs<WelcomeToTheGameNotification>(channelNotification.receive()).let {
-                    it.players shouldContain player
-                }
-            }
+        GlobalScope.launch {
+          commandHandler.handle(player, channelCommand, channelNotification)
         }
-    })
+
+        channelCommand.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)))
+        assertIs<WelcomeToTheGameNotification>(channelNotification.receive()).let {
+          it.players shouldContain player
+        }
+      }
+    }
+  })

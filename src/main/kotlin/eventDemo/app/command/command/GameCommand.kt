@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface GameCommand : Command {
-    val payload: Payload
+  val payload: Payload
 
-    @Serializable
-    sealed interface Payload {
-        val aggregateId: GameId
-        val player: Player
-    }
+  @Serializable
+  sealed interface Payload {
+    val aggregateId: GameId
+    val player: Player
+  }
 }

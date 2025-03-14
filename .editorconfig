@@ -4,3 +4,5 @@ ktlint_standard = enabled
 ktlint_experimental = enabled
 ktlint_standard_string-template-indent = enabled
 ktlint_standard_multiline-expression-wrapping = enabled
+ktlint_function_signature_body_expression_wrapping = always
+indent_size = 2

@@ -18,29 +18,29 @@ import kotlinx.coroutines.launch
 
 @DelicateCoroutinesApi
 fun Route.gameSocket(
-    playerNotificationListener: PlayerNotificationEventListener,
-    commandHandler: GameCommandHandler,
+  playerNotificationListener: PlayerNotificationEventListener,
+  commandHandler: GameCommandHandler,
 ) {
-    authenticate {
-        webSocket("/game") {
-            val currentPlayer = call.getPlayer()
-            val outgoingFrameChannel: SendChannel<Notification> = fromFrameChannel(outgoing)
-            GlobalScope.launch {
-                commandHandler.handle(
-                    currentPlayer,
-                    toObjectChannel(incoming),
-                    outgoingFrameChannel,
-                )
-            }
-            playerNotificationListener.startListening(outgoingFrameChannel, currentPlayer)
-        }
+  authenticate {
+    webSocket("/game") {
+      val currentPlayer = call.getPlayer()
+      val outgoingFrameChannel: SendChannel<Notification> = fromFrameChannel(outgoing)
+      GlobalScope.launch {
+        commandHandler.handle(
+          currentPlayer,
+          toObjectChannel(incoming),
+          outgoingFrameChannel,
+        )
+      }
+      playerNotificationListener.startListening(outgoingFrameChannel, currentPlayer)
     }
+  }
 }
 
 private fun ApplicationCall.getPlayer() =
-    principal<JWTPrincipal>()!!.run {
-        Player(
-            id = payload.getClaim("playerid").asString(),
-            name = payload.getClaim("username").asString(),
-        )
-    }
+  principal<JWTPrincipal>()!!.run {
+    Player(
+      id = payload.getClaim("playerid").asString(),
+      name = payload.getClaim("username").asString(),
+    )
+  }

@@ -11,12 +11,12 @@ import java.util.UUID
  * An [GameEvent] to represent a played card.
  */
 data class CardIsPlayedEvent(
-    override val aggregateId: GameId,
-    val card: Card,
-    override val player: Player,
-    override val version: Int,
+  override val aggregateId: GameId,
+  val card: Card,
+  override val player: Player,
+  override val version: Int,
 ) : GameEvent,
-    PlayerActionEvent {
-    override val eventId: UUID = UUID.randomUUID()
-    override val createdAt: Instant = Clock.System.now()
+  PlayerActionEvent {
+  override val eventId: UUID = UUID.randomUUID()
+  override val createdAt: Instant = Clock.System.now()
 }

@@ -11,76 +11,76 @@ import eventDemo.app.event.projection.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ReactionEventListener(
-    private val eventBus: GameEventBus,
-    private val eventHandler: GameEventHandler,
-    private val gameStateRepository: GameStateRepository,
-    private val priority: Int = DEFAULT_PRIORITY,
+  private val eventBus: GameEventBus,
+  private val eventHandler: GameEventHandler,
+  private val gameStateRepository: GameStateRepository,
+  private val priority: Int = DEFAULT_PRIORITY,
 ) {
-    companion object Config {
-        const val DEFAULT_PRIORITY = -1000
+  companion object Config {
+    const val DEFAULT_PRIORITY = -1000
+  }
+
+  private val logger = KotlinLogging.logger { }
+
+  fun init() {
+    eventBus.subscribe(priority) { event: GameEvent ->
+      val state = gameStateRepository.getUntil(event)
+      sendStartGameEvent(state, event)
+      sendWinnerEvent(state, event)
     }
+  }
 
-    private val logger = KotlinLogging.logger { }
-
-    fun init() {
-        eventBus.subscribe(priority) { event: GameEvent ->
-            val state = gameStateRepository.getUntil(event)
-            sendStartGameEvent(state, event)
-            sendWinnerEvent(state, event)
+  private suspend fun sendStartGameEvent(
+    state: GameState,
+    event: GameEvent,
+  ) {
+    if (state.isReady && !state.isStarted) {
+      val reactionEvent =
+        eventHandler.handle(state.aggregateId) {
+          GameStartedEvent.new(
+            id = state.aggregateId,
+            players = state.players,
+            version = it,
+          )
         }
+      logger.atInfo {
+        message = "Reaction event was Send $reactionEvent on reaction of: $event"
+        payload =
+          mapOf(
+            "event" to event,
+            "reactionEvent" to reactionEvent,
+          )
+      }
+    } else {
+      if (event is PlayerReadyEvent) {
+        logger.info { "All players was not ready ${state.readyPlayers}" }
+      }
     }
+  }
 
-    private suspend fun sendStartGameEvent(
-        state: GameState,
-        event: GameEvent,
-    ) {
-        if (state.isReady && !state.isStarted) {
-            val reactionEvent =
-                eventHandler.handle(state.aggregateId) {
-                    GameStartedEvent.new(
-                        id = state.aggregateId,
-                        players = state.players,
-                        version = it,
-                    )
-                }
-            logger.atInfo {
-                message = "Reaction event was Send $reactionEvent on reaction of: $event"
-                payload =
-                    mapOf(
-                        "event" to event,
-                        "reactionEvent" to reactionEvent,
-                    )
-            }
-        } else {
-            if (event is PlayerReadyEvent) {
-                logger.info { "All players was not ready ${state.readyPlayers}" }
-            }
+  private fun sendWinnerEvent(
+    state: GameState,
+    event: GameEvent,
+  ) {
+    val winner = state.playerHasNoCardLeft().firstOrNull()
+    if (winner != null) {
+      val reactionEvent =
+        eventHandler.handle(state.aggregateId) {
+          PlayerWinEvent(
+            aggregateId = state.aggregateId,
+            player = winner,
+            version = it,
+          )
         }
-    }
 
-    private fun sendWinnerEvent(
-        state: GameState,
-        event: GameEvent,
-    ) {
-        val winner = state.playerHasNoCardLeft().firstOrNull()
-        if (winner != null) {
-            val reactionEvent =
-                eventHandler.handle(state.aggregateId) {
-                    PlayerWinEvent(
-                        aggregateId = state.aggregateId,
-                        player = winner,
-                        version = it,
-                    )
-                }
-
-            logger.atInfo {
-                message = "Reaction event was Send $reactionEvent on reaction of: $event"
-                payload =
-                    mapOf(
-                        "event" to event,
-                        "reactionEvent" to reactionEvent,
-                    )
-            }
-        }
+      logger.atInfo {
+        message = "Reaction event was Send $reactionEvent on reaction of: $event"
+        payload =
+          mapOf(
+            "event" to event,
+            "reactionEvent" to reactionEvent,
+          )
+      }
     }
+  }
 }

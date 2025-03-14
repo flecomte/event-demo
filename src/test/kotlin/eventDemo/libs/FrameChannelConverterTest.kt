@@ -14,42 +14,42 @@ import kotlin.test.assertIs
 
 @Serializable
 data class CommandTest(
-    override val id: CommandId,
+  override val id: CommandId,
 ) : Command
 
 class FrameChannelConverterTest :
-    FunSpec({
+  FunSpec({
 
-        test("toObjectChannel") {
-            val uuid = "d737c631-76af-406e-bc29-f3e5b97226a5"
-            val id = CommandId(UUID.fromString(uuid))
-            val jsonCommand = """{"id":"$uuid"}"""
+    test("toObjectChannel") {
+      val uuid = "d737c631-76af-406e-bc29-f3e5b97226a5"
+      val id = CommandId(UUID.fromString(uuid))
+      val jsonCommand = """{"id":"$uuid"}"""
 
-            val channel = Channel<Frame>()
+      val channel = Channel<Frame>()
 
-            launch {
-                val commandChannel = toObjectChannel<CommandTest>(channel)
-                commandChannel.receive().id shouldBeEqual id
-                channel.close()
-            }
+      launch {
+        val commandChannel = toObjectChannel<CommandTest>(channel)
+        commandChannel.receive().id shouldBeEqual id
+        channel.close()
+      }
 
-            channel.send(Frame.Text(jsonCommand))
-        }
+      channel.send(Frame.Text(jsonCommand))
+    }
 
-        test("fromFrameChannel") {
-            val uuid = "d737c631-76af-406e-bc29-f3e5b97226a5"
-            val id = CommandId(UUID.fromString(uuid))
-            val command = CommandTest(id)
-            val jsonCommand = """{"id":"$uuid"}"""
+    test("fromFrameChannel") {
+      val uuid = "d737c631-76af-406e-bc29-f3e5b97226a5"
+      val id = CommandId(UUID.fromString(uuid))
+      val command = CommandTest(id)
+      val jsonCommand = """{"id":"$uuid"}"""
 
-            val channel = Channel<Frame>()
+      val channel = Channel<Frame>()
 
-            launch {
-                val commandChannel = fromFrameChannel<CommandTest>(channel)
-                commandChannel.send(command)
-                commandChannel.close()
-            }
+      launch {
+        val commandChannel = fromFrameChannel<CommandTest>(channel)
+        commandChannel.send(command)
+        commandChannel.close()
+      }
 
-            assertIs<Frame.Text>(channel.receive()).readText() shouldBeEqual jsonCommand
-        }
-    })
+      assertIs<Frame.Text>(channel.receive()).readText() shouldBeEqual jsonCommand
+    }
+  })

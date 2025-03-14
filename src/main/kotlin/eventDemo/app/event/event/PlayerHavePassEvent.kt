@@ -11,12 +11,12 @@ import java.util.UUID
  * This [GameEvent] is sent when a player can play.
  */
 data class PlayerHavePassEvent(
-    override val aggregateId: GameId,
-    override val player: Player,
-    val takenCard: Card,
-    override val version: Int,
+  override val aggregateId: GameId,
+  override val player: Player,
+  val takenCard: Card,
+  override val version: Int,
 ) : GameEvent,
-    PlayerActionEvent {
-    override val eventId: UUID = UUID.randomUUID()
-    override val createdAt: Instant = Clock.System.now()
+  PlayerActionEvent {
+  override val eventId: UUID = UUID.randomUUID()
+  override val createdAt: Instant = Clock.System.now()
 }

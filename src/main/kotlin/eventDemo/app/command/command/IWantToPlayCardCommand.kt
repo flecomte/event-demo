@@ -15,42 +15,42 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class IWantToPlayCardCommand(
-    override val payload: Payload,
+  override val payload: Payload,
 ) : GameCommand {
-    override val id: CommandId = CommandId()
+  override val id: CommandId = CommandId()
 
-    @Serializable
-    data class Payload(
-        override val aggregateId: GameId,
-        override val player: Player,
-        val card: Card,
-    ) : GameCommand.Payload
+  @Serializable
+  data class Payload(
+    override val aggregateId: GameId,
+    override val player: Player,
+    val card: Card,
+  ) : GameCommand.Payload
 
-    suspend fun run(
-        state: GameState,
-        playerErrorNotifier: ErrorNotifier,
-        eventHandler: GameEventHandler,
-    ) {
-        if (!state.isStarted) {
-            playerErrorNotifier("The game is Not started")
-            return
-        }
-        if (state.currentPlayerTurn != payload.player) {
-            playerErrorNotifier("Its not your turn!")
-            return
-        }
-
-        if (state.canBePlayThisCard(payload.player, payload.card)) {
-            eventHandler.handle(payload.aggregateId) {
-                CardIsPlayedEvent(
-                    aggregateId = payload.aggregateId,
-                    card = payload.card,
-                    player = payload.player,
-                    version = it,
-                )
-            }
-        } else {
-            playerErrorNotifier("You cannot play this card")
-        }
+  suspend fun run(
+    state: GameState,
+    playerErrorNotifier: ErrorNotifier,
+    eventHandler: GameEventHandler,
+  ) {
+    if (!state.isStarted) {
+      playerErrorNotifier("The game is Not started")
+      return
     }
+    if (state.currentPlayerTurn != payload.player) {
+      playerErrorNotifier("Its not your turn!")
+      return
+    }
+
+    if (state.canBePlayThisCard(payload.player, payload.card)) {
+      eventHandler.handle(payload.aggregateId) {
+        CardIsPlayedEvent(
+          aggregateId = payload.aggregateId,
+          card = payload.card,
+          player = payload.player,
+          version = it,
+        )
+      }
+    } else {
+      playerErrorNotifier("You cannot play this card")
+    }
+  }
 }

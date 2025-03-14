@@ -18,72 +18,76 @@ import kotlinx.serialization.modules.SerializersModule
 import java.util.UUID
 
 fun Application.configureSerialization() {
-    install(ContentNegotiation) {
-        json(
-            defaultJsonSerializer(),
-        )
-    }
+  install(ContentNegotiation) {
+    json(
+      defaultJsonSerializer(),
+    )
+  }
 }
 
 fun defaultJsonSerializer(): Json =
-    Json {
-        serializersModule =
-            SerializersModule {
-                contextual(UUID::class) { UUIDSerializer }
-                contextual(GameId::class) { GameIdSerializer }
-                contextual(CommandId::class) { CommandIdSerializer }
-                contextual(Player.PlayerId::class) { PlayerIdSerializer }
-            }
-    }
+  Json {
+    serializersModule =
+      SerializersModule {
+        contextual(UUID::class) { UUIDSerializer }
+        contextual(GameId::class) { GameIdSerializer }
+        contextual(CommandId::class) { CommandIdSerializer }
+        contextual(Player.PlayerId::class) { PlayerIdSerializer }
+      }
+  }
 
 object CommandIdSerializer : KSerializer<CommandId> {
-    override fun deserialize(decoder: Decoder): CommandId = CommandId(decoder.decodeString())
+  override fun deserialize(decoder: Decoder): CommandId =
+    CommandId(decoder.decodeString())
 
-    override fun serialize(
-        encoder: Encoder,
-        value: CommandId,
-    ) {
-        encoder.encodeString(value.toString())
-    }
+  override fun serialize(
+    encoder: Encoder,
+    value: CommandId,
+  ) {
+    encoder.encodeString(value.toString())
+  }
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("CommandId", PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("CommandId", PrimitiveKind.STRING)
 }
 
 object PlayerIdSerializer : KSerializer<Player.PlayerId> {
-    override fun deserialize(decoder: Decoder): Player.PlayerId = Player.PlayerId(UUID.fromString(decoder.decodeString()))
+  override fun deserialize(decoder: Decoder): Player.PlayerId =
+    Player.PlayerId(UUID.fromString(decoder.decodeString()))
 
-    override fun serialize(
-        encoder: Encoder,
-        value: Player.PlayerId,
-    ) {
-        encoder.encodeString(value.id.toString())
-    }
+  override fun serialize(
+    encoder: Encoder,
+    value: Player.PlayerId,
+  ) {
+    encoder.encodeString(value.id.toString())
+  }
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PlayerId", PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PlayerId", PrimitiveKind.STRING)
 }
 
 object GameIdSerializer : KSerializer<GameId> {
-    override fun deserialize(decoder: Decoder): GameId = GameId(UUID.fromString(decoder.decodeString()))
+  override fun deserialize(decoder: Decoder): GameId =
+    GameId(UUID.fromString(decoder.decodeString()))
 
-    override fun serialize(
-        encoder: Encoder,
-        value: GameId,
-    ) {
-        encoder.encodeString(value.id.toString())
-    }
+  override fun serialize(
+    encoder: Encoder,
+    value: GameId,
+  ) {
+    encoder.encodeString(value.id.toString())
+  }
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("GameId", PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("GameId", PrimitiveKind.STRING)
 }
 
 object UUIDSerializer : KSerializer<UUID> {
-    override fun deserialize(decoder: Decoder): UUID = UUID.fromString(decoder.decodeString())
+  override fun deserialize(decoder: Decoder): UUID =
+    UUID.fromString(decoder.decodeString())
 
-    override fun serialize(
-        encoder: Encoder,
-        value: UUID,
-    ) {
-        encoder.encodeString(value.toString())
-    }
+  override fun serialize(
+    encoder: Encoder,
+    value: UUID,
+  ) {
+    encoder.encodeString(value.toString())
+  }
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
 }

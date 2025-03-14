@@ -11,21 +11,21 @@ import eventDemo.app.notification.Notification
 import kotlinx.coroutines.channels.SendChannel
 
 class GameCommandRunner(
-    private val eventHandler: GameEventHandler,
-    private val gameStateRepository: GameStateRepository,
+  private val eventHandler: GameEventHandler,
+  private val gameStateRepository: GameStateRepository,
 ) {
-    suspend fun run(
-        command: GameCommand,
-        outgoingErrorChannelNotification: SendChannel<Notification>,
-    ) {
-        val gameState = gameStateRepository.getLast(command.payload.aggregateId)
-        val errorNotifier = errorNotifier(command, outgoingErrorChannelNotification)
+  suspend fun run(
+    command: GameCommand,
+    outgoingErrorChannelNotification: SendChannel<Notification>,
+  ) {
+    val gameState = gameStateRepository.getLast(command.payload.aggregateId)
+    val errorNotifier = errorNotifier(command, outgoingErrorChannelNotification)
 
-        when (command) {
-            is IWantToPlayCardCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-            is IamReadyToPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-            is IWantToJoinTheGameCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-            is ICantPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-        }
+    when (command) {
+      is IWantToPlayCardCommand -> command.run(gameState, errorNotifier, this.eventHandler)
+      is IamReadyToPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
+      is IWantToJoinTheGameCommand -> command.run(gameState, errorNotifier, this.eventHandler)
+      is ICantPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
     }
+  }
 }

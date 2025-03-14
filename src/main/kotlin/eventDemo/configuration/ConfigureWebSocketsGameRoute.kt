@@ -9,10 +9,10 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 
 @OptIn(DelicateCoroutinesApi::class)
 fun Application.declareWebSocketsGameRoute(
-    playerNotificationListener: PlayerNotificationEventListener,
-    commandHandler: GameCommandHandler,
+  playerNotificationListener: PlayerNotificationEventListener,
+  commandHandler: GameCommandHandler,
 ) {
-    routing {
-        gameSocket(playerNotificationListener, commandHandler)
-    }
+  routing {
+    gameSocket(playerNotificationListener, commandHandler)
+  }
 }

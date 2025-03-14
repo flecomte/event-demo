@@ -9,5 +9,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * A stream to publish and read the game command.
  */
 class GameCommandStream(
-    incoming: ReceiveChannel<GameCommand>,
+  incoming: ReceiveChannel<GameCommand>,
 ) : CommandStream<GameCommand> by CommandStreamChannel(incoming)

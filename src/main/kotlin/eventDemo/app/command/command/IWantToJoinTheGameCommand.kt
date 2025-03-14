@@ -14,31 +14,31 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class IWantToJoinTheGameCommand(
-    override val payload: Payload,
+  override val payload: Payload,
 ) : GameCommand {
-    override val id: CommandId = CommandId()
+  override val id: CommandId = CommandId()
 
-    @Serializable
-    data class Payload(
-        override val aggregateId: GameId,
-        override val player: Player,
-    ) : GameCommand.Payload
+  @Serializable
+  data class Payload(
+    override val aggregateId: GameId,
+    override val player: Player,
+  ) : GameCommand.Payload
 
-    suspend fun run(
-        state: GameState,
-        playerErrorNotifier: ErrorNotifier,
-        eventHandler: GameEventHandler,
-    ) {
-        if (!state.isStarted) {
-            eventHandler.handle(payload.aggregateId) {
-                NewPlayerEvent(
-                    aggregateId = payload.aggregateId,
-                    player = payload.player,
-                    version = it,
-                )
-            }
-        } else {
-            playerErrorNotifier("The game is already started")
-        }
+  suspend fun run(
+    state: GameState,
+    playerErrorNotifier: ErrorNotifier,
+    eventHandler: GameEventHandler,
+  ) {
+    if (!state.isStarted) {
+      eventHandler.handle(payload.aggregateId) {
+        NewPlayerEvent(
+          aggregateId = payload.aggregateId,
+          player = payload.player,
+          version = it,
+        )
+      }
+    } else {
+      playerErrorNotifier("The game is already started")
     }
+  }
 }

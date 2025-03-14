@@ -11,7 +11,8 @@ import java.util.UUID
 @JvmInline
 @Serializable(with = GameIdSerializer::class)
 value class GameId(
-    override val id: UUID = UUID.randomUUID(),
+  override val id: UUID = UUID.randomUUID(),
 ) : AggregateId {
-    override fun toString(): String = id.toString()
+  override fun toString(): String =
+    id.toString()
 }

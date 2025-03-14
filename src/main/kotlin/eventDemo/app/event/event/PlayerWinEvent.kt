@@ -10,10 +10,10 @@ import java.util.UUID
  * This [GameEvent] is sent when a player is ready.
  */
 data class PlayerWinEvent(
-    override val aggregateId: GameId,
-    val player: Player,
-    override val version: Int,
+  override val aggregateId: GameId,
+  val player: Player,
+  override val version: Int,
 ) : GameEvent {
-    override val eventId: UUID = UUID.randomUUID()
-    override val createdAt: Instant = Clock.System.now()
+  override val eventId: UUID = UUID.randomUUID()
+  override val createdAt: Instant = Clock.System.now()
 }

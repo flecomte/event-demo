@@ -7,7 +7,7 @@ import java.util.UUID
 
 @Serializable
 data class PlayerWinNotification(
-    @Serializable(with = UUIDSerializer::class)
-    override val id: UUID = UUID.randomUUID(),
-    val player: Player,
+  @Serializable(with = UUIDSerializer::class)
+  override val id: UUID = UUID.randomUUID(),
+  val player: Player,
 ) : Notification

@@ -33,89 +33,89 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 
 class GameStateRouteTest :
-    FunSpec({
-        test("/game/{id}/state on empty game") {
-            testApplication {
-                val id = GameId()
-                val player1 = Player(name = "Nikola")
-                application {
-                    stopKoin()
-                    configure()
-                }
-
-                httpClient()
-                    .get("/game/$id/state") {
-                        withAuth(player1)
-                        accept(ContentType.Application.Json)
-                    }.apply {
-                        assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-                        val state = call.body<GameState>()
-                        id shouldBeEqual state.aggregateId
-                        state.players shouldHaveSize 0
-                        state.isStarted shouldBeEqual false
-                    }
-            }
+  FunSpec({
+    test("/game/{id}/state on empty game") {
+      testApplication {
+        val id = GameId()
+        val player1 = Player(name = "Nikola")
+        application {
+          stopKoin()
+          configure()
         }
 
-        test("/game/{id}/card/last") {
-            testApplication {
-                val gameId = GameId()
-                val player1 = Player(name = "Nikola")
-                val player2 = Player(name = "Einstein")
-                var lastPlayedCard: Card? = null
+        httpClient()
+          .get("/game/$id/state") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            val state = call.body<GameState>()
+            id shouldBeEqual state.aggregateId
+            state.players shouldHaveSize 0
+            state.isStarted shouldBeEqual false
+          }
+      }
+    }
 
-                application {
-                    stopKoin()
-                    configure()
+    test("/game/{id}/card/last") {
+      testApplication {
+        val gameId = GameId()
+        val player1 = Player(name = "Nikola")
+        val player2 = Player(name = "Einstein")
+        var lastPlayedCard: Card? = null
 
-                    val eventHandler by inject<GameEventHandler>()
-                    val stateRepo by inject<GameStateRepository>()
-                    runBlocking {
-                        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-                        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
-                        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
-                        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-                        eventHandler.handle(gameId) {
-                            GameStartedEvent.new(
-                                gameId,
-                                setOf(player1, player2),
-                                shuffleIsDisabled = true,
-                                it,
-                            )
-                        }
-                        delay(100)
-                        lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
-                        assertNotNull(lastPlayedCard)
-                            .let { assertIs<Card.NumericCard>(lastPlayedCard) }
-                            .let {
-                                it.number shouldBeEqual 0
-                                it.color shouldBeEqual Card.Color.Red
-                            }
-                        delay(100)
-                        eventHandler.handle(gameId) {
-                            CardIsPlayedEvent(
-                                gameId,
-                                assertNotNull(lastPlayedCard),
-                                player1,
-                                it,
-                            )
-                        }
-                        delay(100)
-                    }
-                }
+        application {
+          stopKoin()
+          configure()
 
-                httpClient()
-                    .get("/game/$gameId/card/last") {
-                        withAuth(player1)
-                        accept(ContentType.Application.Json)
-                    }.apply {
-                        assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-                        assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
-                    }
+          val eventHandler by inject<GameEventHandler>()
+          val stateRepo by inject<GameStateRepository>()
+          runBlocking {
+            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+            eventHandler.handle(gameId) {
+              GameStartedEvent.new(
+                gameId,
+                setOf(player1, player2),
+                shuffleIsDisabled = true,
+                it,
+              )
             }
+            delay(100)
+            lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
+            assertNotNull(lastPlayedCard)
+              .let { assertIs<Card.NumericCard>(lastPlayedCard) }
+              .let {
+                it.number shouldBeEqual 0
+                it.color shouldBeEqual Card.Color.Red
+              }
+            delay(100)
+            eventHandler.handle(gameId) {
+              CardIsPlayedEvent(
+                gameId,
+                assertNotNull(lastPlayedCard),
+                player1,
+                it,
+              )
+            }
+            delay(100)
+          }
         }
-    })
+
+        httpClient()
+          .get("/game/$gameId/card/last") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
+          }
+      }
+    }
+  })
 
 private fun HttpRequestBuilder.withAuth(player: Player) {
-    header("Authorization", "Bearer ${player.makeJwt()}")
+  header("Authorization", "Bearer ${player.makeJwt()}")
 }

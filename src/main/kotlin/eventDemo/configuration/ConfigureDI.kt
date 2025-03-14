@@ -23,30 +23,30 @@ import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
 fun Application.configureKoin() {
-    install(Koin) {
-        slf4jLogger()
-        modules(appKoinModule)
-    }
+  install(Koin) {
+    slf4jLogger()
+    modules(appKoinModule)
+  }
 }
 
 val appKoinModule =
-    module {
-        single {
-            GameEventBus(EventBusInMemory())
-        }
-        single {
-            GameEventStore(EventStoreInMemory())
-        }
-        single {
-            GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())
-        }
-        single {
-            CommandStreamChannelBuilder<GameCommand>()
-        }
-
-        singleOf(::VersionBuilderLocal) bind VersionBuilder::class
-        singleOf(::GameEventHandler)
-        singleOf(::GameCommandRunner)
-        singleOf(::GameCommandHandler)
-        singleOf(::PlayerNotificationEventListener)
+  module {
+    single {
+      GameEventBus(EventBusInMemory())
     }
+    single {
+      GameEventStore(EventStoreInMemory())
+    }
+    single {
+      GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())
+    }
+    single {
+      CommandStreamChannelBuilder<GameCommand>()
+    }
+
+    singleOf(::VersionBuilderLocal) bind VersionBuilder::class
+    singleOf(::GameEventHandler)
+    singleOf(::GameCommandRunner)
+    singleOf(::GameCommandHandler)
+    singleOf(::PlayerNotificationEventListener)
+  }

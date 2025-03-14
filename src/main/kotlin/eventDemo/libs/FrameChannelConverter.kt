@@ -16,28 +16,28 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
 inline fun <reified T> CoroutineScope.toObjectChannel(
-    frames: ReceiveChannel<Frame>,
-    bufferSize: Int = 0,
+  frames: ReceiveChannel<Frame>,
+  bufferSize: Int = 0,
 ): ReceiveChannel<T> {
-    val logger = KotlinLogging.logger { }
-    return produce(capacity = bufferSize) {
-        frames.consumeEach { frame ->
-            if (frame is Frame.Text) {
-                logger.debug { "Conversion of the Frame: ${frame.readText()}" }
-                send(Json.decodeFromString(frame.readText()))
-            } else {
-                logger.warn { "The frame is not a text frame" }
-            }
-        }
+  val logger = KotlinLogging.logger { }
+  return produce(capacity = bufferSize) {
+    frames.consumeEach { frame ->
+      if (frame is Frame.Text) {
+        logger.debug { "Conversion of the Frame: ${frame.readText()}" }
+        send(Json.decodeFromString(frame.readText()))
+      } else {
+        logger.warn { "The frame is not a text frame" }
+      }
     }
+  }
 }
 
 inline fun <reified T> CoroutineScope.fromFrameChannel(frames: SendChannel<Frame>): SendChannel<T> {
-    val channel = Channel<T>()
-    launch {
-        channel.consumeEach { obj ->
-            frames.send(Frame.Text(Json.encodeToString(obj)))
-        }
+  val channel = Channel<T>()
+  launch {
+    channel.consumeEach { obj ->
+      frames.send(Frame.Text(Json.encodeToString(obj)))
     }
-    return channel
+  }
+  return channel
 }

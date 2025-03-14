@@ -7,9 +7,9 @@ import eventDemo.libs.event.EventStream
  * A stream to publish and read the played card event.
  */
 class GameEventStream(
-    private val eventStream: EventStream<GameEvent>,
+  private val eventStream: EventStream<GameEvent>,
 ) : EventStream<GameEvent> by eventStream {
-    override fun publish(event: GameEvent) {
-        eventStream.publish(event)
-    }
+  override fun publish(event: GameEvent) {
+    eventStream.publish(event)
+  }
 }
