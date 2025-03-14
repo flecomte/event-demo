@@ -13,7 +13,7 @@ import kotlin.concurrent.withLock
  */
 class GameEventHandler(
     private val eventBus: GameEventBus,
-    private val eventStream: GameEventStream,
+    private val eventStore: GameEventStore,
     private val versionBuilder: VersionBuilder,
 ) : EventHandler<GameEvent, GameId> {
     private val projectionsBuilders: ConcurrentLinkedQueue<(GameEvent) -> Unit> = ConcurrentLinkedQueue()
@@ -31,7 +31,7 @@ class GameEventHandler(
             .computeIfAbsent(aggregateId) { ReentrantLock() }
             .withLock {
                 buildEvent(versionBuilder.buildNextVersion(aggregateId))
-                    .also { eventStream.publish(it) }
+                    .also { eventStore.publish(it) }
             }.also { event ->
                 projectionsBuilders.forEach { it(event) }
                 eventBus.publish(event)

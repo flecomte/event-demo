@@ -2,17 +2,17 @@ package eventDemo.app.event.projection
 
 import eventDemo.app.entity.GameId
 import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventStore
 import eventDemo.app.event.event.GameEvent
 
 class GameStateRepository(
-    eventStream: GameEventStream,
+    eventStore: GameEventStore,
     eventHandler: GameEventHandler,
     snapshotConfig: SnapshotConfig = SnapshotConfig(),
 ) {
     private val projectionsSnapshot =
         ProjectionSnapshotRepositoryInMemory(
-            eventStream = eventStream,
+            eventStore = eventStore,
             snapshotCacheConfig = snapshotConfig,
             applyToProjection = GameState::apply,
             initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },

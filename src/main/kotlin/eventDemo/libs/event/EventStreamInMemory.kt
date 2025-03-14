@@ -3,14 +3,13 @@ package eventDemo.libs.event
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.reflect.KClass
 
 /**
  * An In-Memory implementation of an event stream.
  *
  * All methods are implemented.
  */
-class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> {
+class EventStreamInMemory<E : Event<*>> : EventStream<E> {
     private val logger = KotlinLogging.logger {}
     private val events: Queue<E> = ConcurrentLinkedQueue()
 
@@ -28,39 +27,15 @@ class EventStreamInMemory<E : Event<ID>, ID : AggregateId> : EventStream<E, ID> 
         events.forEach { publish(it) }
     }
 
-    override fun readLast(aggregateId: ID): E? = events.lastOrNull()
+    override fun readAll(): Set<E> = events.toSet()
 
-    override fun <R : E> readLastOf(
-        aggregateId: ID,
-        eventType: KClass<out R>,
-    ): R? =
+    override fun readGreaterOfVersion(version: Int): Set<E> =
         events
-            .filterIsInstance(eventType.java)
-            .lastOrNull { it.aggregateId == aggregateId }
-
-    override fun readAll(aggregateId: ID): Set<E> =
-        events
-            .filter { it.aggregateId == aggregateId }
-            .toSet()
-
-    override fun readGreaterOfVersion(
-        aggregateId: ID,
-        version: Int,
-    ): Set<E> =
-        events
-            .filter { it.aggregateId == aggregateId }
             .filter { it.version > version }
             .toSet()
 
-    override fun readVersionBetween(
-        aggregateId: ID,
-        version: IntRange,
-    ): Set<E> =
+    override fun readVersionBetween(version: IntRange): Set<E> =
         events
-            .filter { it.aggregateId == aggregateId }
             .filter { version.contains(it.version) }
             .toSet()
 }
-
-inline fun <reified R : E, E : Event<ID>, ID : AggregateId> EventStream<E, ID>.readLastOf(aggregateId: ID): R? =
-    readLastOf(aggregateId, R::class)

@@ -5,13 +5,13 @@ import eventDemo.app.command.GameCommandRunner
 import eventDemo.app.command.command.GameCommand
 import eventDemo.app.event.GameEventBus
 import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventStore
 import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.event.projection.SnapshotConfig
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.libs.command.CommandStreamChannelBuilder
 import eventDemo.libs.event.EventBusInMemory
-import eventDemo.libs.event.EventStreamInMemory
+import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilder
 import eventDemo.libs.event.VersionBuilderLocal
 import io.ktor.server.application.Application
@@ -35,7 +35,7 @@ val appKoinModule =
             GameEventBus(EventBusInMemory())
         }
         single {
-            GameEventStream(EventStreamInMemory())
+            GameEventStore(EventStoreInMemory())
         }
         single {
             GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())

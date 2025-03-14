@@ -1,36 +1,19 @@
 package eventDemo.libs.event
 
-import kotlin.reflect.KClass
-
 /**
  * Interface representing an event stream for publishing and reading domain events
  */
-interface EventStream<E : Event<ID>, ID : AggregateId> {
+interface EventStream<E : Event<*>> {
     /** Publishes a single event to the event stream */
     fun publish(event: E)
 
     /** Publishes multiple events to the event stream */
     fun publish(vararg events: E)
 
-    /** Reads the last event associated with a given aggregate ID */
-    fun readLast(aggregateId: ID): E?
+    /** Reads all events */
+    fun readAll(): Set<E>
 
-    /** Reads the last event of a specific type associated with a given aggregate ID */
-    fun <R : E> readLastOf(
-        aggregateId: ID,
-        eventType: KClass<out R>,
-    ): R?
+    fun readGreaterOfVersion(version: Int): Set<E>
 
-    /** Reads all events associated with a given aggregate ID */
-    fun readAll(aggregateId: ID): Set<E>
-
-    fun readGreaterOfVersion(
-        aggregateId: ID,
-        version: Int,
-    ): Set<E>
-
-    fun readVersionBetween(
-        aggregateId: ID,
-        version: IntRange,
-    ): Set<E>
+    fun readVersionBetween(version: IntRange): Set<E>
 }

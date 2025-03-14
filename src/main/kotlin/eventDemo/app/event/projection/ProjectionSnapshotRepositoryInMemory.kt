@@ -2,6 +2,7 @@ package eventDemo.app.event.projection
 
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
+import eventDemo.libs.event.EventStore
 import eventDemo.libs.event.EventStream
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Clock
@@ -21,7 +22,7 @@ data class SnapshotConfig(
 )
 
 class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID : AggregateId>(
-    private val eventStream: EventStream<E, ID>,
+    private val eventStore: EventStore<E, ID>,
     private val initialStateBuilder: (ID) -> P,
     private val snapshotCacheConfig: SnapshotConfig = SnapshotConfig(),
     private val applyToProjection: P.(event: E) -> P,
@@ -77,10 +78,9 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
         }
 
         val missingEventOfSnapshot =
-            eventStream.readVersionBetween(
-                event.aggregateId,
-                (lastSnapshot?.lastEventVersion ?: 1)..event.version,
-            )
+            eventStore
+                .getStream(event.aggregateId)
+                .readVersionBetween((lastSnapshot?.lastEventVersion ?: 1)..event.version)
 
         return if (lastSnapshot?.lastEventVersion == event.version) {
             lastSnapshot
@@ -164,8 +164,9 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
     private fun getEventAfterTheSnapshot(
         aggregateId: ID,
         snapshot: P?,
-    ) = eventStream
-        .readGreaterOfVersion(aggregateId, snapshot?.lastEventVersion ?: 0)
+    ) = eventStore
+        .getStream(aggregateId)
+        .readGreaterOfVersion(snapshot?.lastEventVersion ?: 0)
 
     /**
      * Apply events to the projection.

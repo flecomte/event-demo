@@ -8,7 +8,7 @@ import eventDemo.app.command.command.IamReadyToPlayCommand
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStream
+import eventDemo.app.event.GameEventStore
 import eventDemo.app.event.event.disableShuffleDeck
 import eventDemo.app.event.projection.GameState
 import eventDemo.app.event.projection.ProjectionSnapshotRepositoryInMemory
@@ -134,7 +134,7 @@ class GameStateTest :
 
                 koinApplication { modules(appKoinModule) }.koin.apply {
                     val commandHandler by inject<GameCommandHandler>()
-                    val eventStream by inject<GameEventStream>()
+                    val eventStore by inject<GameEventStore>()
                     val playerNotificationListener by inject<PlayerNotificationEventListener>()
                     ReactionEventListener(get(), get(), get()).init()
                     playerNotificationListener.startListening(channelNotification1, player1)
@@ -151,7 +151,7 @@ class GameStateTest :
 
                     val state =
                         ProjectionSnapshotRepositoryInMemory(
-                            eventStream = eventStream,
+                            eventStore = eventStore,
                             initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },
                             applyToProjection = GameState::apply,
                         ).getLast(id)

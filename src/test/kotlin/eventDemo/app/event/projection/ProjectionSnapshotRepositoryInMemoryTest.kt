@@ -2,8 +2,8 @@ package eventDemo.app.event.projection
 
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
-import eventDemo.libs.event.EventStream
-import eventDemo.libs.event.EventStreamInMemory
+import eventDemo.libs.event.EventStore
+import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilderLocal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
@@ -23,19 +23,19 @@ class ProjectionSnapshotRepositoryInMemoryTest :
     FunSpec({
 
         test("when call applyAndPutToCache, the getUntil method must be use the built projection cache") {
-            val eventStream: EventStream<TestEvents, IdTest> = EventStreamInMemory()
-            val repo = getSnapshotRepoTest(eventStream)
+            val eventStore: EventStore<TestEvents, IdTest> = EventStoreInMemory()
+            val repo = getSnapshotRepoTest(eventStore)
             val aggregateId = IdTest()
 
             val eventOther = Event2Test(value2 = "valOther", version = 1, aggregateId = IdTest())
-            eventStream.publish(eventOther)
+            eventStore.publish(eventOther)
             repo.applyAndPutToCache(eventOther)
             assertNotNull(repo.getUntil(eventOther)).also {
                 assertNotNull(it.value) shouldBeEqual "valOther"
             }
 
             val event1 = Event1Test(value1 = "val1", version = 1, aggregateId = aggregateId)
-            eventStream.publish(event1)
+            eventStore.publish(event1)
             repo.applyAndPutToCache(event1)
             assertNotNull(repo.getLast(event1.aggregateId)).also {
                 assertNotNull(it.value) shouldBeEqual "val1"
@@ -45,7 +45,7 @@ class ProjectionSnapshotRepositoryInMemoryTest :
             }
 
             val event2 = Event2Test(value2 = "val2", version = 2, aggregateId = aggregateId)
-            eventStream.publish(event2)
+            eventStore.publish(event2)
             repo.applyAndPutToCache(event2)
             assertNotNull(repo.getLast(event2.aggregateId)).also {
                 assertNotNull(it.value) shouldBeEqual "val1val2"
@@ -59,8 +59,8 @@ class ProjectionSnapshotRepositoryInMemoryTest :
         }
 
         test("ProjectionSnapshotRepositoryInMemory should be thread safe") {
-            val eventStream: EventStream<TestEvents, IdTest> = EventStreamInMemory()
-            val repo = getSnapshotRepoTest(eventStream)
+            val eventStore: EventStore<TestEvents, IdTest> = EventStoreInMemory()
+            val repo = getSnapshotRepoTest(eventStore)
             val aggregateId = IdTest()
             val versionBuilder = VersionBuilderLocal()
             val lock = ReentrantLock()
@@ -71,7 +71,7 @@ class ProjectionSnapshotRepositoryInMemoryTest :
                             val eventX =
                                 lock.withLock {
                                     EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
-                                        .also { eventStream.publish(it) }
+                                        .also { eventStore.publish(it) }
                                 }
                             repo.applyAndPutToCache(eventX)
                         }
@@ -82,13 +82,13 @@ class ProjectionSnapshotRepositoryInMemoryTest :
 
         test("removeOldSnapshot") {
             val versionBuilder = VersionBuilderLocal()
-            val eventStream: EventStream<TestEvents, IdTest> = EventStreamInMemory()
-            val repo = getSnapshotRepoTest(eventStream, SnapshotConfig(2))
+            val eventStore: EventStore<TestEvents, IdTest> = EventStoreInMemory()
+            val repo = getSnapshotRepoTest(eventStore, SnapshotConfig(2))
             val aggregateId = IdTest()
 
             fun buildEndSendEventX() {
                 EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
-                    .also { eventStream.publish(it) }
+                    .also { eventStore.publish(it) }
                     .also { repo.applyAndPutToCache(it) }
             }
 
@@ -142,11 +142,11 @@ private data class EventXTest(
 ) : TestEvents
 
 private fun getSnapshotRepoTest(
-    eventStream: EventStream<TestEvents, IdTest>,
+    eventStore: EventStore<TestEvents, IdTest>,
     snapshotConfig: SnapshotConfig = SnapshotConfig(2000),
 ): ProjectionSnapshotRepositoryInMemory<TestEvents, ProjectionTest, IdTest> =
     ProjectionSnapshotRepositoryInMemory(
-        eventStream = eventStream,
+        eventStore = eventStore,
         initialStateBuilder = { aggregateId: IdTest -> ProjectionTest(aggregateId) },
         snapshotCacheConfig = snapshotConfig,
     ) { event ->
