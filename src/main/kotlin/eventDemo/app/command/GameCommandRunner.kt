@@ -19,13 +19,16 @@ class GameCommandRunner(
     outgoingErrorChannelNotification: SendChannel<Notification>,
   ) {
     val gameState = gameStateRepository.getLast(command.payload.aggregateId)
-    val errorNotifier = errorNotifier(command, outgoingErrorChannelNotification)
 
-    when (command) {
-      is IWantToPlayCardCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-      is IamReadyToPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-      is IWantToJoinTheGameCommand -> command.run(gameState, errorNotifier, this.eventHandler)
-      is ICantPlayCommand -> command.run(gameState, errorNotifier, this.eventHandler)
+    try {
+      when (command) {
+        is IWantToPlayCardCommand -> command.run(gameState, this.eventHandler)
+        is IamReadyToPlayCommand -> command.run(gameState, this.eventHandler)
+        is IWantToJoinTheGameCommand -> command.run(gameState, this.eventHandler)
+        is ICantPlayCommand -> command.run(gameState, this.eventHandler)
+      }
+    } catch (e: CommandException) {
+      errorNotifier(command, outgoingErrorChannelNotification)(e.message)
     }
   }
 }

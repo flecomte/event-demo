@@ -1,6 +1,6 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.command.ErrorNotifier
+import eventDemo.app.command.CommandException
 import eventDemo.app.entity.Card
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
@@ -28,16 +28,13 @@ data class IWantToPlayCardCommand(
 
   suspend fun run(
     state: GameState,
-    playerErrorNotifier: ErrorNotifier,
     eventHandler: GameEventHandler,
   ) {
     if (!state.isStarted) {
-      playerErrorNotifier("The game is Not started")
-      return
+      throw CommandException("The game is Not started")
     }
     if (state.currentPlayerTurn != payload.player) {
-      playerErrorNotifier("Its not your turn!")
-      return
+      throw CommandException("Its not your turn!")
     }
 
     if (state.canBePlayThisCard(payload.player, payload.card)) {
@@ -50,7 +47,7 @@ data class IWantToPlayCardCommand(
         )
       }
     } else {
-      playerErrorNotifier("You cannot play this card")
+      throw CommandException("You cannot play this card")
     }
   }
 }

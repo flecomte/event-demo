@@ -1,6 +1,6 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.command.ErrorNotifier
+import eventDemo.app.command.CommandException
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventHandler
@@ -24,20 +24,20 @@ data class IamReadyToPlayCommand(
     override val player: Player,
   ) : GameCommand.Payload
 
+  @Throws(CommandException::class)
   suspend fun run(
     state: GameState,
-    playerErrorNotifier: ErrorNotifier,
     eventHandler: GameEventHandler,
   ) {
     val playerExist: Boolean = state.players.contains(payload.player)
     val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(payload.player)
 
     if (state.isStarted) {
-      playerErrorNotifier("The game is already started")
+      throw CommandException("The game is already started")
     } else if (!playerExist) {
-      playerErrorNotifier("You are not in the game")
+      throw CommandException("You are not in the game")
     } else if (playerIsAlreadyReady) {
-      playerErrorNotifier("You are already ready")
+      throw CommandException("You are already ready")
     } else {
       eventHandler.handle(payload.aggregateId) {
         PlayerReadyEvent(

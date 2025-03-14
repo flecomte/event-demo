@@ -1,6 +1,6 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.command.ErrorNotifier
+import eventDemo.app.command.CommandException
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventHandler
@@ -26,12 +26,10 @@ data class ICantPlayCommand(
 
   suspend fun run(
     state: GameState,
-    playerErrorNotifier: ErrorNotifier,
     eventHandler: GameEventHandler,
   ) {
     if (state.currentPlayerTurn != payload.player) {
-      playerErrorNotifier("Its not your turn!")
-      return
+      throw CommandException("Its not your turn!")
     }
     val playableCards = state.playableCards(payload.player)
     if (playableCards.isEmpty()) {
@@ -46,7 +44,7 @@ data class ICantPlayCommand(
         )
       }
     } else {
-      playerErrorNotifier("You can and must play one card, like ${playableCards.first()::class.simpleName}")
+      throw CommandException("You can and must play one card, like ${playableCards.first()::class.simpleName}")
     }
   }
 }

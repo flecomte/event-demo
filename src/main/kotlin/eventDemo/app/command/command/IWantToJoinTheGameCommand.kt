@@ -1,6 +1,6 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.command.ErrorNotifier
+import eventDemo.app.command.CommandException
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.event.GameEventHandler
@@ -26,7 +26,6 @@ data class IWantToJoinTheGameCommand(
 
   suspend fun run(
     state: GameState,
-    playerErrorNotifier: ErrorNotifier,
     eventHandler: GameEventHandler,
   ) {
     if (!state.isStarted) {
@@ -38,7 +37,7 @@ data class IWantToJoinTheGameCommand(
         )
       }
     } else {
-      playerErrorNotifier("The game is already started")
+      throw CommandException("The game is already started")
     }
   }
 }

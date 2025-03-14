@@ -14,7 +14,7 @@ fun errorNotifier(
 ): ErrorNotifier =
   {
     val logger = KotlinLogging.logger { }
-    ErrorNotification(message = it)
+    ErrorNotification(message = it, command = command)
       .let { notification ->
         logger.atWarn {
           message = "Notification ERROR sent: ${notification.message}"
