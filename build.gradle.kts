@@ -33,6 +33,12 @@ repositories {
   mavenCentral()
 }
 
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(19)
+  }
+}
+
 tasks.withType<Test>().configureEach {
   useJUnitPlatform()
 }
