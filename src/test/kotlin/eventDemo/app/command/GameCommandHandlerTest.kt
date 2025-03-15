@@ -6,11 +6,13 @@ import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.app.eventListener.ReactionEventListener
+import eventDemo.app.notification.CommandSuccessNotification
 import eventDemo.app.notification.Notification
 import eventDemo.app.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -36,7 +38,12 @@ class GameCommandHandlerTest :
           commandHandler.handle(player, channelCommand, channelNotification)
         }
 
-        channelCommand.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)))
+        IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)).also { sendCommand ->
+          channelCommand.send(sendCommand)
+          channelNotification.receive().let {
+            assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+          }
+        }
         assertIs<WelcomeToTheGameNotification>(channelNotification.receive()).let {
           it.players shouldContain player
         }

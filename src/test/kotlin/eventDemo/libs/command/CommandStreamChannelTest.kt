@@ -3,7 +3,10 @@ package eventDemo.libs.command
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,6 +14,7 @@ class CommandTest(
   override val id: CommandId,
 ) : Command
 
+@OptIn(DelicateCoroutinesApi::class)
 class CommandStreamChannelTest :
   FunSpec({
 
@@ -18,15 +22,17 @@ class CommandStreamChannelTest :
       val command = CommandTest(CommandId())
 
       val channel = Channel<CommandTest>()
-      val stream =
-        CommandStreamChannel(channel)
+      val stream = CommandStreamChannel(CommandRunnerController())
 
       val spyCall: () -> Unit = mockk(relaxed = true)
 
-      stream.blockAndProcess {
-        println("In action ${it.id}")
-        spyCall()
+      GlobalScope.launch {
+        stream.process(channel) {
+          println("In action ${it.id}")
+          spyCall()
+        }
       }
+
       channel.send(command)
       verify(exactly = 1) { spyCall() }
     }

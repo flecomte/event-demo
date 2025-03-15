@@ -1,11 +1,7 @@
 package eventDemo.app.command.command
 
-import eventDemo.app.command.CommandException
 import eventDemo.app.entity.GameId
 import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.event.NewPlayerEvent
-import eventDemo.app.event.projection.GameState
 import eventDemo.libs.command.CommandId
 import kotlinx.serialization.Serializable
 
@@ -23,21 +19,4 @@ data class IWantToJoinTheGameCommand(
     override val aggregateId: GameId,
     override val player: Player,
   ) : GameCommand.Payload
-
-  suspend fun run(
-    state: GameState,
-    eventHandler: GameEventHandler,
-  ) {
-    if (!state.isStarted) {
-      eventHandler.handle(payload.aggregateId) {
-        NewPlayerEvent(
-          aggregateId = payload.aggregateId,
-          player = payload.player,
-          version = it,
-        )
-      }
-    } else {
-      throw CommandException("The game is already started")
-    }
-  }
 }

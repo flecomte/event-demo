@@ -1,34 +1,27 @@
 package eventDemo.app.command
 
+import eventDemo.app.command.action.ICantPlay
+import eventDemo.app.command.action.IWantToJoinTheGame
+import eventDemo.app.command.action.IWantToPlayCard
+import eventDemo.app.command.action.IamReadyToPlay
 import eventDemo.app.command.command.GameCommand
 import eventDemo.app.command.command.ICantPlayCommand
 import eventDemo.app.command.command.IWantToJoinTheGameCommand
 import eventDemo.app.command.command.IWantToPlayCardCommand
 import eventDemo.app.command.command.IamReadyToPlayCommand
-import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.projection.GameStateRepository
-import eventDemo.app.notification.Notification
-import kotlinx.coroutines.channels.SendChannel
+import eventDemo.app.event.event.GameEvent
 
 class GameCommandActionRunner(
-  private val eventHandler: GameEventHandler,
-  private val gameStateRepository: GameStateRepository,
+  private val iWantToPlayCard: IWantToPlayCard,
+  private val iamReadyToPlay: IamReadyToPlay,
+  private val iWantToJoinTheGame: IWantToJoinTheGame,
+  private val iCantPlay: ICantPlay,
 ) {
-  suspend fun run(
-    command: GameCommand,
-    outgoingErrorChannelNotification: SendChannel<Notification>,
-  ) {
-    val gameState = gameStateRepository.getLast(command.payload.aggregateId)
-
-    try {
-      when (command) {
-        is IWantToPlayCardCommand -> command.run(gameState, this.eventHandler)
-        is IamReadyToPlayCommand -> command.run(gameState, this.eventHandler)
-        is IWantToJoinTheGameCommand -> command.run(gameState, this.eventHandler)
-        is ICantPlayCommand -> command.run(gameState, this.eventHandler)
-      }
-    } catch (e: CommandException) {
-      errorNotifier(command, outgoingErrorChannelNotification)(e.message)
+  fun run(command: GameCommand): (Int) -> GameEvent =
+    when (command) {
+      is IWantToPlayCardCommand -> iWantToPlayCard.run(command)
+      is IamReadyToPlayCommand -> iamReadyToPlay.run(command)
+      is IWantToJoinTheGameCommand -> iWantToJoinTheGame.run(command)
+      is ICantPlayCommand -> iCantPlay.run(command)
     }
-  }
 }

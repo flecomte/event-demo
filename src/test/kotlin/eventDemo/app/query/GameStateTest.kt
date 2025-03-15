@@ -15,6 +15,7 @@ import eventDemo.app.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.app.event.projection.apply
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.app.eventListener.ReactionEventListener
+import eventDemo.app.notification.CommandSuccessNotification
 import eventDemo.app.notification.ItsTheTurnOfNotification
 import eventDemo.app.notification.Notification
 import eventDemo.app.notification.PlayerAsJoinTheGameNotification
@@ -59,14 +60,25 @@ class GameStateTest :
 
         val player1Job =
           launch {
-            channelCommand1.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player1)))
+            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player1)).also { sendCommand ->
+              channelCommand1.send(sendCommand)
+              channelNotification1.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
+
             channelNotification1.receive().let {
               assertIs<WelcomeToTheGameNotification>(it).players shouldBeEqual setOf(player1)
             }
             channelNotification1.receive().let {
               assertIs<PlayerAsJoinTheGameNotification>(it).player shouldBeEqual player2
             }
-            channelCommand1.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player1)))
+            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player1)).also { sendCommand ->
+              channelCommand1.send(sendCommand)
+              channelNotification1.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
             channelNotification1.receive().let {
               assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player2
             }
@@ -80,7 +92,13 @@ class GameStateTest :
                 player shouldBeEqual player1
               }
             }
-            channelCommand1.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player1, player1Hand.first())))
+
+            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player1, player1Hand.first())).also { sendCommand ->
+              channelCommand1.send(sendCommand)
+              channelNotification1.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
 
             channelNotification1.receive().let {
               assertIs<ItsTheTurnOfNotification>(it).apply {
@@ -99,14 +117,27 @@ class GameStateTest :
         val player2Job =
           launch {
             delay(100)
-            channelCommand2.send(IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player2)))
+            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player2)).also { sendCommand ->
+              channelCommand2.send(sendCommand)
+              channelNotification2.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
+
             channelNotification2.receive().let {
               assertIs<WelcomeToTheGameNotification>(it).players shouldBeEqual setOf(player1, player2)
             }
             channelNotification2.receive().let {
               assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player1
             }
-            channelCommand2.send(IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player2)))
+
+            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player2)).also { sendCommand ->
+              channelCommand2.send(sendCommand)
+              channelNotification2.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
+
             val player2Hand =
               channelNotification2.receive().let {
                 assertIs<TheGameWasStartedNotification>(it).hand shouldHaveSize 7
@@ -129,7 +160,13 @@ class GameStateTest :
                 player shouldBeEqual player2
               }
             }
-            channelCommand2.send(IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player2, player2Hand.first())))
+
+            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player2, player2Hand.first())).also { sendCommand ->
+              channelCommand2.send(sendCommand)
+              channelNotification2.receive().let {
+                assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+              }
+            }
           }
 
         koinApplication { modules(appKoinModule) }.koin.apply {

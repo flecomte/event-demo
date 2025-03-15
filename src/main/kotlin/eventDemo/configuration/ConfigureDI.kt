@@ -9,7 +9,8 @@ import eventDemo.app.event.GameEventStore
 import eventDemo.app.event.projection.GameStateRepository
 import eventDemo.app.event.projection.SnapshotConfig
 import eventDemo.app.eventListener.PlayerNotificationEventListener
-import eventDemo.libs.command.CommandStreamChannelBuilder
+import eventDemo.libs.command.CommandRunnerController
+import eventDemo.libs.command.CommandStreamChannel
 import eventDemo.libs.event.EventBusInMemory
 import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilder
@@ -41,12 +42,20 @@ val appKoinModule =
       GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())
     }
     single {
-      CommandStreamChannelBuilder<GameCommand>()
+      CommandStreamChannel<GameCommand>(get())
+    }
+    single {
+      CommandRunnerController<GameCommand>()
+    }
+    single {
+      GameCommandHandler(get(), get(), get(), get())
     }
 
     singleOf(::VersionBuilderLocal) bind VersionBuilder::class
     singleOf(::GameEventHandler)
     singleOf(::GameCommandActionRunner)
-    singleOf(::GameCommandHandler)
     singleOf(::PlayerNotificationEventListener)
+
+    // Actions
+    configureActions()
   }

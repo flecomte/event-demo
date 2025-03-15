@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * A stream to publish and read the played card event.
+ * Handle the event to dispatch it to store, bus and projections builders
  */
 class GameEventHandler(
   private val eventBus: GameEventBus,
@@ -23,17 +23,26 @@ class GameEventHandler(
     projectionsBuilders.add(builder)
   }
 
+  /**
+   * Build Event, and send it to the event store and bus.
+   * Build also the projections.
+   */
   override fun handle(
     aggregateId: GameId,
     buildEvent: (version: Int) -> GameEvent,
   ): GameEvent =
     locks
+      // Get lock for the aggregate
       .computeIfAbsent(aggregateId) { ReentrantLock() }
       .withLock {
+        // Build event with the version
         buildEvent(versionBuilder.buildNextVersion(aggregateId))
+          // then publish it to the event store
           .also { eventStore.publish(it) }
       }.also { event ->
+        // Build the projections
         projectionsBuilders.forEach { it(event) }
+        // Publish to the bus
         eventBus.publish(event)
       }
 }
