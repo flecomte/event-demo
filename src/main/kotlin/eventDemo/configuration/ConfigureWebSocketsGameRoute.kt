@@ -1,7 +1,7 @@
 package eventDemo.configuration
 
 import eventDemo.app.command.GameCommandHandler
-import eventDemo.app.command.gameSocket
+import eventDemo.app.command.gameWebSocket
 import eventDemo.app.eventListener.PlayerNotificationEventListener
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
@@ -13,6 +13,6 @@ fun Application.declareWebSocketsGameRoute(
   commandHandler: GameCommandHandler,
 ) {
   routing {
-    gameSocket(playerNotificationListener, commandHandler)
+    gameWebSocket(playerNotificationListener, commandHandler)
   }
 }

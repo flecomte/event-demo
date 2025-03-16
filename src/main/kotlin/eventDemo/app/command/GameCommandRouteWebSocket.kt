@@ -18,7 +18,7 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 
 @DelicateCoroutinesApi
-fun Route.gameSocket(
+fun Route.gameWebSocket(
   playerNotificationListener: PlayerNotificationEventListener,
   commandHandler: GameCommandHandler,
 ) {
