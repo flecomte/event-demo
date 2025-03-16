@@ -5,7 +5,7 @@ import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.projection.GameStateRepository
-import eventDemo.configuration.appKoinModule
+import eventDemo.configuration.injection.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual

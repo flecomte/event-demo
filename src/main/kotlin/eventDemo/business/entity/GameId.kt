@@ -1,6 +1,6 @@
 package eventDemo.business.entity
 
-import eventDemo.configuration.GameIdSerializer
+import eventDemo.configuration.serializer.GameIdSerializer
 import eventDemo.libs.event.AggregateId
 import kotlinx.serialization.Serializable
 import java.util.UUID

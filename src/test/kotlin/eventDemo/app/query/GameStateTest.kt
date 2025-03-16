@@ -22,7 +22,7 @@ import eventDemo.business.notification.PlayerAsPlayACardNotification
 import eventDemo.business.notification.PlayerWasReadyNotification
 import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.appKoinModule
+import eventDemo.configuration.injection.appKoinModule
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize

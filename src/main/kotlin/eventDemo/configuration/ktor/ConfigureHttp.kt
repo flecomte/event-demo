@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.ktor
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod

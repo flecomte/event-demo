@@ -1,6 +1,6 @@
 package eventDemo.business.entity
 
-import eventDemo.configuration.UUIDSerializer
+import eventDemo.configuration.serializer.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID

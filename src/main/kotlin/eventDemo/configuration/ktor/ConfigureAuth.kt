@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.ktor
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -37,7 +37,7 @@ fun Application.configureSecurity() {
           null
         }
       }
-      challenge { defaultScheme, realm ->
+      challenge { _, _ ->
         call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
       }
     }

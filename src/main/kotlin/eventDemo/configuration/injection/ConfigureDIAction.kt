@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.injection
 
 import eventDemo.business.command.action.ICantPlay
 import eventDemo.business.command.action.IWantToJoinTheGame
@@ -10,7 +10,7 @@ import org.koin.core.module.dsl.singleOf
 /**
  * Configure all actions
  */
-fun Module.configureActions() {
+fun Module.configureDICommandActions() {
   singleOf(::IWantToPlayCard)
   singleOf(::IamReadyToPlay)
   singleOf(::IWantToJoinTheGame)

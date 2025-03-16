@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.ktor
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

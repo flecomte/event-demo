@@ -10,7 +10,7 @@ import eventDemo.business.event.eventListener.ReactionEventListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.appKoinModule
+import eventDemo.configuration.injection.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual

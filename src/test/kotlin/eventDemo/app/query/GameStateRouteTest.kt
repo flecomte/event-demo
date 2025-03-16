@@ -11,7 +11,7 @@ import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.GameState
 import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.configuration.configure
-import eventDemo.configuration.makeJwt
+import eventDemo.configuration.ktor.makeJwt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual

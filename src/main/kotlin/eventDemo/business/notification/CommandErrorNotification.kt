@@ -1,6 +1,6 @@
 package eventDemo.business.notification
 
-import eventDemo.configuration.UUIDSerializer
+import eventDemo.configuration.serializer.UUIDSerializer
 import eventDemo.libs.command.Command
 import kotlinx.serialization.Serializable
 import java.util.UUID

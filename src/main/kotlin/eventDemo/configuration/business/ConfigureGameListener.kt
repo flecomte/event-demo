@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.business
 
 import eventDemo.business.event.eventListener.ReactionEventListener
 import io.ktor.server.application.Application

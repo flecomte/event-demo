@@ -1,4 +1,4 @@
-package eventDemo.configuration
+package eventDemo.configuration.route
 
 import eventDemo.adapter.interfaceLayer.gameWebSocket
 import eventDemo.business.command.GameCommandHandler
