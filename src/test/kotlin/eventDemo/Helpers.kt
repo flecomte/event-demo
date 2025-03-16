@@ -1,7 +1,7 @@
 package eventDemo
 
-import eventDemo.app.entity.Card
-import eventDemo.app.entity.Deck
+import eventDemo.business.entity.Card
+import eventDemo.business.entity.Deck
 
 fun Deck.allCardCount(): Int =
   stack.size + discard.size + playersHands.values.flatten().size

@@ -1,10 +1,13 @@
 package eventDemo.app.event.projection
 
+import eventDemo.business.event.projection.Projection
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
 import eventDemo.libs.event.EventStore
 import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilderLocal
+import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
+import eventDemo.libs.event.projection.SnapshotConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi

@@ -1,7 +1,7 @@
 package eventDemo.configuration
 
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
 import eventDemo.libs.command.CommandId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application

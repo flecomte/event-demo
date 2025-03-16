@@ -1,20 +1,21 @@
 package eventDemo.configuration
 
-import eventDemo.app.command.GameCommandActionRunner
-import eventDemo.app.command.GameCommandHandler
-import eventDemo.app.command.command.GameCommand
-import eventDemo.app.event.GameEventBus
-import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.GameEventStore
-import eventDemo.app.event.projection.GameStateRepository
-import eventDemo.app.event.projection.SnapshotConfig
-import eventDemo.app.eventListener.PlayerNotificationEventListener
+import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
+import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInMemory
+import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInMemory
+import eventDemo.business.command.GameCommandActionRunner
+import eventDemo.business.command.GameCommandHandler
+import eventDemo.business.command.command.GameCommand
+import eventDemo.business.event.GameEventBus
+import eventDemo.business.event.GameEventHandler
+import eventDemo.business.event.GameEventStore
+import eventDemo.business.event.eventListener.PlayerNotificationEventListener
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.libs.command.CommandRunnerController
 import eventDemo.libs.command.CommandStreamChannel
-import eventDemo.libs.event.EventBusInMemory
-import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilder
 import eventDemo.libs.event.VersionBuilderLocal
+import eventDemo.libs.event.projection.SnapshotConfig
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.core.module.dsl.singleOf
@@ -33,14 +34,17 @@ fun Application.configureKoin() {
 val appKoinModule =
   module {
     single {
-      GameEventBus(EventBusInMemory())
-    }
+      GameEventBusInMemory()
+    } bind GameEventBus::class
+
     single {
-      GameEventStore(EventStoreInMemory())
-    }
+      GameEventStoreInMemory()
+    } bind GameEventStore::class
+
     single {
-      GameStateRepository(get(), get(), snapshotConfig = SnapshotConfig())
-    }
+      GameStateRepositoryInMemory(get(), get(), snapshotConfig = SnapshotConfig())
+    } bind GameStateRepository::class
+
     single {
       CommandStreamChannel<GameCommand>(get())
     }

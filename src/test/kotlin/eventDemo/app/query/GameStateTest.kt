@@ -1,29 +1,29 @@
 package eventDemo.app.query
 
-import eventDemo.app.command.GameCommandHandler
-import eventDemo.app.command.command.GameCommand
-import eventDemo.app.command.command.IWantToJoinTheGameCommand
-import eventDemo.app.command.command.IWantToPlayCardCommand
-import eventDemo.app.command.command.IamReadyToPlayCommand
-import eventDemo.app.entity.Card
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventStore
-import eventDemo.app.event.event.disableShuffleDeck
-import eventDemo.app.event.projection.GameState
-import eventDemo.app.event.projection.ProjectionSnapshotRepositoryInMemory
-import eventDemo.app.event.projection.apply
-import eventDemo.app.eventListener.PlayerNotificationEventListener
-import eventDemo.app.eventListener.ReactionEventListener
-import eventDemo.app.notification.CommandSuccessNotification
-import eventDemo.app.notification.ItsTheTurnOfNotification
-import eventDemo.app.notification.Notification
-import eventDemo.app.notification.PlayerAsJoinTheGameNotification
-import eventDemo.app.notification.PlayerAsPlayACardNotification
-import eventDemo.app.notification.PlayerWasReadyNotification
-import eventDemo.app.notification.TheGameWasStartedNotification
-import eventDemo.app.notification.WelcomeToTheGameNotification
+import eventDemo.business.command.GameCommandHandler
+import eventDemo.business.command.command.GameCommand
+import eventDemo.business.command.command.IWantToJoinTheGameCommand
+import eventDemo.business.command.command.IWantToPlayCardCommand
+import eventDemo.business.command.command.IamReadyToPlayCommand
+import eventDemo.business.entity.Card
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
+import eventDemo.business.event.GameEventStore
+import eventDemo.business.event.event.disableShuffleDeck
+import eventDemo.business.event.eventListener.PlayerNotificationEventListener
+import eventDemo.business.event.eventListener.ReactionEventListener
+import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.apply
+import eventDemo.business.notification.CommandSuccessNotification
+import eventDemo.business.notification.ItsTheTurnOfNotification
+import eventDemo.business.notification.Notification
+import eventDemo.business.notification.PlayerAsJoinTheGameNotification
+import eventDemo.business.notification.PlayerAsPlayACardNotification
+import eventDemo.business.notification.PlayerWasReadyNotification
+import eventDemo.business.notification.TheGameWasStartedNotification
+import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
+import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -31,6 +31,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -174,8 +175,8 @@ class GameStateTest :
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationEventListener>()
           ReactionEventListener(get(), get(), get()).init()
-          playerNotificationListener.startListening(channelNotification1, player1)
-          playerNotificationListener.startListening(channelNotification2, player2)
+          playerNotificationListener.startListening({ channelNotification1.trySendBlocking(it) }, player1)
+          playerNotificationListener.startListening({ channelNotification2.trySendBlocking(it) }, player2)
 
           GlobalScope.launch(Dispatchers.IO) {
             commandHandler.handle(player1, channelCommand1, channelNotification1)

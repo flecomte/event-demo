@@ -1,14 +1,15 @@
 package eventDemo.app.command
 
-import eventDemo.app.command.command.GameCommand
-import eventDemo.app.command.command.IWantToJoinTheGameCommand
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
-import eventDemo.app.eventListener.PlayerNotificationEventListener
-import eventDemo.app.eventListener.ReactionEventListener
-import eventDemo.app.notification.CommandSuccessNotification
-import eventDemo.app.notification.Notification
-import eventDemo.app.notification.WelcomeToTheGameNotification
+import eventDemo.business.command.GameCommandHandler
+import eventDemo.business.command.command.GameCommand
+import eventDemo.business.command.command.IWantToJoinTheGameCommand
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
+import eventDemo.business.event.eventListener.PlayerNotificationEventListener
+import eventDemo.business.event.eventListener.ReactionEventListener
+import eventDemo.business.notification.CommandSuccessNotification
+import eventDemo.business.notification.Notification
+import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.configuration.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -16,6 +17,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
 import org.koin.dsl.koinApplication
 import kotlin.test.assertIs
@@ -32,7 +34,7 @@ class GameCommandHandlerTest :
         val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
         val channelNotification = Channel<Notification>(Channel.BUFFERED)
         ReactionEventListener(get(), get(), get()).init()
-        notificationListener.startListening(channelNotification, player)
+        notificationListener.startListening({ channelNotification.trySendBlocking(it) }, player)
 
         GlobalScope.launch {
           commandHandler.handle(player, channelCommand, channelNotification)

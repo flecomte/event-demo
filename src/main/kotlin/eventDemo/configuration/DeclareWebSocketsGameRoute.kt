@@ -1,8 +1,8 @@
 package eventDemo.configuration
 
-import eventDemo.app.command.GameCommandHandler
-import eventDemo.app.command.gameWebSocket
-import eventDemo.app.eventListener.PlayerNotificationEventListener
+import eventDemo.adapter.interfaceLayer.gameWebSocket
+import eventDemo.business.command.GameCommandHandler
+import eventDemo.business.event.eventListener.PlayerNotificationEventListener
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.DelicateCoroutinesApi

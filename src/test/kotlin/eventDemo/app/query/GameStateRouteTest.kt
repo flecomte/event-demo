@@ -1,15 +1,15 @@
 package eventDemo.app.query
 
-import eventDemo.app.entity.Card
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.event.CardIsPlayedEvent
-import eventDemo.app.event.event.GameStartedEvent
-import eventDemo.app.event.event.NewPlayerEvent
-import eventDemo.app.event.event.PlayerReadyEvent
-import eventDemo.app.event.projection.GameState
-import eventDemo.app.event.projection.GameStateRepository
+import eventDemo.business.entity.Card
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
+import eventDemo.business.event.GameEventHandler
+import eventDemo.business.event.event.CardIsPlayedEvent
+import eventDemo.business.event.event.GameStartedEvent
+import eventDemo.business.event.event.NewPlayerEvent
+import eventDemo.business.event.event.PlayerReadyEvent
+import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.configuration.configure
 import eventDemo.configuration.makeJwt
 import io.kotest.core.spec.style.FunSpec

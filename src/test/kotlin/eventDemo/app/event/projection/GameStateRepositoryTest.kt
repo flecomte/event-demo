@@ -1,9 +1,10 @@
 package eventDemo.app.event.projection
 
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
-import eventDemo.app.event.GameEventHandler
-import eventDemo.app.event.event.NewPlayerEvent
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
+import eventDemo.business.event.GameEventHandler
+import eventDemo.business.event.event.NewPlayerEvent
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.configuration.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize

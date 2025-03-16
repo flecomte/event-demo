@@ -1,13 +1,15 @@
 package eventDemo.app.event.projection
 
-import eventDemo.app.entity.Card
-import eventDemo.app.entity.GameId
-import eventDemo.app.entity.Player
-import eventDemo.app.event.event.CardIsPlayedEvent
-import eventDemo.app.event.event.GameStartedEvent
-import eventDemo.app.event.event.NewPlayerEvent
-import eventDemo.app.event.event.PlayerReadyEvent
-import eventDemo.app.event.event.disableShuffleDeck
+import eventDemo.business.entity.Card
+import eventDemo.business.entity.GameId
+import eventDemo.business.entity.Player
+import eventDemo.business.event.event.CardIsPlayedEvent
+import eventDemo.business.event.event.GameStartedEvent
+import eventDemo.business.event.event.NewPlayerEvent
+import eventDemo.business.event.event.PlayerReadyEvent
+import eventDemo.business.event.event.disableShuffleDeck
+import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.apply
 import eventDemo.libs.event.VersionBuilderLocal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
