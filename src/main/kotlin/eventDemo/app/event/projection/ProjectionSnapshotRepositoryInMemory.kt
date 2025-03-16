@@ -5,6 +5,7 @@ import eventDemo.libs.event.Event
 import eventDemo.libs.event.EventStore
 import eventDemo.libs.event.EventStream
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -176,20 +177,21 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
     aggregateId: ID,
     eventsToApply: Set<E>,
   ): P =
-    eventsToApply
-      .fold(this ?: initialStateBuilder(aggregateId), applyToProjectionSecure)
+    eventsToApply.fold(this ?: initialStateBuilder(aggregateId), applyToProjectionSecure)
 
   /**
    * Wrap the [applyToProjection] lambda to avoid duplicate apply of the same event.
    */
   private val applyToProjectionSecure: P.(event: E) -> P = { event ->
-    if (event.version == lastEventVersion + 1) {
-      applyToProjection(event)
-    } else if (event.version <= lastEventVersion) {
-      KotlinLogging.logger { }.warn { "Event is already is the Projection, skip apply." }
-      this
-    } else {
-      error("The version of the event must follow directly after the version of the projection.")
+    withLoggingContext("event" to event.toString(), "projection" to this.toString()) {
+      if (event.version == lastEventVersion + 1) {
+        applyToProjection(event)
+      } else if (event.version <= lastEventVersion) {
+        KotlinLogging.logger { }.warn { "Event is already is the Projection, skip apply." }
+        this
+      } else {
+        error("The version of the event must follow directly after the version of the projection.")
+      }
     }
   }
 }

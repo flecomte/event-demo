@@ -5,6 +5,7 @@ import eventDemo.app.eventListener.PlayerNotificationEventListener
 import eventDemo.app.notification.Notification
 import eventDemo.libs.fromFrameChannel
 import eventDemo.libs.toObjectChannel
+import io.github.oshai.kotlinlogging.withLoggingContext
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -25,14 +26,16 @@ fun Route.gameSocket(
     webSocket("/game") {
       val currentPlayer = call.getPlayer()
       val outgoingFrameChannel: SendChannel<Notification> = fromFrameChannel(outgoing)
-      GlobalScope.launch {
-        commandHandler.handle(
-          currentPlayer,
-          toObjectChannel(incoming),
-          outgoingFrameChannel,
-        )
+      withLoggingContext("currentPlayer" to currentPlayer.toString()) {
+        GlobalScope.launch {
+          commandHandler.handle(
+            currentPlayer,
+            toObjectChannel(incoming),
+            outgoingFrameChannel,
+          )
+        }
+        playerNotificationListener.startListening(outgoingFrameChannel, currentPlayer)
       }
-      playerNotificationListener.startListening(outgoingFrameChannel, currentPlayer)
     }
   }
 }

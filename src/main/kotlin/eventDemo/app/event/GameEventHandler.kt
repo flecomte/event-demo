@@ -3,6 +3,7 @@ package eventDemo.app.event
 import eventDemo.app.entity.GameId
 import eventDemo.app.event.event.GameEvent
 import eventDemo.libs.event.VersionBuilder
+import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantLock
@@ -31,20 +32,28 @@ class GameEventHandler(
     aggregateId: GameId,
     buildEvent: (version: Int) -> GameEvent,
   ): GameEvent =
-    locks
-      // Get lock for the aggregate
-      .computeIfAbsent(aggregateId) { ReentrantLock() }
-      .withLock {
-        // Build event with the version
-        buildEvent(versionBuilder.buildNextVersion(aggregateId))
-          // then publish it to the event store
-          .also { eventStore.publish(it) }
-      }.also { event ->
-        // Build the projections
-        projectionsBuilders.forEach { it(event) }
-        // Publish to the bus
-        eventBus.publish(event)
-      }
+    withLoggingContext("aggregateId" to aggregateId.toString()) {
+      locks
+        // Get lock for the aggregate
+        .computeIfAbsent(aggregateId) { ReentrantLock() }
+        .withLock {
+          // Build event with the version
+          buildEvent(versionBuilder.buildNextVersion(aggregateId))
+            // then publish it to the event store
+            .also {
+              withLoggingContext("event" to it.toString()) {
+                eventStore.publish(it)
+              }
+            }
+        }.also { event ->
+          withLoggingContext("event" to event.toString()) {
+            // Build the projections
+            projectionsBuilders.forEach { it(event) }
+            // Publish to the bus
+            eventBus.publish(event)
+          }
+        }
+    }
 }
 
 typealias GameProjectionBuilder = (GameEvent) -> Unit

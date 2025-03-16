@@ -9,6 +9,7 @@ import eventDemo.app.event.event.PlayerWinEvent
 import eventDemo.app.event.projection.GameState
 import eventDemo.app.event.projection.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 
 class ReactionEventListener(
   private val eventBus: GameEventBus,
@@ -24,13 +25,15 @@ class ReactionEventListener(
 
   fun init() {
     eventBus.subscribe(priority) { event: GameEvent ->
-      val state = gameStateRepository.getUntil(event)
-      sendStartGameEvent(state, event)
-      sendWinnerEvent(state, event)
+      withLoggingContext("event" to event.toString()) {
+        val state = gameStateRepository.getUntil(event)
+        sendStartGameEvent(state, event)
+        sendWinnerEvent(state)
+      }
     }
   }
 
-  private suspend fun sendStartGameEvent(
+  private fun sendStartGameEvent(
     state: GameState,
     event: GameEvent,
   ) {
@@ -44,12 +47,8 @@ class ReactionEventListener(
           )
         }
       logger.atInfo {
-        message = "Reaction event was Send $reactionEvent on reaction of: $event"
-        payload =
-          mapOf(
-            "event" to event,
-            "reactionEvent" to reactionEvent,
-          )
+        message = "Reaction event was Send"
+        payload = mapOf("reactionEvent" to reactionEvent)
       }
     } else {
       if (event is PlayerReadyEvent) {
@@ -58,10 +57,7 @@ class ReactionEventListener(
     }
   }
 
-  private fun sendWinnerEvent(
-    state: GameState,
-    event: GameEvent,
-  ) {
+  private fun sendWinnerEvent(state: GameState) {
     val winner = state.playerHasNoCardLeft().firstOrNull()
     if (winner != null) {
       val reactionEvent =
@@ -74,12 +70,8 @@ class ReactionEventListener(
         }
 
       logger.atInfo {
-        message = "Reaction event was Send $reactionEvent on reaction of: $event"
-        payload =
-          mapOf(
-            "event" to event,
-            "reactionEvent" to reactionEvent,
-          )
+        message = "Reaction event was Send"
+        payload = mapOf("reactionEvent" to reactionEvent)
       }
     }
   }

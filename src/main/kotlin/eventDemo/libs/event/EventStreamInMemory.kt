@@ -1,6 +1,7 @@
 package eventDemo.libs.event
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -16,15 +17,16 @@ class EventStreamInMemory<E : Event<*>> : EventStream<E> {
   override fun publish(event: E) {
     if (events.none { it.eventId == event.eventId }) {
       events.add(event)
-      logger.atInfo {
-        message = "Event published: $event"
-        payload = mapOf("event" to event)
-      }
+      logger.info { "Event published" }
     }
   }
 
   override fun publish(vararg events: E) {
-    events.forEach { publish(it) }
+    events.forEach {
+      withLoggingContext("event" to it.toString()) {
+        publish(it)
+      }
+    }
   }
 
   override fun readAll(): Set<E> =

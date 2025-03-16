@@ -18,7 +18,7 @@ fun GameState.apply(event: GameEvent): GameState =
     if (event is PlayerActionEvent) {
       if (state.currentPlayerTurn != event.player) {
         logger.atError {
-          message = "Inconsistent player turn. CurrentPlayerTurn: $state.currentPlayerTurn | Player: ${event.player}"
+          message = "Inconsistent player turn"
           payload =
             mapOf(
               "CurrentPlayerTurn" to (state.currentPlayerTurn ?: "No currentPlayerTurn"),

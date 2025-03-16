@@ -1,6 +1,7 @@
 package eventDemo.libs.command
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -20,15 +21,14 @@ class CommandStreamChannel<C : Command>(
     action: CommandBlock<C>,
   ) {
     for (command in incoming) {
-      try {
-        controller.runOnlyOnce(command) {
-          // Wrap action to add logs
-          runAndLogStatus(command, action)
-        }
-      } catch (e: CommandRunnerController.Exception) {
-        logger.atWarn {
-          message = e.message
-          payload = mapOf("command" to command)
+      withLoggingContext("command" to command.toString()) {
+        try {
+          controller.runOnlyOnce(command) {
+            // Wrap action to add logs
+            runAndLogStatus(command, action)
+          }
+        } catch (e: CommandRunnerController.Exception) {
+          logger.warn { e.message }
         }
       }
     }
@@ -40,16 +40,9 @@ class CommandStreamChannel<C : Command>(
   ) {
     val actionResult = runCatching { action(command) }
     if (actionResult.isFailure) {
-      logger.atWarn {
-        message = "Compute command FAILED: $command"
-        payload = mapOf("command" to command)
-        cause = actionResult.exceptionOrNull()
-      }
+      logger.warn(actionResult.exceptionOrNull()) { "Compute command FAILED" }
     } else if (actionResult.isSuccess) {
-      logger.atInfo {
-        message = "Compute command SUCCESS: $command"
-        payload = mapOf("command" to command)
-      }
+      logger.info { "Compute command SUCCESS" }
     }
   }
 }

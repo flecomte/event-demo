@@ -11,6 +11,7 @@ import eventDemo.app.notification.Notification
 import eventDemo.libs.command.CommandId
 import eventDemo.libs.command.CommandStreamChannel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import java.util.UUID
@@ -56,35 +57,29 @@ class GameCommandHandler(
     player: Player,
     incomingCommandChannel: ReceiveChannel<GameCommand>,
     channelNotification: SendChannel<Notification>,
-  ) =
+  ) {
     commandStreamChannel.process(incomingCommandChannel) { command ->
-      if (command.payload.player.id != player.id) {
-        logger.atWarn {
-          message = "Handle command Refuse, the player of the command is not the same: $command"
-          payload = mapOf("command" to command)
-        }
-        channelNotification.sendError(command)("You are not the author of this command\n")
-      } else {
-        logger.atInfo {
-          message = "Handle command: $command"
-          payload = mapOf("command" to command)
-        }
-        try {
-          val eventBuilder = runner.run(command)
+      withLoggingContext("command" to command.toString()) {
+        if (command.payload.player.id != player.id) {
+          logger.warn { "Handle command Refuse, the player of the command is not the same" }
+          channelNotification.sendError(command)("You are not the author of this command\n")
+        } else {
+          logger.info { "Handle command" }
+          try {
+            val eventBuilder = runner.run(command)
 
-          eventHandler.handle(command.payload.aggregateId) { version ->
-            eventBuilder(version)
-              .also { eventCommandMap.set(it.eventId, channelNotification, command.id) }
+            eventHandler.handle(command.payload.aggregateId) { version ->
+              eventBuilder(version)
+                .also { eventCommandMap.set(it.eventId, channelNotification, command.id) }
+            }
+          } catch (e: CommandException) {
+            logger.warn(e) { e.message }
+            channelNotification.sendError(command)(e.message)
           }
-        } catch (e: CommandException) {
-          logger.atWarn {
-            message = e.message
-            payload = mapOf("command" to command)
-          }
-          channelNotification.sendError(command)(e.message)
         }
       }
     }
+  }
 }
 
 private fun SendChannel<Notification>.sendSuccess(commandId: CommandId): suspend () -> Unit =
@@ -92,15 +87,10 @@ private fun SendChannel<Notification>.sendSuccess(commandId: CommandId): suspend
     val logger = KotlinLogging.logger { }
     CommandSuccessNotification(commandId = commandId)
       .also { notification ->
-        logger.atDebug {
-          message = "Notification SUCCESS sent"
-          payload =
-            mapOf(
-              "notification" to notification,
-              "commandId" to commandId,
-            )
+        withLoggingContext("notification" to notification.toString(), "commandId" to commandId.toString()) {
+          logger.debug { "Notification SUCCESS sent" }
+          send(notification)
         }
-        send(notification)
       }
   }
 
@@ -109,15 +99,10 @@ private fun SendChannel<Notification>.sendError(command: GameCommand): suspend (
     val logger = KotlinLogging.logger { }
     CommandErrorNotification(message = it, command = command)
       .also { notification ->
-        logger.atWarn {
-          message = "Notification ERROR sent: ${notification.message}"
-          payload =
-            mapOf(
-              "notification" to notification,
-              "command" to command,
-            )
+        withLoggingContext("notification" to notification.toString(), "command" to command.toString()) {
+          logger.warn { "Notification ERROR sent: ${notification.message}" }
+          send(notification)
         }
-        send(notification)
       }
   }
 

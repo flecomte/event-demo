@@ -1,5 +1,6 @@
 package eventDemo.libs.event
 
+import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.coroutines.runBlocking
 
 class EventBusInMemory<E : Event<ID>, ID : AggregateId> : EventBus<E, ID> {
@@ -10,7 +11,9 @@ class EventBusInMemory<E : Event<ID>, ID : AggregateId> : EventBus<E, ID> {
       .sortedByDescending { (priority, _) -> priority }
       .forEach { (_, block) ->
         runBlocking {
-          block(event)
+          withLoggingContext("event" to event.toString()) {
+            block(event)
+          }
         }
       }
   }
