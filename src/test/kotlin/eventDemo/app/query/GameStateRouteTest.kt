@@ -117,5 +117,5 @@ class GameStateRouteTest :
   })
 
 private fun HttpRequestBuilder.withAuth(player: Player) {
-  header("Authorization", "Bearer ${player.makeJwt()}")
+  header("Authorization", "Bearer ${player.makeJwt("secret")}")
 }

@@ -15,19 +15,18 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
 import java.util.Date
 
-// TODO: read the jwt property from the config file
-private val jwtRealm = "Play card game"
-private val jwtIssuer = "PlayCardGame"
-private val jwtSecret = "secret"
+private const val JWT_ISSUER = "PlayCardGame"
 
 fun Application.configureSecurity() {
+  val jwtSecret = environment.config.propertyOrNull("jwt.secret")?.getString() ?: error("You must set a jwt secret")
+
   authentication {
     jwt {
-      realm = jwtRealm
+      realm = "Play card game"
       verifier(
         JWT
           .require(Algorithm.HMAC256(jwtSecret))
-          .withIssuer(jwtIssuer)
+          .withIssuer(JWT_ISSUER)
           .build(),
       )
       validate { credential ->
@@ -48,15 +47,15 @@ fun Application.configureSecurity() {
       val username = call.parameters["username"]!!
       val player = Player(name = username)
 
-      call.respond(hashMapOf("token" to player.makeJwt()))
+      call.respond(hashMapOf("token" to player.makeJwt(jwtSecret)))
     }
   }
 }
 
-fun Player.makeJwt(): String =
+fun Player.makeJwt(jwtSecret: String): String =
   JWT
     .create()
-    .withIssuer(jwtIssuer)
+    .withIssuer(JWT_ISSUER)
     .withClaim("username", name)
     .withPayload(Json.encodeToString(this))
     .withExpiresAt(Date(System.currentTimeMillis() + 60000))
