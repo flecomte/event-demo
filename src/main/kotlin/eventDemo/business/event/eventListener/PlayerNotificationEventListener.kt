@@ -12,7 +12,7 @@ import eventDemo.business.event.event.PlayerChoseColorEvent
 import eventDemo.business.event.event.PlayerHavePassEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.PlayerWinEvent
-import eventDemo.business.event.projection.GameStateRepository
+import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.business.notification.ItsTheTurnOfNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.PlayerAsJoinTheGameNotification

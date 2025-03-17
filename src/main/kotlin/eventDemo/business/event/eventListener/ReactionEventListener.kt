@@ -6,8 +6,8 @@ import eventDemo.business.event.event.GameEvent
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.PlayerWinEvent
-import eventDemo.business.event.projection.GameState
-import eventDemo.business.event.projection.GameStateRepository
+import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.gameState.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.concurrent.ConcurrentSkipListSet

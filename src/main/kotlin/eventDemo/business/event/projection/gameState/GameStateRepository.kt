@@ -1,4 +1,4 @@
-package eventDemo.business.event.projection
+package eventDemo.business.event.projection.gameState
 
 import eventDemo.business.entity.GameId
 import eventDemo.business.event.event.GameEvent

@@ -12,8 +12,8 @@ import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.event.disableShuffleDeck
 import eventDemo.business.event.eventListener.PlayerNotificationEventListener
 import eventDemo.business.event.eventListener.ReactionEventListener
-import eventDemo.business.event.projection.GameState
-import eventDemo.business.event.projection.apply
+import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.gameState.apply
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.ItsTheTurnOfNotification
 import eventDemo.business.notification.Notification

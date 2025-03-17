@@ -8,8 +8,8 @@ import eventDemo.business.event.event.CardIsPlayedEvent
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
-import eventDemo.business.event.projection.GameState
-import eventDemo.business.event.projection.GameStateRepository
+import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.configuration.configure
 import eventDemo.configuration.ktor.makeJwt
 import io.kotest.core.spec.style.FunSpec

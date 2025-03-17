@@ -5,7 +5,7 @@ import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInMemory
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventStore
-import eventDemo.business.event.projection.GameStateRepository
+import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.dsl.bind

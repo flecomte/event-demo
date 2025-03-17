@@ -4,9 +4,9 @@ import eventDemo.business.entity.GameId
 import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.event.GameEvent
-import eventDemo.business.event.projection.GameState
-import eventDemo.business.event.projection.GameStateRepository
-import eventDemo.business.event.projection.apply
+import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.gameState.apply
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.libs.event.projection.SnapshotConfig
 

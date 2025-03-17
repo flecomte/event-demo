@@ -8,8 +8,8 @@ import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.disableShuffleDeck
-import eventDemo.business.event.projection.GameState
-import eventDemo.business.event.projection.apply
+import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.gameState.apply
 import eventDemo.libs.event.VersionBuilderLocal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual

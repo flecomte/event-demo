@@ -6,7 +6,7 @@ import eventDemo.business.entity.Discard
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.entity.PlayersHands
-import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.gameState.GameState
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 
