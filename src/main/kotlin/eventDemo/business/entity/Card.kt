@@ -38,7 +38,12 @@ sealed interface Card {
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID = UUID.randomUUID(),
   ) : Card,
-    ColorCard
+    ColorCard {
+    init {
+      if (number > 9) error("Card number cannot be greater of 9")
+      if (number < 0) error("Card number cannot be lower of 0")
+    }
+  }
 
   sealed interface Special : Card
 
