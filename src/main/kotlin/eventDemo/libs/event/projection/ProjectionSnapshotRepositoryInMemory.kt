@@ -42,7 +42,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 6. remove old one
    */
   fun applyAndPutToCache(event: E) {
-    if ((event.version % snapshotCacheConfig.modulo) == 0) {
+    if ((event.version % snapshotCacheConfig.modulo) == 1) {
       getUntil(event)
         .also {
           save(it)
@@ -50,6 +50,14 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
         }
     }
   }
+
+  /**
+   * Build the list of all [Projections][Projection]
+   */
+  fun getList(): List<P> =
+    projectionsSnapshot.map { (id, b) ->
+      getLast(id)
+    }
 
   /**
    * Build the last version of the [Projection] from the cache.

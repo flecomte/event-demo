@@ -1,4 +1,4 @@
-package eventDemo
+package eventDemo.app
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
@@ -8,5 +8,3 @@ fun Deck.allCardCount(): Int =
 
 fun Deck.allCards(): Set<Card> =
   stack + discard + playersHands.values.flatten()
-
-// suspend fun SendChannel<Frame>.send(command: GameCommand) = send(Frame.Text(Json.encodeToString(command)))

@@ -1,7 +1,7 @@
 package eventDemo.app.entity
 
-import eventDemo.allCardCount
-import eventDemo.allCards
+import eventDemo.app.allCardCount
+import eventDemo.app.allCards
 import eventDemo.business.entity.Deck
 import eventDemo.business.entity.Player
 import eventDemo.business.entity.initHands

@@ -13,7 +13,7 @@ import io.ktor.server.routing.Route
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Resource("/game/{id}")
+@Resource("/games/{id}")
 class Game(
   @Serializable(with = GameIdSerializer::class)
   val id: GameId,

@@ -1,17 +1,15 @@
 package eventDemo.app.query
 
-import eventDemo.business.entity.Card
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventHandler
-import eventDemo.business.event.event.CardIsPlayedEvent
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
-import eventDemo.business.event.projection.gameState.GameState
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.gameList.GameList
 import eventDemo.configuration.configure
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.ktor.client.call.body
@@ -21,19 +19,16 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.stopKoin
 import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
-class GameStateRouteTest :
+class GameListRouteTest :
   FunSpec({
-    test("/games/{id}/state on empty game") {
+    test("/games with no game started") {
       testApplication {
-        val id = GameId()
         val player1 = Player(name = "Nikola")
         application {
           stopKoin()
@@ -41,32 +36,59 @@ class GameStateRouteTest :
         }
 
         httpClient()
-          .get("/games/$id/state") {
+          .get("/games") {
             withAuth(player1)
             accept(ContentType.Application.Json)
           }.apply {
             assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            val state = call.body<GameState>()
-            id shouldBeEqual state.aggregateId
-            state.players shouldHaveSize 0
-            state.isStarted shouldBeEqual false
+            val list = call.body<List<GameList>>()
+            assertTrue(list.isEmpty())
           }
       }
     }
 
-    test("/games/{id}/card/last") {
+    test("/games return a game with status OPENING") {
       testApplication {
         val gameId = GameId()
         val player1 = Player(name = "Nikola")
-        val player2 = Player(name = "Einstein")
-        var lastPlayedCard: Card? = null
 
         application {
           stopKoin()
           configure()
 
           val eventHandler by inject<GameEventHandler>()
-          val stateRepo by inject<GameStateRepository>()
+          runBlocking {
+            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+          }
+        }
+
+        httpClient()
+          .get("/games") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            call.body<List<GameList>>().first().let {
+              it.status shouldBeEqual GameList.Status.OPENING
+              it.players shouldHaveSize 1
+              it.players shouldContain player1
+              it.winners shouldHaveSize 0
+            }
+          }
+      }
+    }
+
+    test("/games return a game with status IS_STARTED") {
+      testApplication {
+        val gameId = GameId()
+        val player1 = Player(name = "Nikola")
+        val player2 = Player(name = "Einstein")
+
+        application {
+          stopKoin()
+          configure()
+
+          val eventHandler by inject<GameEventHandler>()
           runBlocking {
             eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
             eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
@@ -80,34 +102,22 @@ class GameStateRouteTest :
                 shuffleIsDisabled = true,
               )
             }
-            delay(100)
-            lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
-            assertNotNull(lastPlayedCard)
-              .let { assertIs<Card.NumericCard>(lastPlayedCard) }
-              .let {
-                it.number shouldBeEqual 0
-                it.color shouldBeEqual Card.Color.Red
-              }
-            delay(100)
-            eventHandler.handle(gameId) {
-              CardIsPlayedEvent(
-                gameId,
-                assertNotNull(lastPlayedCard),
-                player1,
-                it,
-              )
-            }
-            delay(100)
           }
         }
 
         httpClient()
-          .get("/games/$gameId/card/last") {
+          .get("/games") {
             withAuth(player1)
             accept(ContentType.Application.Json)
           }.apply {
             assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
+            call.body<List<GameList>>().first().let {
+              it.status shouldBeEqual GameList.Status.IS_STARTED
+              it.players shouldHaveSize 2
+              it.players shouldContain player1
+              it.players shouldContain player2
+              it.winners shouldHaveSize 0
+            }
           }
       }
     }
