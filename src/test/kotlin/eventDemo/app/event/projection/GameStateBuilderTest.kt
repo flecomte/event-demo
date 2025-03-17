@@ -100,7 +100,7 @@ class GameStateBuilderTest :
             )
           apply(event).also { state ->
             state.aggregateId shouldBeEqual gameId
-            assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
+            assertNotNull(state.cardOnCurrentStack) shouldBeEqual playedCard
             assertIs<Card.NumericCard>(playedCard).let {
               it.number shouldBeEqual 0
               it.color shouldBeEqual Card.Color.Red
@@ -117,7 +117,7 @@ class GameStateBuilderTest :
             )
           apply(event).also { state ->
             state.aggregateId shouldBeEqual gameId
-            assertNotNull(state.cardOnCurrentStack).card shouldBeEqual playedCard
+            assertNotNull(state.cardOnCurrentStack) shouldBeEqual playedCard
             assertIs<Card.NumericCard>(playedCard).let {
               it.number shouldBeEqual 7
               it.color shouldBeEqual Card.Color.Red

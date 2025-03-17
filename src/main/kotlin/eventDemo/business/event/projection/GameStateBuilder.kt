@@ -53,7 +53,7 @@ fun GameState.apply(event: GameEvent): GameState =
           currentPlayerTurn = currentPlayerAfterThePlay,
           direction = nextDirectionAfterPlay,
           colorOnCurrentStack = color,
-          cardOnCurrentStack = GameState.LastCard(event.card, event.player),
+          lastCardPlayer = event.player,
           deck = state.deck.putOneCardFromHand(event.player, event.card),
         )
       }
@@ -97,7 +97,7 @@ fun GameState.apply(event: GameEvent): GameState =
       is GameStartedEvent -> {
         state.copy(
           colorOnCurrentStack = (event.deck.discard.first() as? Card.ColorCard)?.color ?: state.colorOnCurrentStack,
-          cardOnCurrentStack = GameState.LastCard(event.deck.discard.first(), event.firstPlayer),
+          lastCardPlayer = null,
           currentPlayerTurn = event.firstPlayer,
           deck = event.deck,
           isStarted = true,

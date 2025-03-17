@@ -43,7 +43,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 @DelicateCoroutinesApi
-class GameStateTest :
+class GameSimulationTest :
   FunSpec({
     test("Simulation of a game") {
       withTimeout(2.seconds) {
@@ -199,7 +199,8 @@ class GameStateTest :
           state.players shouldBeEqual setOf(player1, player2)
           state.readyPlayers shouldBeEqual setOf(player1, player2)
           state.direction shouldBeEqual GameState.Direction.CLOCKWISE
-          assertNotNull(state.cardOnCurrentStack) shouldBeEqual GameState.LastCard(assertNotNull(playedCard2), player2)
+          assertNotNull(state.lastCardPlayer) shouldBeEqual player2
+          assertNotNull(state.cardOnCurrentStack) shouldBeEqual assertNotNull(playedCard2)
         }
       }
     }

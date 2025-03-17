@@ -12,7 +12,7 @@ data class GameState(
   override val lastEventVersion: Int = 0,
   val players: Set<Player> = emptySet(),
   val currentPlayerTurn: Player? = null,
-  val cardOnCurrentStack: LastCard? = null,
+  val lastCardPlayer: Player? = null,
   val colorOnCurrentStack: Card.Color? = null,
   val direction: Direction = Direction.CLOCKWISE,
   val readyPlayers: Set<Player> = emptySet(),
@@ -20,12 +20,6 @@ data class GameState(
   val isStarted: Boolean = false,
   val playerWins: Set<Player> = emptySet(),
 ) : Projection<GameId> {
-  @Serializable
-  data class LastCard(
-    val card: Card,
-    val player: Player,
-  )
-
   enum class Direction {
     CLOCKWISE,
     COUNTER_CLOCKWISE,
@@ -38,6 +32,8 @@ data class GameState(
         CLOCKWISE
       }
   }
+
+  val cardOnCurrentStack: Card? = deck.discard.lastOrNull()
 
   val isReady: Boolean get() {
     return players.size == readyPlayers.size && players.all { readyPlayers.contains(it) }
@@ -98,8 +94,8 @@ data class GameState(
     }.let { it % players.size }
 
   val Player.cardOnBoardIsForYou: Boolean get() {
-    if (cardOnCurrentStack == null) error("No card")
-    return this.playerDiffIndex(cardOnCurrentStack.player) == 1
+    if (lastCardPlayer == null) error("No card")
+    return this.playerDiffIndex(lastCardPlayer) == 1
   }
 
   fun playableCards(player: Player): List<Card> =
@@ -118,7 +114,7 @@ data class GameState(
     player: Player,
     card: Card,
   ): Boolean {
-    val cardOnBoard = cardOnCurrentStack?.card ?: return false
+    val cardOnBoard = cardOnCurrentStack ?: return false
     return when (cardOnBoard) {
       is Card.NumericCard -> {
         when (card) {
@@ -159,9 +155,8 @@ data class GameState(
           true
         } else {
           when (card) {
-            is Card.AllColorCard -> true
             is Card.Plus2Card -> true
-            is Card.ColorCard -> card.color == cardOnBoard.color
+            else -> false
           }
         }
       }
