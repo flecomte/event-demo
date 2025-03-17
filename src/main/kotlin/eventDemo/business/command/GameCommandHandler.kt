@@ -1,6 +1,7 @@
 package eventDemo.business.command
 
 import eventDemo.business.command.command.GameCommand
+import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventHandler
@@ -55,27 +56,35 @@ class GameCommandHandler(
    */
   suspend fun handle(
     player: Player,
+    gameId: GameId,
     incomingCommandChannel: ReceiveChannel<GameCommand>,
     channelNotification: SendChannel<Notification>,
   ) {
     commandStreamChannel.process(incomingCommandChannel) { command ->
       withLoggingContext("command" to command.toString()) {
+        if (command.payload.aggregateId.id != gameId.id) {
+          logger.warn { "Handle command Refuse, the gameId of the command is not the same" }
+          channelNotification.sendError(command)("The gameId in the command does not match with your game")
+          return@process
+        }
+
         if (command.payload.player.id != player.id) {
           logger.warn { "Handle command Refuse, the player of the command is not the same" }
           channelNotification.sendError(command)("You are not the author of this command")
-        } else {
-          logger.info { "Handle command" }
-          try {
-            val eventBuilder = runner.run(command)
+          return@process
+        }
 
-            eventHandler.handle(command.payload.aggregateId) { version ->
-              eventBuilder(version)
-                .also { eventCommandMap.set(it.eventId, channelNotification, command.id) }
-            }
-          } catch (e: CommandException) {
-            logger.warn(e) { e.message }
-            channelNotification.sendError(command)(e.message)
+        logger.info { "Handle command" }
+        try {
+          val eventBuilder = runner.run(command)
+
+          eventHandler.handle(command.payload.aggregateId) { version ->
+            eventBuilder(version)
+              .also { eventCommandMap.set(it.eventId, channelNotification, command.id) }
           }
+        } catch (e: CommandException) {
+          logger.warn(e) { e.message }
+          channelNotification.sendError(command)(e.message)
         }
       }
     }

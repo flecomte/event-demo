@@ -1,6 +1,7 @@
 package eventDemo.business.event.eventListener
 
 import eventDemo.business.entity.Card
+import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.event.CardIsPlayedEvent
@@ -35,9 +36,14 @@ class PlayerNotificationEventListener(
   fun startListening(
     outgoingNotification: (Notification) -> Unit,
     currentPlayer: Player,
+    gameId: GameId,
   ) {
     eventBus.subscribe { event: GameEvent ->
       withLoggingContext("event" to event.toString()) {
+        if (event.aggregateId != gameId) {
+          return@subscribe
+        }
+
         val currentState = gameStateRepository.getUntil(event)
 
         fun Notification.send() {

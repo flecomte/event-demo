@@ -79,8 +79,8 @@ class GameStateRouteTest :
               GameStartedEvent.new(
                 gameId,
                 setOf(player1, player2),
-                shuffleIsDisabled = true,
                 it,
+                shuffleIsDisabled = true,
               )
             }
             delay(100)

@@ -24,8 +24,8 @@ data class GameStartedEvent(
     fun new(
       id: GameId,
       players: Set<Player>,
-      shuffleIsDisabled: Boolean = isDisabled,
       version: Int,
+      shuffleIsDisabled: Boolean = isDisabled,
     ): GameStartedEvent =
       GameStartedEvent(
         aggregateId = id,

@@ -48,7 +48,7 @@ class GameSimulationTest :
     test("Simulation of a game") {
       withTimeout(2.seconds) {
         disableShuffleDeck()
-        val id = GameId()
+        val gameId = GameId()
         val player1 = Player(name = "Nikola")
         val player2 = Player(name = "Einstein")
         val channelCommand1 = Channel<GameCommand>(Channel.BUFFERED)
@@ -61,7 +61,7 @@ class GameSimulationTest :
 
         val player1Job =
           launch {
-            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player1)).also { sendCommand ->
+            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player1)).also { sendCommand ->
               channelCommand1.send(sendCommand)
               channelNotification1.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -74,7 +74,7 @@ class GameSimulationTest :
             channelNotification1.receive().let {
               assertIs<PlayerAsJoinTheGameNotification>(it).player shouldBeEqual player2
             }
-            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player1)).also { sendCommand ->
+            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(gameId, player1)).also { sendCommand ->
               channelCommand1.send(sendCommand)
               channelNotification1.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -94,7 +94,7 @@ class GameSimulationTest :
               }
             }
 
-            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player1, player1Hand.first())).also { sendCommand ->
+            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(gameId, player1, player1Hand.first())).also { sendCommand ->
               channelCommand1.send(sendCommand)
               channelNotification1.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -118,7 +118,7 @@ class GameSimulationTest :
         val player2Job =
           launch {
             delay(100)
-            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(id, player2)).also { sendCommand ->
+            IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player2)).also { sendCommand ->
               channelCommand2.send(sendCommand)
               channelNotification2.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -132,7 +132,7 @@ class GameSimulationTest :
               assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player1
             }
 
-            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(id, player2)).also { sendCommand ->
+            IamReadyToPlayCommand(IamReadyToPlayCommand.Payload(gameId, player2)).also { sendCommand ->
               channelCommand2.send(sendCommand)
               channelNotification2.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -162,7 +162,7 @@ class GameSimulationTest :
               }
             }
 
-            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(id, player2, player2Hand.first())).also { sendCommand ->
+            IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(gameId, player2, player2Hand.first())).also { sendCommand ->
               channelCommand2.send(sendCommand)
               channelNotification2.receive().let {
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
@@ -175,14 +175,14 @@ class GameSimulationTest :
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationEventListener>()
           ReactionEventListener(get(), get(), get()).init()
-          playerNotificationListener.startListening({ channelNotification1.trySendBlocking(it) }, player1)
-          playerNotificationListener.startListening({ channelNotification2.trySendBlocking(it) }, player2)
+          playerNotificationListener.startListening({ channelNotification1.trySendBlocking(it) }, player1, gameId)
+          playerNotificationListener.startListening({ channelNotification2.trySendBlocking(it) }, player2, gameId)
 
           GlobalScope.launch(Dispatchers.IO) {
-            commandHandler.handle(player1, channelCommand1, channelNotification1)
+            commandHandler.handle(player1, gameId, channelCommand1, channelNotification1)
           }
           GlobalScope.launch(Dispatchers.IO) {
-            commandHandler.handle(player2, channelCommand2, channelNotification2)
+            commandHandler.handle(player2, gameId, channelCommand2, channelNotification2)
           }
 
           joinAll(player1Job, player2Job)
@@ -192,9 +192,9 @@ class GameSimulationTest :
               eventStore = eventStore,
               initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },
               applyToProjection = GameState::apply,
-            ).getLast(id)
+            ).getLast(gameId)
 
-          state.aggregateId shouldBeEqual id
+          state.aggregateId shouldBeEqual gameId
           assertTrue(state.isStarted)
           state.players shouldBeEqual setOf(player1, player2)
           state.readyPlayers shouldBeEqual setOf(player1, player2)

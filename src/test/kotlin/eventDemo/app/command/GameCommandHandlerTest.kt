@@ -34,10 +34,19 @@ class GameCommandHandlerTest :
         val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
         val channelNotification = Channel<Notification>(Channel.BUFFERED)
         ReactionEventListener(get(), get(), get()).init()
-        notificationListener.startListening({ channelNotification.trySendBlocking(it) }, player)
+        notificationListener.startListening(
+          { channelNotification.trySendBlocking(it) },
+          player,
+          gameId,
+        )
 
         GlobalScope.launch {
-          commandHandler.handle(player, channelCommand, channelNotification)
+          commandHandler.handle(
+            player,
+            gameId,
+            channelCommand,
+            channelNotification,
+          )
         }
 
         IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)).also { sendCommand ->

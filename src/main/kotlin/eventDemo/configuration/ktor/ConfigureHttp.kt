@@ -10,6 +10,7 @@ import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respondText
+import kotlinx.serialization.Serializable
 
 fun Application.configureHttpRouting() {
   install(CORS) {
@@ -38,13 +39,14 @@ class BadRequestException(
   val httpError: HttpErrorBadRequest,
 ) : Exception()
 
+@Serializable
 class HttpErrorBadRequest(
-  statusCode: HttpStatusCode,
-  val title: String = statusCode.description,
-  val invalidParams: List<InvalidParam>,
+  val title: String = HttpStatusCode.BadRequest.description,
+  val invalidParams: List<InvalidParam> = emptyList(),
 ) {
-  val statusCode: Int = statusCode.value
+  val statusCode: Int = HttpStatusCode.BadRequest.value
 
+  @Serializable
   data class InvalidParam(
     val name: String,
     val reason: String,

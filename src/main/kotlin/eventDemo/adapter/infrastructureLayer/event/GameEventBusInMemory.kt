@@ -7,5 +7,5 @@ import eventDemo.libs.event.EventBus
 import eventDemo.libs.event.EventBusInMemory
 
 class GameEventBusInMemory :
-  GameEventBus,
-  EventBus<GameEvent, GameId> by EventBusInMemory<GameEvent, GameId>()
+  GameEventBus(),
+  EventBus<GameEvent, GameId> by EventBusInMemory()

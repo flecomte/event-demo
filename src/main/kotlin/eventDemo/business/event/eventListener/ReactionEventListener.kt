@@ -10,6 +10,7 @@ import eventDemo.business.event.projection.GameState
 import eventDemo.business.event.projection.GameStateRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
+import java.util.concurrent.ConcurrentSkipListSet
 
 class ReactionEventListener(
   private val eventBus: GameEventBus,
@@ -19,17 +20,22 @@ class ReactionEventListener(
 ) {
   companion object Config {
     const val DEFAULT_PRIORITY = -1000
+    val registeredListeners = ConcurrentSkipListSet<GameEventBus>()
   }
 
   private val logger = KotlinLogging.logger { }
 
   fun init() {
-    eventBus.subscribe(priority) { event: GameEvent ->
-      withLoggingContext("event" to event.toString()) {
-        val state = gameStateRepository.getUntil(event)
-        sendStartGameEvent(state, event)
-        sendWinnerEvent(state)
+    if (registeredListeners.add(eventBus)) {
+      eventBus.subscribe(priority) { event: GameEvent ->
+        withLoggingContext("event" to event.toString()) {
+          val state = gameStateRepository.getUntil(event)
+          sendStartGameEvent(state, event)
+          sendWinnerEvent(state)
+        }
       }
+    } else {
+      logger.error { "${this::class.java.simpleName} is already init for this bus" }
     }
   }
 
