@@ -13,6 +13,7 @@ import eventDemo.configuration.injection.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual
+import io.mockk.mockk
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -25,7 +26,7 @@ import kotlin.test.assertIs
 class GameCommandHandlerTest :
   FunSpec({
     test("handle a command should execute the command") {
-      koinApplication { modules(appKoinModule) }.koin.apply {
+      koinApplication { modules(appKoinModule(mockk(relaxed = true))) }.koin.apply {
         val commandHandler by inject<GameCommandHandler>()
         val notificationListener by inject<PlayerNotificationListener>()
         val gameId = GameId()

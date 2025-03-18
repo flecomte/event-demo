@@ -2,10 +2,14 @@ package eventDemo.configuration.injection
 
 import org.koin.dsl.module
 
-val appKoinModule =
+fun appKoinModule(config: Configuration) =
   module {
     configureDIBusiness()
-    configureDIInfrastructure()
+    configureDIInfrastructure(config.redisUrl)
     configureDILibs()
     configureDICommandActions()
   }
+
+data class Configuration(
+  val redisUrl: String,
+)

@@ -14,8 +14,13 @@ import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
+import redis.clients.jedis.JedisPool
 
-fun Module.configureDIInfrastructure() {
+fun Module.configureDIInfrastructure(redisUrl: String) {
+  single {
+    JedisPool(redisUrl)
+  }
+
   singleOf(::GameEventBusInMemory) bind GameEventBus::class
   singleOf(::GameEventStoreInMemory) bind GameEventStore::class
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
