@@ -32,9 +32,9 @@ class PlayerNotificationListener(
   private val logger = KotlinLogging.logger {}
 
   fun startListening(
-    outgoingNotification: (Notification) -> Unit,
     currentPlayer: Player,
     gameId: GameId,
+    outgoingNotification: (Notification) -> Unit,
   ) {
     projectionBus.subscribe { currentState ->
       if (currentState !is GameState) return@subscribe

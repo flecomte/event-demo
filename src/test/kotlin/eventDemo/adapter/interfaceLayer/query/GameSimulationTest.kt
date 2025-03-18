@@ -175,8 +175,8 @@ class GameSimulationTest :
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationListener>()
           ReactionListener(get(), get()).init()
-          playerNotificationListener.startListening({ channelNotification1.trySendBlocking(it) }, player1, gameId)
-          playerNotificationListener.startListening({ channelNotification2.trySendBlocking(it) }, player2, gameId)
+          playerNotificationListener.startListening(player1, gameId) { channelNotification1.trySendBlocking(it) }
+          playerNotificationListener.startListening(player2, gameId) { channelNotification2.trySendBlocking(it) }
 
           GlobalScope.launch(Dispatchers.IO) {
             commandHandler.handle(player1, gameId, channelCommand1, channelNotification1)

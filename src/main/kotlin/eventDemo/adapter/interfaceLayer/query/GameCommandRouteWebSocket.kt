@@ -59,10 +59,9 @@ private fun DefaultWebSocketServerSession.runWebSocket(
     }
 
     playerNotificationListener.startListening(
-      { outgoingFrameChannel.trySendBlocking(it) },
       currentPlayer,
       gameId,
-    )
+    ) { outgoingFrameChannel.trySendBlocking(it) }
   }
 }
 
