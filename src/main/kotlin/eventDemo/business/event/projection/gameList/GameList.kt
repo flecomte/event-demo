@@ -2,7 +2,7 @@ package eventDemo.business.event.projection.gameList
 
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.projection.Projection
+import eventDemo.libs.event.projection.Projection
 import kotlinx.serialization.Serializable
 
 @Serializable

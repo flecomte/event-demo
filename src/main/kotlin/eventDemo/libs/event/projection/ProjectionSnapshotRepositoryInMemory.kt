@@ -1,6 +1,5 @@
 package eventDemo.libs.event.projection
 
-import eventDemo.business.event.projection.Projection
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
 import eventDemo.libs.event.EventStore

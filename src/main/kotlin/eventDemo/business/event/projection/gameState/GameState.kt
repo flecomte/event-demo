@@ -4,7 +4,7 @@ import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.projection.Projection
+import eventDemo.libs.event.projection.Projection
 import kotlinx.serialization.Serializable
 
 @Serializable
