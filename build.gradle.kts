@@ -13,6 +13,7 @@ plugins {
   id("io.ktor.plugin") version "2.3.13"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
   id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
+  id("com.avast.gradle.docker-compose") version "0.17.12"
 }
 
 group = "io.github.flecomte"
@@ -43,6 +44,14 @@ tasks.withType<Test>().configureEach {
   useJUnitPlatform()
 }
 
+dockerCompose {
+  useComposeFiles.set(listOf("docker/docker-compose.yaml"))
+}
+
+tasks.test {
+  dependsOn("composeUp")
+}
+
 dependencies {
   implementation("io.ktor:ktor-server-core-jvm")
   implementation("io.ktor:ktor-server-auth-jvm")
@@ -65,6 +74,7 @@ dependencies {
   implementation("io.github.oshai:kotlin-logging-jvm:$kotlin_logging_version")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlin_serialization_version")
   implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+  implementation("redis.clients:jedis:5.2.0")
 
   // Force version of sub library (for security)
   implementation("commons-codec:commons-codec:1.13")
