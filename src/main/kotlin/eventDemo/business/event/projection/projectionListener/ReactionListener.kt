@@ -1,37 +1,35 @@
-package eventDemo.business.event.eventListener
+package eventDemo.business.event.projection.projectionListener
 
-import eventDemo.business.event.GameEventBus
+import eventDemo.business.entity.GameId
 import eventDemo.business.event.GameEventHandler
-import eventDemo.business.event.event.GameEvent
 import eventDemo.business.event.event.GameStartedEvent
-import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.PlayerWinEvent
+import eventDemo.business.event.projection.GameProjectionBus
 import eventDemo.business.event.projection.gameState.GameState
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.libs.event.projection.Projection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.concurrent.ConcurrentSkipListSet
 
-class ReactionEventListener(
-  private val eventBus: GameEventBus,
+class ReactionListener(
+  private val projectionBus: GameProjectionBus,
   private val eventHandler: GameEventHandler,
-  private val gameStateRepository: GameStateRepository,
   private val priority: Int = DEFAULT_PRIORITY,
 ) {
   companion object Config {
     const val DEFAULT_PRIORITY = -1000
-    val registeredListeners = ConcurrentSkipListSet<GameEventBus>()
+    val registeredListeners = ConcurrentSkipListSet<GameProjectionBus>()
   }
 
   private val logger = KotlinLogging.logger { }
 
   fun init() {
-    if (registeredListeners.add(eventBus)) {
-      eventBus.subscribe(priority) { event: GameEvent ->
-        withLoggingContext("event" to event.toString()) {
-          val state = gameStateRepository.getUntil(event)
-          sendStartGameEvent(state, event)
-          sendWinnerEvent(state)
+    if (registeredListeners.add(projectionBus)) {
+      projectionBus.subscribe(priority) { projection: Projection<GameId> ->
+        if (projection !is GameState) return@subscribe
+        withLoggingContext("projection" to projection.toString()) {
+          sendStartGameEvent(projection)
+          sendWinnerEvent(projection)
         }
       }
     } else {
@@ -39,10 +37,7 @@ class ReactionEventListener(
     }
   }
 
-  private fun sendStartGameEvent(
-    state: GameState,
-    event: GameEvent,
-  ) {
+  private fun sendStartGameEvent(state: GameState) {
     if (state.isReady && !state.isStarted) {
       val reactionEvent =
         eventHandler.handle(state.aggregateId) {
@@ -55,10 +50,6 @@ class ReactionEventListener(
       logger.atInfo {
         message = "Reaction event was Send"
         payload = mapOf("reactionEvent" to reactionEvent)
-      }
-    } else {
-      if (event is PlayerReadyEvent) {
-        logger.info { "All players was not ready ${state.readyPlayers}" }
       }
     }
   }

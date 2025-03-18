@@ -41,4 +41,7 @@ class EventStreamInMemory<E : Event<*>> : EventStream<E> {
     events
       .filter { version.contains(it.version) }
       .toSet()
+
+  override fun getByVersion(version: Int): E? =
+    events.find { version == it.version }
 }

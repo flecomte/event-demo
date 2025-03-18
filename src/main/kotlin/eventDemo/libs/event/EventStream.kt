@@ -16,4 +16,6 @@ interface EventStream<E : Event<*>> {
   fun readGreaterOfVersion(version: Int): Set<E>
 
   fun readVersionBetween(version: IntRange): Set<E>
+
+  fun getByVersion(version: Int): E?
 }

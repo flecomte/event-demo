@@ -5,6 +5,9 @@ import eventDemo.business.entity.Player
 import eventDemo.libs.event.projection.Projection
 import kotlinx.serialization.Serializable
 
+/**
+ * This [projection][Projection] is used to list all current games
+ */
 @Serializable
 data class GameList(
   override val aggregateId: GameId,

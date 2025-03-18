@@ -1,8 +1,9 @@
 package eventDemo.adapter.infrastructureLayer.event.projection
 
 import eventDemo.business.entity.GameId
-import eventDemo.business.event.GameEventHandler
+import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventStore
+import eventDemo.business.event.projection.GameProjectionBus
 import eventDemo.business.event.projection.gameList.GameList
 import eventDemo.business.event.projection.gameList.GameListRepository
 import eventDemo.business.event.projection.gameList.apply
@@ -10,9 +11,13 @@ import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.libs.event.projection.SnapshotConfig
 
+/**
+ * Manages [projections][GameList], their building and publication in the [bus][GameProjectionBus].
+ */
 class GameListRepositoryInMemory(
   eventStore: GameEventStore,
-  eventHandler: GameEventHandler,
+  projectionBus: GameProjectionBus,
+  eventBus: GameEventBus,
   snapshotConfig: SnapshotConfig = SnapshotConfig(),
 ) : GameListRepository {
   private val projectionsSnapshot =
@@ -24,8 +29,10 @@ class GameListRepositoryInMemory(
     )
 
   init {
-    eventHandler.registerProjectionBuilder { event ->
-      projectionsSnapshot.applyAndPutToCache(event)
+    eventBus.subscribe { event ->
+      projectionsSnapshot
+        .applyAndPutToCache(event)
+        .also { projectionBus.publish(it) }
     }
   }
 

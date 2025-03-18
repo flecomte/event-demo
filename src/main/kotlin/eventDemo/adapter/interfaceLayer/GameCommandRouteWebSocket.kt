@@ -3,7 +3,7 @@ package eventDemo.adapter.interfaceLayer
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.eventListener.PlayerNotificationEventListener
+import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
 import eventDemo.business.notification.Notification
 import eventDemo.libs.fromFrameChannel
 import eventDemo.libs.toObjectChannel
@@ -24,7 +24,7 @@ import java.util.UUID
 
 @DelicateCoroutinesApi
 fun Route.gameWebSocket(
-  playerNotificationListener: PlayerNotificationEventListener,
+  playerNotificationListener: PlayerNotificationListener,
   commandHandler: GameCommandHandler,
 ) {
   authenticate {
@@ -43,7 +43,7 @@ fun Route.gameWebSocket(
 private fun DefaultWebSocketServerSession.runWebSocket(
   gameId: GameId,
   commandHandler: GameCommandHandler,
-  playerNotificationListener: PlayerNotificationEventListener,
+  playerNotificationListener: PlayerNotificationListener,
 ) {
   val currentPlayer = call.getPlayer()
   val outgoingFrameChannel: SendChannel<Notification> = fromFrameChannel(outgoing)

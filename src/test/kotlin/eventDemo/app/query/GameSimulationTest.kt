@@ -10,10 +10,10 @@ import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.event.disableShuffleDeck
-import eventDemo.business.event.eventListener.PlayerNotificationEventListener
-import eventDemo.business.event.eventListener.ReactionEventListener
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.apply
+import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
+import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.ItsTheTurnOfNotification
 import eventDemo.business.notification.Notification
@@ -173,8 +173,8 @@ class GameSimulationTest :
         koinApplication { modules(appKoinModule) }.koin.apply {
           val commandHandler by inject<GameCommandHandler>()
           val eventStore by inject<GameEventStore>()
-          val playerNotificationListener by inject<PlayerNotificationEventListener>()
-          ReactionEventListener(get(), get(), get()).init()
+          val playerNotificationListener by inject<PlayerNotificationListener>()
+          ReactionListener(get(), get()).init()
           playerNotificationListener.startListening({ channelNotification1.trySendBlocking(it) }, player1, gameId)
           playerNotificationListener.startListening({ channelNotification2.trySendBlocking(it) }, player2, gameId)
 

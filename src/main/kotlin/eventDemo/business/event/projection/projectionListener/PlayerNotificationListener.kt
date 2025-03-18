@@ -1,18 +1,17 @@
-package eventDemo.business.event.eventListener
+package eventDemo.business.event.projection.projectionListener
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.event.CardIsPlayedEvent
-import eventDemo.business.event.event.GameEvent
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerChoseColorEvent
 import eventDemo.business.event.event.PlayerHavePassEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.PlayerWinEvent
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameProjectionBus
+import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.notification.ItsTheTurnOfNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.PlayerAsJoinTheGameNotification
@@ -27,9 +26,8 @@ import eventDemo.business.notification.YourNewCardNotification
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 
-class PlayerNotificationEventListener(
-  private val eventBus: GameEventBus,
-  private val gameStateRepository: GameStateRepository,
+class PlayerNotificationListener(
+  private val projectionBus: GameProjectionBus,
 ) {
   private val logger = KotlinLogging.logger {}
 
@@ -38,14 +36,10 @@ class PlayerNotificationEventListener(
     currentPlayer: Player,
     gameId: GameId,
   ) {
-    eventBus.subscribe { event: GameEvent ->
-      withLoggingContext("event" to event.toString()) {
-        if (event.aggregateId != gameId) {
-          return@subscribe
-        }
-
-        val currentState = gameStateRepository.getUntil(event)
-
+    projectionBus.subscribe { currentState ->
+      if (currentState !is GameState) return@subscribe
+      if (currentState.aggregateId != gameId) return@subscribe
+      withLoggingContext("projection" to currentState.toString()) {
         fun Notification.send() {
           withLoggingContext("notification" to this.toString()) {
             if (currentState.players.contains(currentPlayer)) {
@@ -64,6 +58,10 @@ class PlayerNotificationEventListener(
           ItsTheTurnOfNotification(
             player = currentState.currentPlayerTurn ?: error("No player turn defined"),
           ).send()
+
+        val event =
+          currentState.lastEvent
+            ?: error("No last event in the GameState projection")
 
         when (event) {
           is NewPlayerEvent -> {

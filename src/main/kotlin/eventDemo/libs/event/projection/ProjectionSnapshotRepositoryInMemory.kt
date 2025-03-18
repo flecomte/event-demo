@@ -50,13 +50,12 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 5. save it
    * 6. remove old one
    */
-  fun applyAndPutToCache(event: E) {
+  fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
         save(it)
         removeOldSnapshot(it.aggregateId)
       }
-  }
 
   /**
    * Build the list of all [Projections][Projection]

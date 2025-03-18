@@ -25,8 +25,7 @@ class GameEventHandler(
   }
 
   /**
-   * Build Event, and send it to the event store and bus.
-   * Build also the projections.
+   * Build Event then send it to the event store and bus.
    */
   override fun handle(
     aggregateId: GameId,
@@ -47,8 +46,6 @@ class GameEventHandler(
             }
         }.also { event ->
           withLoggingContext("event" to event.toString()) {
-            // Build the projections
-            projectionsBuilders.forEach { it(event) }
             // Publish to the bus
             eventBus.publish(event)
           }

@@ -111,5 +111,6 @@ fun GameState.apply(event: GameEvent): GameState =
       }
     }.copy(
       lastEventVersion = event.version,
+      lastEvent = event,
     )
   }

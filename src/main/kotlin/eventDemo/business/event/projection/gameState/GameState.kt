@@ -4,9 +4,13 @@ import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
+import eventDemo.business.event.event.GameEvent
 import eventDemo.libs.event.projection.Projection
 import kotlinx.serialization.Serializable
 
+/**
+ * This [projection][Projection] is used for manage a game and theirs [card][Card]
+ */
 @Serializable
 data class GameState(
   override val aggregateId: GameId,
@@ -20,6 +24,7 @@ data class GameState(
   val deck: Deck = Deck(players),
   val isStarted: Boolean = false,
   val playerWins: Set<Player> = emptySet(),
+  val lastEvent: GameEvent? = null,
 ) : Projection<GameId> {
   enum class Direction {
     CLOCKWISE,

@@ -5,8 +5,8 @@ import eventDemo.business.command.command.GameCommand
 import eventDemo.business.command.command.IWantToJoinTheGameCommand
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.eventListener.PlayerNotificationEventListener
-import eventDemo.business.event.eventListener.ReactionEventListener
+import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
+import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
@@ -28,12 +28,12 @@ class GameCommandHandlerTest :
     test("handle a command should execute the command") {
       koinApplication { modules(appKoinModule) }.koin.apply {
         val commandHandler by inject<GameCommandHandler>()
-        val notificationListener by inject<PlayerNotificationEventListener>()
+        val notificationListener by inject<PlayerNotificationListener>()
         val gameId = GameId()
         val player = Player("Tesla")
         val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
         val channelNotification = Channel<Notification>(Channel.BUFFERED)
-        ReactionEventListener(get(), get(), get()).init()
+        ReactionListener(get(), get()).init()
         notificationListener.startListening(
           { channelNotification.trySendBlocking(it) },
           player,
