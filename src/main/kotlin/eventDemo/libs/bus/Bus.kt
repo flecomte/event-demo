@@ -1,7 +1,7 @@
-package eventDemo.libs.event
+package eventDemo.libs.bus
 
-interface EventBus<E : Event<ID>, ID : AggregateId> {
-  fun publish(event: E)
+interface Bus<E> {
+  fun publish(item: E)
 
   /**
    * @param priority The higher the priority, the more it will be called first

@@ -1,18 +1,18 @@
-package eventDemo.libs.event
+package eventDemo.libs.bus
 
 import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.coroutines.runBlocking
 
-class EventBusInMemory<E : Event<ID>, ID : AggregateId> : EventBus<E, ID> {
+class BusInMemory<E> : Bus<E> {
   private val subscribers: MutableList<Pair<Int, suspend (E) -> Unit>> = mutableListOf()
 
-  override fun publish(event: E) {
+  override fun publish(item: E) {
     subscribers
       .sortedByDescending { (priority, _) -> priority }
       .forEach { (_, block) ->
         runBlocking {
-          withLoggingContext("event" to event.toString()) {
-            block(event)
+          withLoggingContext("busItem" to item.toString()) {
+            block(item)
           }
         }
       }

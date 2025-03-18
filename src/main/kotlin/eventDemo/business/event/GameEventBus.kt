@@ -1,12 +1,11 @@
 package eventDemo.business.event
 
-import eventDemo.business.entity.GameId
 import eventDemo.business.event.event.GameEvent
-import eventDemo.libs.event.EventBus
+import eventDemo.libs.bus.Bus
 import java.util.UUID
 
 abstract class GameEventBus :
-  EventBus<GameEvent, GameId>,
+  Bus<GameEvent>,
   Comparable<GameEventBus> {
   private val instanceId: UUID = UUID.randomUUID()
 
