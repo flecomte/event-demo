@@ -1,4 +1,4 @@
-package eventDemo.app.command
+package eventDemo.business.command
 
 import io.kotest.core.spec.style.FunSpec
 

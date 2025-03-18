@@ -1,6 +1,5 @@
-package eventDemo.app.command
+package eventDemo.business.command
 
-import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.command.command.GameCommand
 import eventDemo.business.command.command.IWantToJoinTheGameCommand
 import eventDemo.business.entity.GameId

@@ -1,6 +1,6 @@
 package eventDemo.configuration.route
 
-import eventDemo.adapter.interfaceLayer.gameWebSocket
+import eventDemo.adapter.interfaceLayer.query.gameWebSocket
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
 import io.ktor.server.application.Application

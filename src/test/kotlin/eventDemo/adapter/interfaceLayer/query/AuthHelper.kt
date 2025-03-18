@@ -1,4 +1,4 @@
-package eventDemo.app.query
+package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.entity.Player
 import eventDemo.configuration.ktor.makeJwt

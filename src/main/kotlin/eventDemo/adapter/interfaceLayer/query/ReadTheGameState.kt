@@ -1,4 +1,4 @@
-package eventDemo.adapter.interfaceLayer
+package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.entity.GameId
 import eventDemo.business.event.projection.gameState.GameStateRepository

@@ -1,4 +1,4 @@
-package eventDemo.app.entity
+package eventDemo.business.entity
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Player

@@ -1,8 +1,8 @@
-package eventDemo.app.command.command
+package eventDemo.business.command.command
 
 import io.kotest.core.spec.style.FunSpec
 
-class IWantToJoinTheGameCommandTest :
+class IamReadyToPlayCommandTest :
   FunSpec({
 
     xtest("run should publish the event") { }

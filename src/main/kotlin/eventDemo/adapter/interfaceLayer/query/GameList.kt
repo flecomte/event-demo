@@ -1,4 +1,4 @@
-package eventDemo.adapter.interfaceLayer
+package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.event.projection.gameList.GameListRepository
 import io.ktor.resources.Resource
@@ -7,7 +7,6 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable
 
 @Serializable

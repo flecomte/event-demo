@@ -1,4 +1,4 @@
-package eventDemo.app.event.projection
+package eventDemo.business.event.projection
 
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event

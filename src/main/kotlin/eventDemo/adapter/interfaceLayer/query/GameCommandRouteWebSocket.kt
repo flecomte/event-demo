@@ -1,4 +1,4 @@
-package eventDemo.adapter.interfaceLayer
+package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.entity.GameId

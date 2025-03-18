@@ -1,10 +1,7 @@
-package eventDemo.app.entity
+package eventDemo.business.entity
 
-import eventDemo.app.allCardCount
-import eventDemo.app.allCards
-import eventDemo.business.entity.Deck
-import eventDemo.business.entity.Player
-import eventDemo.business.entity.initHands
+import eventDemo.allCardCount
+import eventDemo.allCards
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeUnique
 import io.kotest.matchers.ints.shouldBeExactly

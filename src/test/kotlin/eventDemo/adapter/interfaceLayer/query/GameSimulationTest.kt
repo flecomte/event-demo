@@ -1,4 +1,4 @@
-package eventDemo.app.query
+package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.command.command.GameCommand

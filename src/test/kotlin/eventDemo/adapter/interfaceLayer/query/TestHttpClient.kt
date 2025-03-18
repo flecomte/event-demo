@@ -1,4 +1,4 @@
-package eventDemo.app.query
+package eventDemo.adapter.interfaceLayer.query
 import eventDemo.configuration.ktor.defaultJsonSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

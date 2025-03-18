@@ -1,4 +1,4 @@
-package eventDemo.app
+package eventDemo
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
