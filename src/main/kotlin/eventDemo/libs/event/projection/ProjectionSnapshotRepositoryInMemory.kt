@@ -16,7 +16,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
   private val initialStateBuilder: (aggregateId: ID) -> P,
   private val snapshotCacheConfig: SnapshotConfig = SnapshotConfig(),
   private val applyToProjection: P.(event: E) -> P,
-) {
+) : ProjectionSnapshotRepository<E, P, ID> {
   private val projectionsSnapshot: ConcurrentHashMap<ID, ConcurrentLinkedQueue<Pair<P, Instant>>> = ConcurrentHashMap()
 
   /**
@@ -29,7 +29,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 5. save it
    * 6. remove old one
    */
-  fun applyAndPutToCache(event: E): P =
+  override fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
         save(it)
@@ -39,7 +39,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
   /**
    * Build the list of all [Projections][Projection]
    */
-  fun getList(): List<P> =
+  override fun getList(): List<P> =
     projectionsSnapshot.map { (id, b) ->
       getLast(id)
     }
@@ -51,7 +51,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 2. get the missing event to the snapshot
    * 3. apply the missing events to the snapshot
    */
-  fun getLast(aggregateId: ID): P {
+  override fun getLast(aggregateId: ID): P {
     val lastSnapshot = getLastSnapshot(aggregateId)?.first
     val missingEventOfSnapshot = getEventAfterTheSnapshot(aggregateId, lastSnapshot)
     return lastSnapshot.applyEvents(aggregateId, missingEventOfSnapshot)
@@ -66,7 +66,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 2. get the events with a greater version of the snapshot but lower of passed event
    * 3. apply the events to the snapshot
    */
-  fun getUntil(event: E): P {
+  override fun getUntil(event: E): P {
     val lastSnapshot = getLastSnapshotBeforeOrEqualEvent(event)?.first
     if (lastSnapshot?.lastEventVersion == event.version) {
       return lastSnapshot
