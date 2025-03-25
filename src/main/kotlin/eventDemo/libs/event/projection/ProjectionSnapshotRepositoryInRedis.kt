@@ -61,7 +61,8 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   override fun getLast(aggregateId: ID): P =
     jedis
       .get(projectionClass.redisKeyLatest(aggregateId))
-      .let(jsonToProjection)
+      ?.let(jsonToProjection)
+      ?: initialStateBuilder(aggregateId)
 
   /**
    * Build the [Projection] to the specific [event][Event].

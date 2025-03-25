@@ -9,53 +9,57 @@ import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
+import eventDemo.configuration.injection.Configuration
 import eventDemo.configuration.injection.appKoinModule
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual
-import io.mockk.mockk
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.koin.dsl.koinApplication
 import kotlin.test.assertIs
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(DelicateCoroutinesApi::class)
 class GameCommandHandlerTest :
   FunSpec({
     test("handle a command should execute the command") {
-      koinApplication { modules(appKoinModule(mockk(relaxed = true))) }.koin.apply {
-        val commandHandler by inject<GameCommandHandler>()
-        val notificationListener by inject<PlayerNotificationListener>()
-        val gameId = GameId()
-        val player = Player("Tesla")
-        val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
-        val channelNotification = Channel<Notification>(Channel.BUFFERED)
-        ReactionListener(get(), get()).init()
-        notificationListener.startListening(
-          player,
-          gameId,
-        ) { channelNotification.trySendBlocking(it) }
-
-        GlobalScope.launch {
-          commandHandler.handle(
+      withTimeout(1.seconds) {
+        koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+          val commandHandler by inject<GameCommandHandler>()
+          val notificationListener by inject<PlayerNotificationListener>()
+          val gameId = GameId()
+          val player = Player("Tesla")
+          val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
+          val channelNotification = Channel<Notification>(Channel.BUFFERED)
+          ReactionListener(get(), get()).init()
+          notificationListener.startListening(
             player,
             gameId,
-            channelCommand,
-            channelNotification,
-          )
-        }
+          ) { channelNotification.trySendBlocking(it) }
 
-        IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)).also { sendCommand ->
-          channelCommand.send(sendCommand)
-          channelNotification.receive().let {
-            assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+          GlobalScope.launch {
+            commandHandler.handle(
+              player,
+              gameId,
+              channelCommand,
+              channelNotification,
+            )
           }
-        }
-        assertIs<WelcomeToTheGameNotification>(channelNotification.receive()).let {
-          it.players shouldContain player
+
+          IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player)).also { sendCommand ->
+            channelCommand.send(sendCommand)
+            channelNotification.receive().let {
+              assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
+            }
+          }
+          assertIs<WelcomeToTheGameNotification>(channelNotification.receive()).let {
+            it.players shouldContain player
+          }
         }
       }
     }

@@ -22,12 +22,12 @@ import eventDemo.business.notification.PlayerAsPlayACardNotification
 import eventDemo.business.notification.PlayerWasReadyNotification
 import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
+import eventDemo.configuration.injection.Configuration
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
-import io.mockk.mockk
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -171,7 +171,7 @@ class GameSimulationTest :
             }
           }
 
-        koinApplication { modules(appKoinModule(mockk(relaxed = true))) }.koin.apply {
+        koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
           val commandHandler by inject<GameCommandHandler>()
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationListener>()
