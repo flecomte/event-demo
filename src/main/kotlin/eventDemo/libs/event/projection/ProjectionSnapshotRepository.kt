@@ -9,10 +9,17 @@ interface ProjectionSnapshotRepository<E : Event<ID>, P : Projection<ID>, ID : A
    */
   fun applyAndPutToCache(event: E): P
 
+  fun count(aggregateId: ID): Int
+
+  fun countAll(): Int
+
   /**
    * Build the list of all [Projections][Projection]
    */
-  fun getList(): List<P>
+  fun getList(
+    limit: Int = 100,
+    offset: Int = 0,
+  ): List<P>
 
   /**
    * Build the last version of the [Projection] from the cache.

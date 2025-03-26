@@ -4,12 +4,17 @@ import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
+import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.configuration.injection.Configuration
 import eventDemo.configuration.injection.appKoinModule
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.ints.shouldBeLessThan
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
@@ -17,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.context.stopKoin
 import org.koin.dsl.koinApplication
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(DelicateCoroutinesApi::class)
 class GameStateRepositoryTest :
@@ -32,11 +38,14 @@ class GameStateRepositoryTest :
         eventHandler
           .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
           .also { event ->
-            assertNotNull(repo.getUntil(event)).also {
-              assertNotNull(it.players) shouldBeEqual setOf(player1)
-            }
-            assertNotNull(repo.getLast(aggregateId)).also {
-              assertNotNull(it.players) shouldBeEqual setOf(player1)
+            // Wait until the projection is created
+            eventually(1.seconds) {
+              assertNotNull(repo.getUntil(event)).also {
+                assertNotNull(it.players) shouldBeEqual setOf(player1)
+              }
+              assertNotNull(repo.getLast(aggregateId)).also {
+                assertNotNull(it.players) shouldBeEqual setOf(player1)
+              }
             }
           }
       }
@@ -48,20 +57,31 @@ class GameStateRepositoryTest :
       koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
+        val projectionBus = get<GameProjectionBus>()
+
+        var state: GameState? = null
+        projectionBus.subscribe {
+          repo.getLast(aggregateId).also {
+            state = it
+          }
+        }
 
         eventHandler
           .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
           .also {
-            assertNotNull(repo.getLast(aggregateId)).also {
-              assertNotNull(it.players) shouldBeEqual setOf(player1)
+            eventually(1.seconds) {
+              assertNotNull(state).players.isNotEmpty() shouldBeEqual true
+              assertNotNull(state).players shouldBeEqual setOf(player1)
             }
           }
 
         eventHandler
           .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
           .also {
-            assertNotNull(repo.getLast(aggregateId)).also {
-              assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
+            eventually(1.seconds) {
+              assertNotNull(repo.getLast(aggregateId)).also {
+                assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
+              }
             }
           }
       }
@@ -121,9 +141,19 @@ class GameStateRepositoryTest :
               }
           }.joinAll()
 
-        repo.getLast(aggregateId).run {
-          lastEventVersion shouldBeEqual 1000
-          players shouldHaveSize 1000
+        eventually(
+          eventuallyConfig {
+            duration = 10.seconds
+            interval = 1.seconds
+            includeFirst = false
+          },
+        ) {
+          repo.getLast(aggregateId).run {
+            lastEventVersion shouldBeEqual 1000
+            players shouldHaveSize 1000
+          }
+          repo.count(aggregateId) shouldBeGreaterThan 20
+          repo.count(aggregateId) shouldBeLessThan 30
         }
       }
     }

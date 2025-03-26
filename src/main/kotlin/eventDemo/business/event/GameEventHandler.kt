@@ -27,7 +27,7 @@ class GameEventHandler(
   /**
    * Build Event then send it to the event store and bus.
    */
-  override fun handle(
+  override suspend fun handle(
     aggregateId: GameId,
     buildEvent: (version: Int) -> GameEvent,
   ): GameEvent =

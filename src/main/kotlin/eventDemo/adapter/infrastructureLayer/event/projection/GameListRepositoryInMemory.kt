@@ -10,6 +10,7 @@ import eventDemo.business.event.projection.gameList.apply
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.libs.event.projection.SnapshotConfig
+import io.github.oshai.kotlinlogging.withLoggingContext
 
 /**
  * Manages [projections][GameList], their building and publication in the [bus][GameProjectionBus].
@@ -30,9 +31,11 @@ class GameListRepositoryInMemory(
 
   init {
     eventBus.subscribe { event ->
-      projectionsSnapshot
-        .applyAndPutToCache(event)
-        .also { projectionBus.publish(it) }
+      withLoggingContext("event" to event.toString()) {
+        projectionsSnapshot
+          .applyAndPutToCache(event)
+          .also { projectionBus.publish(it) }
+      }
     }
   }
 

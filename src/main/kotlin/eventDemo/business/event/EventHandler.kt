@@ -9,7 +9,7 @@ import eventDemo.libs.event.Event
 interface EventHandler<E : Event<ID>, ID : AggregateId> {
   fun registerProjectionBuilder(builder: (event: E) -> Unit)
 
-  fun handle(
+  suspend fun handle(
     aggregateId: ID,
     buildEvent: (version: Int) -> E,
   ): E

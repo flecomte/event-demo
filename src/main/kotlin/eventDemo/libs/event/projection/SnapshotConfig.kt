@@ -20,4 +20,7 @@ data class SnapshotConfig(
    *     snapshot.lastVersion % modulo == 1
    */
   val modulo: Int = 10,
+  val enabled: Boolean = true,
 )
+
+val DISABLED_CONFIG = SnapshotConfig(Int.MAX_VALUE, Duration.INFINITE, Int.MAX_VALUE, enabled = false)

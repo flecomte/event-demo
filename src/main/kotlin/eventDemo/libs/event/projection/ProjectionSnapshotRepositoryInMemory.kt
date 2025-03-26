@@ -18,6 +18,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
   private val applyToProjection: P.(event: E) -> P,
 ) : ProjectionSnapshotRepository<E, P, ID> {
   private val projectionsSnapshot: ConcurrentHashMap<ID, ConcurrentLinkedQueue<Pair<P, Instant>>> = ConcurrentHashMap()
+  private val logger = KotlinLogging.logger { }
 
   /**
    * Create a snapshot for the event
@@ -32,17 +33,30 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
   override fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
-        save(it)
-        removeOldSnapshot(it.aggregateId)
+        withLoggingContext("projection" to it.toString()) {
+          save(it)
+          removeOldSnapshot(it.aggregateId)
+        }
       }
+
+  override fun count(aggregateId: ID): Int =
+    projectionsSnapshot[aggregateId]?.count() ?: 0
+
+  override fun countAll(): Int =
+    projectionsSnapshot.mappingCount().toInt()
 
   /**
    * Build the list of all [Projections][Projection]
    */
-  override fun getList(): List<P> =
-    projectionsSnapshot.map { (id, b) ->
-      getLast(id)
-    }
+  override fun getList(
+    limit: Int,
+    offset: Int,
+  ): List<P> =
+    projectionsSnapshot
+      .map { (id, b) ->
+        getLast(id)
+      }.drop(offset)
+      .take(limit)
 
   /**
    * Build the last version of the [Projection] from the cache.
@@ -75,7 +89,8 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
     val missingEventOfSnapshot =
       eventStore
         .getStream(event.aggregateId)
-        .readVersionBetween((lastSnapshot?.lastEventVersion ?: 1)..event.version)
+        // take the last snapshot version +1 to event version
+        .readVersionBetween(lastSnapshot, event)
 
     return if (lastSnapshot?.lastEventVersion == event.version) {
       lastSnapshot
@@ -91,12 +106,14 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    */
   private fun removeOldSnapshot(aggregateId: ID) {
     projectionsSnapshot[aggregateId]?.let { queue ->
-      queue
-        .excludeFirstAndLast()
-        .excludeTheHeadBySize()
-        .excludeNewerByDate()
-        .excludeByModulo()
-        .forEach { queue.remove(it) }
+      if (snapshotCacheConfig.enabled) {
+        queue
+          .excludeFirstAndLast()
+          .excludeTheHeadBySize()
+          .excludeNewerByDate()
+          .excludeByModulo()
+          .forEach { queue.remove(it) }
+      }
     }
   }
 
@@ -153,6 +170,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
     projectionsSnapshot
       .computeIfAbsent(projection.aggregateId) { ConcurrentLinkedQueue() }
       .add(Pair(projection, Clock.System.now()))
+      .also { logger.info { "Projection saved" } }
   }
 
   /**
@@ -200,7 +218,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
       if (event.version == lastEventVersion + 1) {
         applyToProjection(event)
       } else if (event.version <= lastEventVersion) {
-        KotlinLogging.logger { }.warn { "Event is already is the Projection, skip apply." }
+        KotlinLogging.logger { }.warn { "Event is already in the Projection, skip apply." }
         this
       } else {
         error("The version of the event must follow directly after the version of the projection.")

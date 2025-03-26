@@ -7,7 +7,6 @@ import eventDemo.libs.toRanges
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import redis.clients.jedis.UnifiedJedis
-import redis.clients.jedis.params.ScanParams
 import redis.clients.jedis.params.SortingParams
 import kotlin.reflect.KClass
 
@@ -21,6 +20,8 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   private val jsonToProjection: (String) -> P,
   private val applyToProjection: P.(event: E) -> P,
 ) : ProjectionSnapshotRepository<E, P, ID> {
+  val logger = KotlinLogging.logger { }
+
   /**
    * Create a snapshot for the event
    *
@@ -34,22 +35,33 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   override fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
-        save(it)
-        removeOldSnapshot(it.aggregateId, event.version)
+        withLoggingContext(mapOf("projection" to it.toString(), "event" to event.toString())) {
+          save(it)
+          removeOldSnapshot(it.aggregateId, event.version)
+        }
       }
+
+  override fun count(aggregateId: ID): Int =
+    jedis.zcount(projectionClass.redisKey(aggregateId), Double.MIN_VALUE, Double.MAX_VALUE).toInt()
+
+  override fun countAll(): Int =
+    jedis.zcount(projectionClass.redisKey, Double.MIN_VALUE, Double.MAX_VALUE).toInt()
 
   /**
    * Get the list of all [Projections][Projection]
    */
-  override fun getList(): List<P> =
+  override fun getList(
+    limit: Int,
+    offset: Int,
+  ): List<P> =
     jedis
-      .scan(
-        "0",
-        ScanParams()
-          .match(projectionClass.redisKeySearchListLatest)
-          .count(100),
-      ).result
-      .map { jsonToProjection(it) }
+      .sort(
+        projectionClass.redisKeySearchList,
+        SortingParams()
+          .desc()
+          .by("score")
+          .limit(limit, offset),
+      ).map { jsonToProjection(it) }
 
   /**
    * Get the last version of the [Projection] from the cache.
@@ -60,7 +72,13 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
    */
   override fun getLast(aggregateId: ID): P =
     jedis
-      .get(projectionClass.redisKeyLatest(aggregateId))
+      .sort(
+        projectionClass.redisKey(aggregateId),
+        SortingParams()
+          .desc()
+          .by("score")
+          .limit(0, 1),
+      ).firstOrNull()
       ?.let(jsonToProjection)
       ?: initialStateBuilder(aggregateId)
 
@@ -76,22 +94,27 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   override fun getUntil(event: E): P {
     val lastSnapshot =
       jedis
-        .sort(
+        .zrangeByScore(
           projectionClass.redisKey(event.aggregateId),
-          SortingParams()
-            .desc()
-            .by("score")
-            .limit(0, 1),
+          1.0,
+          event.version.toDouble(),
+          0,
+          1,
         ).firstOrNull()
         ?.let(jsonToProjection)
     if (lastSnapshot?.lastEventVersion == event.version) {
       return lastSnapshot
     }
+    if (lastSnapshot != null && lastSnapshot.lastEventVersion > event.version) {
+      logger.error { "Cannot be apply event on more recent snapshot" }
+      error("Cannot be apply event on more recent snapshot")
+    }
 
     val missingEventOfSnapshot =
       eventStore
         .getStream(event.aggregateId)
-        .readVersionBetween((lastSnapshot?.lastEventVersion ?: 1)..event.version)
+        // take the last snapshot version +1 to event version
+        .readVersionBetween(lastSnapshot, event)
 
     return if (lastSnapshot?.lastEventVersion == event.version) {
       lastSnapshot
@@ -101,9 +124,16 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   }
 
   private fun save(projection: P) {
-    jedis.zadd(projection.redisKeyVersion, projection.lastEventVersion.toDouble(), projectionToJson(projection))
-    jedis.expire(projection.redisKeyVersion, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
-    jedis.set(projection.redisKeyLatest, projectionToJson(projection))
+    repeat(5) {
+      val added = jedis.zadd(projection.redisKey, projection.lastEventVersion.toDouble(), projectionToJson(projection))
+      if (added < 1) {
+        logger.error { "Projection NOT saved" }
+      } else {
+        logger.info { "Projection saved" }
+        return
+      }
+    }
+    jedis.expire(projection.redisKey, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
   }
 
   /**
@@ -123,7 +153,7 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
       if (event.version == lastEventVersion + 1) {
         applyToProjection(event)
       } else if (event.version <= lastEventVersion) {
-        KotlinLogging.logger { }.warn { "Event is already is the Projection, skip apply." }
+        KotlinLogging.logger { }.warn { "Event is already in the Projection, skip apply." }
         this
       } else {
         error("The version of the event must follow directly after the version of the projection.")
@@ -131,65 +161,74 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
     }
   }
 
-  private fun removeOldSnapshot(
+  fun removeOldSnapshot(
     aggregateId: AggregateId,
     lastVersion: Int,
   ) {
-    removeByModulo(aggregateId, lastVersion)
-    removeTheHeadBySize(aggregateId)
+    if (snapshotCacheConfig.enabled) {
+      removeByModulo(aggregateId, lastVersion)
+      removeTheHeadBySize(aggregateId, lastVersion)
+    }
   }
 
   private fun removeByModulo(
     aggregateId: AggregateId,
     lastVersion: Int,
   ) {
-    (lastVersion - snapshotCacheConfig.maxSnapshotCacheSize)
-      .let { if (it < 0) 0 else it }
+    (lastVersion - (snapshotCacheConfig.maxSnapshotCacheSize * snapshotCacheConfig.modulo))
+      .let { if (it < 2) 2 else it }
       .let { IntRange(it, lastVersion - 1) }
       .filter { (it % snapshotCacheConfig.modulo) != 1 }
       .toRanges()
       .map {
-        jedis.zremrangeByScore(
-          projectionClass.redisKey(aggregateId),
-          it.min().toDouble(),
-          it.max().toDouble(),
-        )
+        jedis
+          .zremrangeByScore(
+            projectionClass.redisKey(aggregateId),
+            it.first.toDouble(),
+            it.last.toDouble(),
+          ).also { removedCount ->
+            if (removedCount > 0) {
+              logger.info {
+                "$removedCount snapshot removed Modulo(${snapshotCacheConfig.modulo}) (${it.first} to ${it.last}) [lastVersion=$lastVersion]"
+              }
+            }
+          }
       }
   }
 
-  private fun removeTheHeadBySize(aggregateId: AggregateId) {
-    val size =
-      jedis.zcount(
-        projectionClass.redisKey(aggregateId),
-        Double.MIN_VALUE,
-        Double.MAX_VALUE,
-      )
-
-    LongRange((size - snapshotCacheConfig.maxSnapshotCacheSize), size)
+  private fun removeTheHeadBySize(
+    aggregateId: AggregateId,
+    lastVersion: Int,
+  ) {
+    (lastVersion - (snapshotCacheConfig.maxSnapshotCacheSize * snapshotCacheConfig.modulo))
+      .toDouble()
       .let {
-        jedis.zremrangeByRank(
-          projectionClass.redisKey(aggregateId),
-          1,
-          it.max(),
-        )
+        jedis
+          .zremrangeByScore(
+            projectionClass.redisKey(aggregateId),
+            2.0,
+            it,
+          ).also { removedCount ->
+            if (removedCount > 0) {
+              logger.info {
+                "$removedCount snapshot removed Size(${snapshotCacheConfig.maxSnapshotCacheSize}) (1.0 to $it) [lastVersion=$lastVersion]"
+              }
+            }
+          }
       }
   }
 }
 
-val <P : Projection<*>> KClass<P>.redisKeySearchListLatest: String get() {
-  return "projection:$simpleName:*:latest"
+val <P : Projection<*>> KClass<P>.redisKeySearchList: String get() {
+  return "projection:$simpleName:*"
 }
 
-val <P : Projection<*>> P.redisKeyVersion: String get() {
-  return "projection:${this::class.simpleName}:${aggregateId.id}:$lastEventVersion"
+val <P : Projection<*>> P.redisKey: String get() {
+  return "projection:${this::class.simpleName}:${aggregateId.id}"
 }
-
-val <P : Projection<*>> P.redisKeyLatest: String get() {
-  return "projection:${this::class.simpleName}:${aggregateId.id}:latest"
-}
-
-fun <A : AggregateId, P : Projection<*>> KClass<P>.redisKeyLatest(aggregateId: A): String =
-  "projection:$simpleName:${aggregateId.id}:latest"
 
 fun <P : Projection<*>, A : AggregateId> KClass<P>.redisKey(aggregateId: A): String =
   "projection:$simpleName:${aggregateId.id}"
+
+val <P : Projection<*>> KClass<P>.redisKey: String get() =
+  "projection:$simpleName"

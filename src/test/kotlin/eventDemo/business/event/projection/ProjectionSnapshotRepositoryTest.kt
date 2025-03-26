@@ -6,14 +6,16 @@ import eventDemo.libs.event.Event
 import eventDemo.libs.event.EventStore
 import eventDemo.libs.event.EventStoreInMemory
 import eventDemo.libs.event.VersionBuilderLocal
+import eventDemo.libs.event.projection.DISABLED_CONFIG
 import eventDemo.libs.event.projection.Projection
 import eventDemo.libs.event.projection.ProjectionSnapshotRepository
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInRedis
 import eventDemo.libs.event.projection.SnapshotConfig
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -28,6 +30,7 @@ import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(DelicateCoroutinesApi::class)
 class ProjectionSnapshotRepositoryTest :
@@ -42,7 +45,7 @@ class ProjectionSnapshotRepositoryTest :
 
     val eventStores =
       listOf(
-        EventStoreInMemory<TestEvents, IdTest>(),
+        { EventStoreInMemory<TestEvents, IdTest>() },
       )
     val projectionRepo =
       listOf(
@@ -52,17 +55,13 @@ class ProjectionSnapshotRepositoryTest :
 
     val list =
       eventStores.flatMap { store ->
-        projectionRepo.map {
-          TestData(store, it(store, SnapshotConfig(2000)))
+        projectionRepo.map { repo ->
+          store().let { store -> TestData(store, repo(store, DISABLED_CONFIG)) }
         }
       }
 
-    val nameFn: (TestData) -> String = { (eventStore, repo) ->
-      "${repo::class.simpleName} with ${eventStore::class.simpleName}"
-    }
-
     context("when call applyAndPutToCache, the getUntil method must be use the built projection cache") {
-      withData(nameFn = nameFn, list) { (eventStore, repo) ->
+      withData(list) { (eventStore, repo) ->
         val aggregateId = IdTest()
 
         val eventOther = Event2Test(value2 = "valOther", version = 1, aggregateId = IdTest())
@@ -97,25 +96,28 @@ class ProjectionSnapshotRepositoryTest :
       }
     }
 
-    context("ProjectionSnapshotRepositoryInMemory should be thread safe") {
-      withData(list) { (eventStore, repo) ->
-        val aggregateId = IdTest()
-        val versionBuilder = VersionBuilderLocal()
-        val lock = ReentrantLock()
-        (0..9)
-          .map {
-            GlobalScope.launch {
-              (1..10).map {
-                val eventX =
-                  lock.withLock {
-                    EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
-                      .also { eventStore.publish(it) }
-                  }
-                repo.applyAndPutToCache(eventX)
+    context("ProjectionSnapshotRepository should be thread safe") {
+      continually(1.seconds) {
+        withData(list) { (eventStore, repo) ->
+          val aggregateId = IdTest()
+          val versionBuilder = VersionBuilderLocal()
+          val lock = ReentrantLock()
+          (0..9)
+            .map {
+              GlobalScope.launch {
+                (1..10).map {
+                  val eventX =
+                    lock.withLock {
+                      EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
+                        .also { eventStore.publish(it) }
+                    }
+                  repo.applyAndPutToCache(eventX)
+                }
               }
-            }
-          }.joinAll()
-        assertNotNull(repo.getLast(aggregateId)).num shouldBeEqual 100
+            }.joinAll()
+          assertNotNull(repo.getLast(aggregateId)).num shouldBeEqual 100
+          assertNotNull(repo.count(aggregateId)) shouldBeEqual 100
+        }
       }
     }
 
@@ -185,7 +187,7 @@ private data class EventXTest(
 
 private fun getSnapshotRepoInMemoryTest(
   eventStore: EventStore<TestEvents, IdTest>,
-  snapshotConfig: SnapshotConfig = SnapshotConfig(2000),
+  snapshotConfig: SnapshotConfig,
 ): ProjectionSnapshotRepository<TestEvents, ProjectionTest, IdTest> =
   ProjectionSnapshotRepositoryInMemory(
     eventStore = eventStore,
@@ -196,7 +198,7 @@ private fun getSnapshotRepoInMemoryTest(
 
 private fun getSnapshotRepoInRedisTest(
   eventStore: EventStore<TestEvents, IdTest>,
-  snapshotConfig: SnapshotConfig = SnapshotConfig(2000),
+  snapshotConfig: SnapshotConfig,
 ): ProjectionSnapshotRepository<TestEvents, ProjectionTest, IdTest> =
   ProjectionSnapshotRepositoryInRedis(
     eventStore = eventStore,

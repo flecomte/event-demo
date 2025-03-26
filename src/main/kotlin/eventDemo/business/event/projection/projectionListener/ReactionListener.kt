@@ -33,11 +33,11 @@ class ReactionListener(
         }
       }
     } else {
-      logger.error { "${this::class.java.simpleName} is already init for this bus" }
+      logger.error { "${this::class.simpleName} is already init for this bus" }
     }
   }
 
-  private fun sendStartGameEvent(state: GameState) {
+  private suspend fun sendStartGameEvent(state: GameState) {
     if (state.isReady && !state.isStarted) {
       val reactionEvent =
         eventHandler.handle(state.aggregateId) {
@@ -54,7 +54,7 @@ class ReactionListener(
     }
   }
 
-  private fun sendWinnerEvent(state: GameState) {
+  private suspend fun sendWinnerEvent(state: GameState) {
     val winner = state.playerHasNoCardLeft().firstOrNull()
     if (winner != null) {
       val reactionEvent =

@@ -10,6 +10,7 @@ import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.business.event.projection.gameState.apply
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInRedis
 import eventDemo.libs.event.projection.SnapshotConfig
+import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.serialization.json.Json
 import redis.clients.jedis.UnifiedJedis
 
@@ -38,9 +39,11 @@ class GameStateRepositoryInRedis(
   init {
     // On new event was received, build snapshot and publish it to the projection bus
     eventBus.subscribe { event ->
-      projectionsSnapshot
-        .applyAndPutToCache(event)
-        .also { projectionBus.publish(it) }
+      withLoggingContext("event" to event.toString()) {
+        projectionsSnapshot
+          .applyAndPutToCache(event)
+          .also { projectionBus.publish(it) }
+      }
     }
   }
 
@@ -60,4 +63,7 @@ class GameStateRepositoryInRedis(
    */
   override fun getUntil(event: GameEvent): GameState =
     projectionsSnapshot.getUntil(event)
+
+  override fun count(gameId: GameId): Int =
+    projectionsSnapshot.count(gameId)
 }

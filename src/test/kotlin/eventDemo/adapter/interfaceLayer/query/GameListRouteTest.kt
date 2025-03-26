@@ -8,6 +8,7 @@ import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.gameList.GameList
 import eventDemo.configuration.configure
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
@@ -24,6 +25,7 @@ import org.koin.core.context.stopKoin
 import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class GameListRouteTest :
   FunSpec({
@@ -62,19 +64,22 @@ class GameListRouteTest :
           }
         }
 
-        httpClient()
-          .get("/games") {
-            withAuth(player1)
-            accept(ContentType.Application.Json)
-          }.apply {
-            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            call.body<List<GameList>>().first().let {
-              it.status shouldBeEqual GameList.Status.OPENING
-              it.players shouldHaveSize 1
-              it.players shouldContain player1
-              it.winners shouldHaveSize 0
+        // Wait until the projection is created
+        eventually(3.seconds) {
+          httpClient()
+            .get("/games") {
+              withAuth(player1)
+              accept(ContentType.Application.Json)
+            }.apply {
+              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+              call.body<List<GameList>>().first().let {
+                it.status shouldBeEqual GameList.Status.OPENING
+                it.players shouldHaveSize 1
+                it.players shouldContain player1
+                it.winners shouldHaveSize 0
+              }
             }
-          }
+        }
       }
     }
 
