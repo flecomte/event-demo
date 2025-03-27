@@ -45,11 +45,20 @@ tasks.withType<Test>().configureEach {
 }
 
 dockerCompose {
-  useComposeFiles.set(listOf("docker/docker-compose.yaml"))
+  useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
+  setProjectName("event-demo-test")
 }
 
 tasks.test {
   dependsOn("composeUp")
+  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
+  dockerCompose.setProjectName("event-demo-test")
+}
+
+tasks.named("run") {
+  dependsOn("composeUp")
+  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-dev.yaml"))
+  dockerCompose.setProjectName("event-demo-dev")
 }
 
 tasks.register<Copy>("copyEnv") {
@@ -58,7 +67,6 @@ tasks.register<Copy>("copyEnv") {
   from("/docker")
   into("/docker")
   rename {
-    println(it)
     it.removeSuffix(".template")
   }
   include(".env.template")
