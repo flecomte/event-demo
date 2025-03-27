@@ -1,5 +1,7 @@
 package eventDemo.configuration.injection
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
 import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInMemory
@@ -16,11 +18,23 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import redis.clients.jedis.JedisPooled
 import redis.clients.jedis.UnifiedJedis
+import javax.sql.DataSource
 
-fun Module.configureDIInfrastructure(redisUrl: String) {
+fun Module.configureDIInfrastructure(config: Configuration) {
   factory {
-    JedisPooled(redisUrl)
+    JedisPooled(config.redisUrl)
   } bind UnifiedJedis::class
+
+  single {
+    HikariConfig()
+      .apply {
+        jdbcUrl = config.postgresql.url
+        username = config.postgresql.username
+        password = config.postgresql.password
+      }.let {
+        HikariDataSource(it)
+      }
+  } bind DataSource::class
 
   singleOf(::GameEventBusInMemory) bind GameEventBus::class
   singleOf(::GameEventStoreInMemory) bind GameEventStore::class

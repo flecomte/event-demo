@@ -76,7 +76,7 @@ tasks.register<Copy>("copyEnv") {
 
     files.forEach {
       if (!it.exists()) {
-        it.writeText("")
+        it.writeText("changeit")
       }
     }
   }
@@ -108,6 +108,8 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlin_serialization_version")
   implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
   implementation("redis.clients:jedis:5.2.0")
+  implementation("org.postgresql:postgresql:42.7.5")
+  implementation("com.zaxxer:HikariCP:6.3.0")
 
   // Force version of sub library (for security)
   implementation("commons-codec:commons-codec:1.13")
