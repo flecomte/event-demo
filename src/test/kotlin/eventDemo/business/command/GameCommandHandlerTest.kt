@@ -9,8 +9,7 @@ import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.injection.Configuration
-import eventDemo.configuration.injection.appKoinModule
+import eventDemo.testApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual
@@ -20,7 +19,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.koin.dsl.koinApplication
 import kotlin.test.assertIs
 import kotlin.time.Duration.Companion.seconds
 
@@ -29,7 +27,7 @@ class GameCommandHandlerTest :
   FunSpec({
     test("handle a command should execute the command") {
       withTimeout(1.seconds) {
-        koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+        testApplicationWithConfig {
           val commandHandler by inject<GameCommandHandler>()
           val notificationListener by inject<PlayerNotificationListener>()
           val gameId = GameId()

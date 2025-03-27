@@ -22,9 +22,8 @@ import eventDemo.business.notification.PlayerAsPlayACardNotification
 import eventDemo.business.notification.PlayerWasReadyNotification
 import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.injection.Configuration
-import eventDemo.configuration.injection.appKoinModule
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
+import eventDemo.testApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -37,7 +36,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.koin.dsl.koinApplication
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -171,7 +169,7 @@ class GameSimulationTest :
             }
           }
 
-        koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+        testApplicationWithConfig {
           val commandHandler by inject<GameCommandHandler>()
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationListener>()

@@ -6,8 +6,7 @@ import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
-import eventDemo.configuration.injection.Configuration
-import eventDemo.configuration.injection.appKoinModule
+import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
@@ -20,7 +19,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.koin.core.context.stopKoin
-import org.koin.dsl.koinApplication
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 
@@ -32,7 +30,7 @@ class GameStateRepositoryTest :
 
     test("GameStateRepository should build the projection when a new event occurs") {
       val aggregateId = GameId()
-      koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+      testApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
         eventHandler
@@ -54,7 +52,7 @@ class GameStateRepositoryTest :
 
     test("get should build the last version of the state") {
       val aggregateId = GameId()
-      koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+      testApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
         val projectionBus = get<GameProjectionBus>()
@@ -90,7 +88,7 @@ class GameStateRepositoryTest :
     test("getUntil should build the state until the event") {
       repeat(10) {
         val aggregateId = GameId()
-        koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+        testApplicationWithConfig {
           val repo = get<GameStateRepository>()
           val eventHandler = get<GameEventHandler>()
 
@@ -119,7 +117,7 @@ class GameStateRepositoryTest :
 
     test("getUntil should be concurrently secure") {
       val aggregateId = GameId()
-      koinApplication { modules(appKoinModule(Configuration("redis://localhost:6379"))) }.koin.apply {
+      testApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
 
