@@ -32,8 +32,20 @@ services:
       - "traefik.http.routers.redis.rule=Host(`redis.traefik.me`)"
       - "traefik.http.services.redis.loadbalancer.server.port=8001"
 
+  flyway:
+    image: flyway/flyway
+    container_name: "flyway"
+    command: migrate
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ../migrations/events:/flyway/sql
+      - ./flyway.conf:/flyway/conf/flyway.conf
+
   postgresql:
     image: postgres:17.4
+    container_name: "postgresql"
     ports:
       - "5432:5432"
     environment:
@@ -51,6 +63,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
+    container_name: "pgadmin"
     environment:
       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
