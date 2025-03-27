@@ -1,0 +1,14 @@
+services:
+  traefik:
+    ports:
+      - "80:80"
+
+  redis:
+    labels:
+      - "traefik.http.routers.redis.rule=Host(`redis.traefik.me`)"
+      - "traefik.http.services.redis.loadbalancer.server.port=8001"
+
+  pgadmin:
+    labels:
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.traefik.me`)"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
