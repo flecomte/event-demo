@@ -6,7 +6,7 @@ import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
-import eventDemo.testApplicationWithConfig
+import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
@@ -30,7 +30,7 @@ class GameStateRepositoryTest :
 
     test("GameStateRepository should build the projection when a new event occurs") {
       val aggregateId = GameId()
-      testApplicationWithConfig {
+      testKoinApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
         eventHandler
@@ -52,7 +52,7 @@ class GameStateRepositoryTest :
 
     test("get should build the last version of the state") {
       val aggregateId = GameId()
-      testApplicationWithConfig {
+      testKoinApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
         val projectionBus = get<GameProjectionBus>()
@@ -88,7 +88,7 @@ class GameStateRepositoryTest :
     test("getUntil should build the state until the event") {
       repeat(10) {
         val aggregateId = GameId()
-        testApplicationWithConfig {
+        testKoinApplicationWithConfig {
           val repo = get<GameStateRepository>()
           val eventHandler = get<GameEventHandler>()
 
@@ -117,7 +117,7 @@ class GameStateRepositoryTest :
 
     test("getUntil should be concurrently secure") {
       val aggregateId = GameId()
-      testApplicationWithConfig {
+      testKoinApplicationWithConfig {
         val repo = get<GameStateRepository>()
         val eventHandler = get<GameEventHandler>()
 

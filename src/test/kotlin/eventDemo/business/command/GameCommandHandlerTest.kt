@@ -9,7 +9,7 @@ import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.testApplicationWithConfig
+import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual
@@ -27,7 +27,7 @@ class GameCommandHandlerTest :
   FunSpec({
     test("handle a command should execute the command") {
       withTimeout(1.seconds) {
-        testApplicationWithConfig {
+        testKoinApplicationWithConfig {
           val commandHandler by inject<GameCommandHandler>()
           val notificationListener by inject<PlayerNotificationListener>()
           val gameId = GameId()

@@ -10,7 +10,7 @@ import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
-import eventDemo.configuration.configure
+import eventDemo.testApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -20,11 +20,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.koin.core.context.stopKoin
-import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -32,13 +29,9 @@ import kotlin.test.assertNotNull
 class GameStateRouteTest :
   FunSpec({
     test("/games/{id}/state on empty game") {
-      testApplication {
+      testApplicationWithConfig {
         val id = GameId()
         val player1 = Player(name = "Nikola")
-        application {
-          stopKoin()
-          configure()
-        }
 
         httpClient()
           .get("/games/$id/state") {
@@ -55,50 +48,46 @@ class GameStateRouteTest :
     }
 
     test("/games/{id}/card/last") {
-      testApplication {
+      testApplicationWithConfig { koin ->
         val gameId = GameId()
         val player1 = Player(name = "Nikola")
         val player2 = Player(name = "Einstein")
         var lastPlayedCard: Card? = null
 
-        application {
-          stopKoin()
-          configure()
+        val eventHandler = koin.get<GameEventHandler>()
+        val stateRepo = koin.get<GameStateRepository>()
 
-          val eventHandler by inject<GameEventHandler>()
-          val stateRepo by inject<GameStateRepository>()
-          runBlocking {
-            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
-            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
-            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-            eventHandler.handle(gameId) {
-              GameStartedEvent.new(
-                gameId,
-                setOf(player1, player2),
-                it,
-                shuffleIsDisabled = true,
-              )
-            }
-            delay(100)
-            lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
-            assertNotNull(lastPlayedCard)
-              .let { assertIs<Card.NumericCard>(lastPlayedCard) }
-              .let {
-                it.number shouldBeEqual 0
-                it.color shouldBeEqual Card.Color.Red
-              }
-            delay(100)
-            eventHandler.handle(gameId) {
-              CardIsPlayedEvent(
-                gameId,
-                assertNotNull(lastPlayedCard),
-                player1,
-                it,
-              )
-            }
-            delay(100)
+        runBlocking {
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) {
+            GameStartedEvent.new(
+              gameId,
+              setOf(player1, player2),
+              it,
+              shuffleIsDisabled = true,
+            )
           }
+          delay(100)
+          lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
+          assertNotNull(lastPlayedCard)
+            .let { assertIs<Card.NumericCard>(lastPlayedCard) }
+            .let {
+              it.number shouldBeEqual 0
+              it.color shouldBeEqual Card.Color.Red
+            }
+          delay(100)
+          eventHandler.handle(gameId) {
+            CardIsPlayedEvent(
+              gameId,
+              assertNotNull(lastPlayedCard),
+              player1,
+              it,
+            )
+          }
+          delay(100)
         }
 
         httpClient()

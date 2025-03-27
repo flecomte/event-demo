@@ -23,7 +23,7 @@ import eventDemo.business.notification.PlayerWasReadyNotification
 import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
-import eventDemo.testApplicationWithConfig
+import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -169,7 +169,7 @@ class GameSimulationTest :
             }
           }
 
-        testApplicationWithConfig {
+        testKoinApplicationWithConfig {
           val commandHandler by inject<GameCommandHandler>()
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationListener>()

@@ -7,7 +7,7 @@ import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.gameList.GameList
-import eventDemo.configuration.configure
+import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -19,10 +19,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.runBlocking
-import org.koin.core.context.stopKoin
-import org.koin.ktor.ext.inject
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
@@ -30,12 +27,9 @@ import kotlin.time.Duration.Companion.seconds
 class GameListRouteTest :
   FunSpec({
     test("/games with no game started") {
-      testApplication {
+
+      testApplicationWithConfig {
         val player1 = Player(name = "Nikola")
-        application {
-          stopKoin()
-          configure()
-        }
 
         httpClient()
           .get("/games") {
@@ -50,18 +44,13 @@ class GameListRouteTest :
     }
 
     test("/games return a game with status OPENING") {
-      testApplication {
+      testApplicationWithConfig { koin ->
         val gameId = GameId()
         val player1 = Player(name = "Nikola")
 
-        application {
-          stopKoin()
-          configure()
-
-          val eventHandler by inject<GameEventHandler>()
-          runBlocking {
-            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-          }
+        val eventHandler = koin.get<GameEventHandler>()
+        runBlocking {
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
         }
 
         // Wait until the projection is created
@@ -84,29 +73,23 @@ class GameListRouteTest :
     }
 
     test("/games return a game with status IS_STARTED") {
-      testApplication {
+      testApplicationWithConfig { koin ->
         val gameId = GameId()
         val player1 = Player(name = "Nikola")
         val player2 = Player(name = "Einstein")
-
-        application {
-          stopKoin()
-          configure()
-
-          val eventHandler by inject<GameEventHandler>()
-          runBlocking {
-            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-            eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
-            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
-            eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-            eventHandler.handle(gameId) {
-              GameStartedEvent.new(
-                gameId,
-                setOf(player1, player2),
-                it,
-                shuffleIsDisabled = true,
-              )
-            }
+        val eventHandler = koin.get<GameEventHandler>()
+        runBlocking {
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) {
+            GameStartedEvent.new(
+              gameId,
+              setOf(player1, player2),
+              it,
+              shuffleIsDisabled = true,
+            )
           }
         }
 
