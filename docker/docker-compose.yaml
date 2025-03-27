@@ -32,6 +32,44 @@ services:
       - "traefik.http.routers.redis.rule=Host(`redis.traefik.me`)"
       - "traefik.http.services.redis.loadbalancer.server.port=8001"
 
+  postgresql:
+    image: postgres:17.4
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
+      POSTGRES_USER: event-demo
+    secrets:
+      - postgresql_password
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U event-demo'"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+    secrets:
+      - pgadmin_password
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    labels:
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.traefik.me`)"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+secrets:
+  pgadmin_password:
+    file: pgadmin.secret
+  postgresql_password:
+    file: postgresql.secret
+
 volumes:
   redis_data:
   redisinsight_data:
+  postgresql_data:
+  pgadmin_data:

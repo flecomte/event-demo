@@ -52,6 +52,39 @@ tasks.test {
   dependsOn("composeUp")
 }
 
+tasks.register<Copy>("copyEnv") {
+  group = "docker"
+  description = "copy the default dotenv file"
+  from("/docker")
+  into("/docker")
+  rename {
+    println(it)
+    it.removeSuffix(".template")
+  }
+  include(".env.template")
+  eachFile {
+    if (File("docker/$name").exists()) {
+      exclude()
+    }
+  }
+  doLast {
+    val files =
+      listOf(
+        File("docker/pgadmin.secret"),
+        File("docker/postgresql.secret"),
+      )
+
+    files.forEach {
+      if (!it.exists()) {
+        it.writeText("")
+      }
+    }
+  }
+}
+tasks.composeUp {
+  dependsOn("copyEnv")
+}
+
 dependencies {
   implementation("io.ktor:ktor-server-core-jvm")
   implementation("io.ktor:ktor-server-auth-jvm")

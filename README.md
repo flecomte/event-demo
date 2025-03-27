@@ -2,5 +2,6 @@ Event demo
 ==========
 
 Admin service URL:
- - http://dashboard.traefik.me/dashboard/
- - http://redis.traefik.me/
+ - [Traefik](http://pgadmin.traefik.me/)
+ - [Redis](http://pgadmin.traefik.me/)
+ - [pgAdmin](http://pgadmin.traefik.me/)
