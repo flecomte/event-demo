@@ -8,7 +8,7 @@ import org.koin.ktor.ext.get
 
 fun Application.declareHttpGameRoute() {
   routing {
-    readTheGameState(get())
-    readGamesList(get())
+    readTheGameState(this@declareHttpGameRoute.get())
+    readGamesList(this@declareHttpGameRoute.get())
   }
 }

@@ -1,3 +1,4 @@
+name: event-demo
 services:
   traefik:
     image: traefik:3.3.4
@@ -42,6 +43,7 @@ services:
     volumes:
       - ../migrations/events:/flyway/sql
       - ./flyway.conf:/flyway/conf/flyway.conf
+    restart: no
 
   postgresql:
     image: postgres:17.4
@@ -74,6 +76,21 @@ services:
     labels:
       - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.traefik.me`)"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+  app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+    labels:
+      - "traefik.http.routers.app.rule=Host(`api.traefik.me`)"
+      - "traefik.http.services.app.loadbalancer.server.port=8080"
 
 secrets:
   pgadmin_password:

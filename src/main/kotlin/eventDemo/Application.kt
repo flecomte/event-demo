@@ -1,16 +1,6 @@
 package eventDemo
 
-import eventDemo.configuration.configure
-import io.ktor.server.application.Application
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.netty.EngineMain
 
-fun main() {
-  embeddedServer(
-    factory = Netty,
-    port = 8080,
-    host = "0.0.0.0",
-    module = Application::configure,
-    watchPaths = listOf("classes"),
-  ).start(wait = true)
-}
+fun main(args: Array<String>): Unit =
+  EngineMain.main(args)

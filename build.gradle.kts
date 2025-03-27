@@ -9,15 +9,15 @@ val kotlin_logging_version: String by project
 val kotest_version: String by project
 
 plugins {
+  application
   kotlin("jvm") version "2.1.10"
-  id("io.ktor.plugin") version "2.3.13"
+  id("io.ktor.plugin") version "3.1.1"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
   id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
   id("com.avast.gradle.docker-compose") version "0.17.12"
 }
 
 group = "io.github.flecomte"
-version = "0.0.1"
 
 application {
   mainClass.set("eventDemo.ApplicationKt")
@@ -36,7 +36,7 @@ repositories {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(19)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
