@@ -5,7 +5,6 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -14,7 +13,10 @@ import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
+/**
+ * Convert a [ReceiveChannel] of [Frame] to another [ReceiveChannel] of [object][T]
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 inline fun <reified T> CoroutineScope.toObjectChannel(
   frames: ReceiveChannel<Frame>,
   bufferSize: Int = 0,
@@ -32,6 +34,9 @@ inline fun <reified T> CoroutineScope.toObjectChannel(
   }
 }
 
+/**
+ * Convert a [SendChannel] of [Frame] to another [SendChannel] of [object][T]
+ */
 inline fun <reified T> CoroutineScope.fromFrameChannel(frames: SendChannel<Frame>): SendChannel<T> {
   val channel = Channel<T>()
   launch {
