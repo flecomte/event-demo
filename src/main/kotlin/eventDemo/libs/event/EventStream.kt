@@ -6,7 +6,9 @@ import io.github.oshai.kotlinlogging.withLoggingContext
 /**
  * Interface representing an event stream for publishing and reading domain events
  */
-interface EventStream<E : Event<*>> {
+interface EventStream<E : Event<ID>, ID : AggregateId> {
+  val aggregateId: ID
+
   /** Publishes a single event to the event stream */
   fun publish(event: E)
 

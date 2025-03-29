@@ -19,11 +19,8 @@ fun Deck.allCards(): Set<Card> =
   stack + discard + playersHands.values.flatten()
 
 @KoinApplicationDslMarker
-suspend fun testKoinApplicationWithConfig(block: suspend Koin.() -> Unit) {
-  koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration())) }.koin.apply {
-    block()
-  }
-}
+suspend fun <T> testKoinApplicationWithConfig(block: suspend Koin.() -> T): T =
+  koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration())) }.koin.block()
 
 @KtorDsl
 suspend fun testApplicationWithConfig(block: suspend ApplicationTestBuilder.(koin: Koin) -> Unit) {

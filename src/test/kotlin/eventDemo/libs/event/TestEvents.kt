@@ -13,6 +13,7 @@ value class IdTest(
   override val id: UUID = UUID.randomUUID(),
 ) : AggregateId
 
+@Serializable
 sealed interface TestEvents : Event<IdTest>
 
 @Serializable

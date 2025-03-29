@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * All methods are implemented.
  */
 class EventStreamInMemory<E : Event<ID>, ID : AggregateId>(
-  val aggregateId: ID,
-) : EventStream<E> {
+  override val aggregateId: ID,
+) : EventStream<E, ID> {
   private val logger = KotlinLogging.logger {}
   private val events: Queue<E> = ConcurrentLinkedQueue()
 
