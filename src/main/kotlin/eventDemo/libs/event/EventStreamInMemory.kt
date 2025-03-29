@@ -9,11 +9,18 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *
  * All methods are implemented.
  */
-class EventStreamInMemory<E : Event<*>> : EventStream<E> {
+class EventStreamInMemory<E : Event<ID>, ID : AggregateId>(
+  val aggregateId: ID,
+) : EventStream<E> {
   private val logger = KotlinLogging.logger {}
   private val events: Queue<E> = ConcurrentLinkedQueue()
 
   override fun publish(event: E) {
+    if (event.aggregateId != aggregateId) {
+      throw EventStreamPublishException(
+        "You cannot publish this event in this stream because it has a different aggregateId!",
+      )
+    }
     if (events.none { it.eventId == event.eventId }) {
       events.add(event)
       logger.info { "Event published" }

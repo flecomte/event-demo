@@ -7,5 +7,5 @@ class EventStoreInMemory<E : Event<ID>, ID : AggregateId> : EventStore<E, ID> {
   private val streams: ConcurrentMap<ID, EventStream<E>> = ConcurrentHashMap()
 
   override fun getStream(aggregateId: ID): EventStream<E> =
-    streams.computeIfAbsent(aggregateId) { EventStreamInMemory() }
+    streams.computeIfAbsent(aggregateId) { EventStreamInMemory(aggregateId) }
 }

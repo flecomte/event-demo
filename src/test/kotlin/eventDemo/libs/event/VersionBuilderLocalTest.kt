@@ -6,12 +6,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import java.util.UUID
-
-@JvmInline
-private value class IdTest(
-  override val id: UUID = UUID.randomUUID(),
-) : AggregateId
 
 @OptIn(DelicateCoroutinesApi::class)
 class VersionBuilderLocalTest :

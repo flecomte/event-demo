@@ -105,7 +105,7 @@ class ProjectionSnapshotRepositoryTest :
           (0..9)
             .map {
               GlobalScope.launch {
-                (1..10).map {
+                (1..10).forEach {
                   val eventX =
                     lock.withLock {
                       EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
