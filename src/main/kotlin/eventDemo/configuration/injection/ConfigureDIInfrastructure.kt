@@ -3,7 +3,7 @@ package eventDemo.configuration.injection
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
-import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInMemory
+import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInPostgresql
 import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInRedis
@@ -31,13 +31,15 @@ fun Module.configureDIInfrastructure(config: Configuration) {
         jdbcUrl = config.postgresql.url
         username = config.postgresql.username
         password = config.postgresql.password
+        maximumPoolSize = 50
+        minimumIdle = 20
       }.let {
         HikariDataSource(it)
       }
   } bind DataSource::class
 
   singleOf(::GameEventBusInMemory) bind GameEventBus::class
-  singleOf(::GameEventStoreInMemory) bind GameEventStore::class
+  singleOf(::GameEventStoreInPostgresql) bind GameEventStore::class
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
 
   single {

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertNotNull
 
 @DelicateCoroutinesApi
-class EventStreamInMemoryTest :
+class EventStreamTest :
   FunSpec({
     fun EventStream<EventXTest, IdTest>.with3Events(block: EventStream<EventXTest, IdTest>.(id: IdTest) -> Unit) =
       also {

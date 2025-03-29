@@ -1,7 +1,7 @@
 name: event-demo-prod
 include:
   - path:
-    - parts/docker-compose-external.yaml
+    - parts/docker-compose-databases.yaml
     - parts/docker-compose-tools.yaml
     - parts/docker-compose-app.yaml
     - parts/docker-compose-traefik.yaml
