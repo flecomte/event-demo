@@ -12,9 +12,7 @@ import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.concurrent.ConcurrentSkipListSet
 
 class ReactionListener(
-  private val projectionBus: GameProjectionBus,
   private val eventHandler: GameEventHandler,
-  private val priority: Int = DEFAULT_PRIORITY,
 ) {
   companion object Config {
     const val DEFAULT_PRIORITY = -1000
@@ -23,7 +21,10 @@ class ReactionListener(
 
   private val logger = KotlinLogging.logger { }
 
-  fun init() {
+  fun subscribeToBus(
+    projectionBus: GameProjectionBus,
+    priority: Int = DEFAULT_PRIORITY,
+  ) {
     if (registeredListeners.add(projectionBus)) {
       projectionBus.subscribe(priority) { projection: Projection<GameId> ->
         if (projection !is GameState) return@subscribe

@@ -19,8 +19,6 @@ import redis.clients.jedis.UnifiedJedis
  */
 class GameStateRepositoryInRedis(
   eventStore: GameEventStore,
-  projectionBus: GameProjectionBus,
-  eventBus: GameEventBus,
   jedis: UnifiedJedis,
   snapshotConfig: SnapshotConfig = SnapshotConfig(),
 ) : GameStateRepository {
@@ -36,7 +34,10 @@ class GameStateRepositoryInRedis(
       jedis = jedis,
     )
 
-  init {
+  fun subscribeToBus(
+    projectionBus: GameProjectionBus,
+    eventBus: GameEventBus,
+  ) {
     // On new event was received, build snapshot and publish it to the projection bus
     eventBus.subscribe { event ->
       withLoggingContext("event" to event.toString()) {

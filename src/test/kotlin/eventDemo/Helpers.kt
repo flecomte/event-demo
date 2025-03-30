@@ -2,6 +2,7 @@ package eventDemo
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
+import eventDemo.configuration.business.configureGameListener
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.configuration.ktor.configuration
 import io.ktor.server.config.ApplicationConfig
@@ -11,6 +12,8 @@ import io.ktor.utils.io.KtorDsl
 import org.koin.core.Koin
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.dsl.koinApplication
+import redis.clients.jedis.UnifiedJedis
+import javax.sql.DataSource
 
 fun Deck.allCardCount(): Int =
   stack.size + discard.size + playersHands.values.flatten().size
@@ -31,6 +34,25 @@ suspend fun testApplicationWithConfig(block: suspend ApplicationTestBuilder.(koi
     }
 
     val koin = koinApplication { modules(appKoinModule(conf.configuration())) }.koin
+    koin.cleanDataTest()
+    koin.configureGameListener()
     block(koin)
   }
+}
+
+fun DataSource.cleanEventSource() {
+  this.connection.prepareStatement(
+    """
+    truncate event_stream;
+    """.trimIndent(),
+  )
+}
+
+fun UnifiedJedis.cleanProjections() {
+  flushAll()
+}
+
+fun Koin.cleanDataTest() {
+  get<DataSource>().cleanEventSource()
+  get<UnifiedJedis>().cleanProjections()
 }

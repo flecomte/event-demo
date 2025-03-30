@@ -6,7 +6,7 @@ import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
-import eventDemo.testKoinApplicationWithConfig
+import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
@@ -18,7 +18,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import org.koin.core.context.stopKoin
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 
@@ -30,9 +29,9 @@ class GameStateRepositoryTest :
 
     test("GameStateRepository should build the projection when a new event occurs") {
       val aggregateId = GameId()
-      testKoinApplicationWithConfig {
-        val repo = get<GameStateRepository>()
-        val eventHandler = get<GameEventHandler>()
+      testApplicationWithConfig { koin ->
+        val repo = koin.get<GameStateRepository>()
+        val eventHandler = koin.get<GameEventHandler>()
         eventHandler
           .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
           .also { event ->
@@ -47,15 +46,14 @@ class GameStateRepositoryTest :
             }
           }
       }
-      stopKoin()
     }
 
     test("get should build the last version of the state") {
       val aggregateId = GameId()
-      testKoinApplicationWithConfig {
-        val repo = get<GameStateRepository>()
-        val eventHandler = get<GameEventHandler>()
-        val projectionBus = get<GameProjectionBus>()
+      testApplicationWithConfig { koin ->
+        val repo = koin.get<GameStateRepository>()
+        val eventHandler = koin.get<GameEventHandler>()
+        val projectionBus = koin.get<GameProjectionBus>()
 
         var state: GameState? = null
         projectionBus.subscribe {
@@ -88,9 +86,9 @@ class GameStateRepositoryTest :
     test("getUntil should build the state until the event") {
       repeat(10) {
         val aggregateId = GameId()
-        testKoinApplicationWithConfig {
-          val repo = get<GameStateRepository>()
-          val eventHandler = get<GameEventHandler>()
+        testApplicationWithConfig { koin ->
+          val repo = koin.get<GameStateRepository>()
+          val eventHandler = koin.get<GameEventHandler>()
 
           val event1 =
             eventHandler
@@ -117,9 +115,9 @@ class GameStateRepositoryTest :
 
     test("getUntil should be concurrently secure") {
       val aggregateId = GameId()
-      testKoinApplicationWithConfig {
-        val repo = get<GameStateRepository>()
-        val eventHandler = get<GameEventHandler>()
+      testApplicationWithConfig { koin ->
+        val repo = koin.get<GameStateRepository>()
+        val eventHandler = koin.get<GameEventHandler>()
 
         (1..10)
           .map { r ->

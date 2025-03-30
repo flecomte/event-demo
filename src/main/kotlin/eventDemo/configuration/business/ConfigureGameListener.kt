@@ -1,10 +1,17 @@
 package eventDemo.configuration.business
 
+import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInRedis
+import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInRedis
 import eventDemo.business.event.projection.projectionListener.ReactionListener
-import io.ktor.server.application.Application
-import org.koin.ktor.ext.get
+import org.koin.core.Koin
 
-fun Application.configureGameListener() {
-  ReactionListener(get(), get())
-    .init()
+fun Koin.configureGameListener() {
+  ReactionListener(get())
+    .subscribeToBus(get())
+
+  get<GameStateRepositoryInRedis>()
+    .subscribeToBus(get(), get())
+
+  get<GameListRepositoryInRedis>()
+    .subscribeToBus(get(), get())
 }

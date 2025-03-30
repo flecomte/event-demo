@@ -43,7 +43,7 @@ fun Module.configureDIInfrastructure(config: Configuration) {
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
 
   single {
-    GameStateRepositoryInRedis(get(), get(), get(), get(), snapshotConfig = SnapshotConfig())
+    GameStateRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
   } bind GameStateRepository::class
 
   single {

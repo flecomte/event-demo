@@ -5,10 +5,10 @@ import eventDemo.business.command.command.IWantToJoinTheGameCommand
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
-import eventDemo.business.event.projection.projectionListener.ReactionListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
+import eventDemo.configuration.business.configureGameListener
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -28,13 +28,13 @@ class GameCommandHandlerTest :
     test("handle a command should execute the command") {
       withTimeout(1.seconds) {
         testKoinApplicationWithConfig {
+          configureGameListener()
           val commandHandler by inject<GameCommandHandler>()
           val notificationListener by inject<PlayerNotificationListener>()
           val gameId = GameId()
           val player = Player("Tesla")
           val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
           val channelNotification = Channel<Notification>(Channel.BUFFERED)
-          ReactionListener(get(), get()).init()
           notificationListener.startListening(
             player,
             gameId,

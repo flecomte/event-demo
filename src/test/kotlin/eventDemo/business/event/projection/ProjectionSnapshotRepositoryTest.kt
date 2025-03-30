@@ -1,5 +1,6 @@
 package eventDemo.business.event.projection
 
+import eventDemo.cleanProjections
 import eventDemo.configuration.serializer.UUIDSerializer
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event
@@ -92,6 +93,37 @@ class ProjectionSnapshotRepositoryTest :
         }
         assertNotNull(repo.getUntil(event2)).also {
           assertNotNull(it.value) shouldBeEqual "val1val2"
+        }
+      }
+    }
+
+    context("getList method must be return all inserted events") {
+      withData(list) { (eventStore, repo) ->
+        val aggregateId = IdTest()
+        val otherAggregateId = IdTest()
+
+        val eventOther = Event2Test(value2 = "valOther", version = 1, aggregateId = otherAggregateId)
+        eventStore.publish(eventOther)
+        repo.applyAndPutToCache(eventOther)
+        assertNotNull(repo.getUntil(eventOther)).also {
+          assertNotNull(it.value) shouldBeEqual "valOther"
+        }
+
+        val event1 = Event1Test(value1 = "val1", version = 1, aggregateId = aggregateId)
+        eventStore.publish(event1)
+        repo.applyAndPutToCache(event1)
+
+        val event2 = Event2Test(value2 = "val2", version = 2, aggregateId = aggregateId)
+        eventStore.publish(event2)
+        repo.applyAndPutToCache(event2)
+
+        repo.getList().apply {
+          any { it.aggregateId == otherAggregateId } shouldBeEqual true
+          any { it.aggregateId == aggregateId } shouldBeEqual true
+          any { it.value == "val1val2" } shouldBeEqual true
+          any { it.value == "valOther" } shouldBeEqual true
+          any { it.lastEventVersion == 2 } shouldBeEqual true
+          any { it.lastEventVersion == 1 } shouldBeEqual true
         }
       }
     }
@@ -199,10 +231,12 @@ private fun getSnapshotRepoInMemoryTest(
 private fun getSnapshotRepoInRedisTest(
   eventStore: EventStore<TestEvents, IdTest>,
   snapshotConfig: SnapshotConfig,
-): ProjectionSnapshotRepository<TestEvents, ProjectionTest, IdTest> =
-  ProjectionSnapshotRepositoryInRedis(
+): ProjectionSnapshotRepository<TestEvents, ProjectionTest, IdTest> {
+  val jedis = JedisPooled("redis://localhost:6379")
+  jedis.cleanProjections()
+  return ProjectionSnapshotRepositoryInRedis(
     eventStore = eventStore,
-    jedis = JedisPooled("redis://localhost:6379"),
+    jedis = jedis,
     initialStateBuilder = { aggregateId: IdTest -> ProjectionTest(aggregateId) },
     snapshotCacheConfig = snapshotConfig,
     projectionClass = ProjectionTest::class,
@@ -210,16 +244,17 @@ private fun getSnapshotRepoInRedisTest(
     jsonToProjection = { Json.decodeFromString(it) },
     applyToProjection = apply,
   )
+}
 
 private val apply: ProjectionTest.(TestEvents) -> ProjectionTest = { event ->
   this.let { projection ->
     when (event) {
       is Event1Test -> {
-        projection.copy(value = (projection.value ?: "") + event.value1)
+        projection.copy(value = (projection.value.orEmpty()) + event.value1)
       }
 
       is Event2Test -> {
-        projection.copy(value = (projection.value ?: "") + event.value2)
+        projection.copy(value = (projection.value.orEmpty()) + event.value2)
       }
 
       is EventXTest -> {
