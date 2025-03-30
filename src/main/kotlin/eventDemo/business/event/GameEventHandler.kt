@@ -5,7 +5,6 @@ import eventDemo.business.event.event.GameEvent
 import eventDemo.libs.event.VersionBuilder
 import io.github.oshai.kotlinlogging.withLoggingContext
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -17,12 +16,7 @@ class GameEventHandler(
   private val eventStore: GameEventStore,
   private val versionBuilder: VersionBuilder,
 ) : EventHandler<GameEvent, GameId> {
-  private val projectionsBuilders: ConcurrentLinkedQueue<(GameEvent) -> Unit> = ConcurrentLinkedQueue()
   private val locks: ConcurrentHashMap<GameId, ReentrantLock> = ConcurrentHashMap()
-
-  override fun registerProjectionBuilder(builder: (event: GameEvent) -> Unit) {
-    projectionsBuilders.add(builder)
-  }
 
   /**
    * Build Event then send it to the event store and bus.
