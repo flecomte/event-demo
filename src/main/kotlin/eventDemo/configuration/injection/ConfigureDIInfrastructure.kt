@@ -31,8 +31,8 @@ fun Module.configureDIInfrastructure(config: Configuration) {
         jdbcUrl = config.postgresql.url
         username = config.postgresql.username
         password = config.postgresql.password
-        maximumPoolSize = 50
-        minimumIdle = 20
+        maximumPoolSize = 10
+        minimumIdle = 10
       }.let {
         HikariDataSource(it)
       }
