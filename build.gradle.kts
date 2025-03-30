@@ -57,7 +57,7 @@ tasks.test {
 
 tasks.named("run") {
   dependsOn("composeUp")
-  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-dev.yaml"))
+  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
   dockerCompose.setProjectName("event-demo-dev")
 }
 

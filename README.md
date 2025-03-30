@@ -13,11 +13,19 @@ To run the stack:
 docker compose -f docker\docker-compose.yaml -p event-demo up -d
 ```
 
+Api url:
+- [Backend API](http://api.traefik.me/)
+- [Frontend web site](http://app.traefik.me/) (WIP)
+
+Exposed url on test env:
+- [PostgreSql](http://postgresql.traefik.me/)
+- [Redis](http://redis.traefik.me/)
+
 Admin service URL:
- - [Træfik](http://pgadmin.traefik.me/)
- - [Redis](http://pgadmin.traefik.me/)
- - [pgAdmin](http://pgadmin.traefik.me/)
- - [API](http://api.traefik.me/)
+- [Træfik dashboard](http://traefik.traefik.me/)
+- [Redis insight](http://insight.redis.traefik.me/)
+- [pgAdmin](http://pgadmin.postgresql.traefik.me/)
+
 
 What's in this demo
 -------------------

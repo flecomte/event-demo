@@ -8,6 +8,15 @@ services:
       - pgadmin_password
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    labels:
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.postgresql.traefik.me`)"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+  redis:
+    labels:
+      - "traefik.http.routers.redisinsight.rule=Host(`insight.redis.traefik.me`)"
+      - "traefik.http.routers.redisinsight.service=redisinsight"
+      - "traefik.http.services.redisinsight.loadbalancer.server.port=8001"
 
 secrets:
   pgadmin_password:
