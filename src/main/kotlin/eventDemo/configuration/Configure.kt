@@ -10,6 +10,7 @@ import eventDemo.configuration.route.declareHttpGameRoute
 import eventDemo.configuration.route.declareWebSocketsGameRoute
 import io.ktor.server.application.Application
 import org.koin.ktor.ext.get
+import org.koin.ktor.ext.getKoin
 
 fun Application.configure() {
   configureKoin()
@@ -24,5 +25,5 @@ fun Application.configure() {
   configureHttpRouting()
   declareHttpGameRoute()
 
-  configureGameListener()
+  getKoin().configureGameListener()
 }

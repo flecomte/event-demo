@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
 import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInPostgresql
-import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInMemory
+import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInRedis
 import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInRedis
 import eventDemo.business.event.GameEventBus
@@ -21,7 +21,7 @@ import redis.clients.jedis.UnifiedJedis
 import javax.sql.DataSource
 
 fun Module.configureDIInfrastructure(config: Configuration) {
-  factory {
+  single {
     JedisPooled(config.redisUrl)
   } bind UnifiedJedis::class
 
@@ -47,6 +47,6 @@ fun Module.configureDIInfrastructure(config: Configuration) {
   } bind GameStateRepository::class
 
   single {
-    GameListRepositoryInMemory(get(), get(), get(), snapshotConfig = SnapshotConfig())
+    GameListRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
   } bind GameListRepository::class
 }

@@ -7,6 +7,7 @@ import eventDemo.libs.toRanges
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import redis.clients.jedis.UnifiedJedis
+import redis.clients.jedis.params.ScanParams
 import redis.clients.jedis.params.SortingParams
 import kotlin.reflect.KClass
 
@@ -55,13 +56,16 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
     offset: Int,
   ): List<P> =
     jedis
-      .sort(
-        projectionClass.redisKeySearchList,
-        SortingParams()
-          .desc()
-          .by("score")
-          .limit(limit, offset),
-      ).map { jsonToProjection(it) }
+      .scan(
+        offset.toString(),
+        ScanParams()
+          .match(projectionClass.redisKeySearchList)
+          .count(limit),
+      ).result
+      .mapNotNull { key ->
+        getLastByKey(key)
+          ?.let(jsonToProjection)
+      }
 
   /**
    * Get the last version of the [Projection] from the cache.
@@ -71,16 +75,19 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
    * 3. apply the missing events to the snapshot
    */
   override fun getLast(aggregateId: ID): P =
+    getLastByKey(projectionClass.redisKey(aggregateId))
+      ?.let(jsonToProjection)
+      ?: initialStateBuilder(aggregateId)
+
+  private fun getLastByKey(key: String): String? =
     jedis
       .sort(
-        projectionClass.redisKey(aggregateId),
+        key,
         SortingParams()
           .desc()
           .by("score")
           .limit(0, 1),
       ).firstOrNull()
-      ?.let(jsonToProjection)
-      ?: initialStateBuilder(aggregateId)
 
   /**
    * Build the [Projection] to the specific [event][Event].
