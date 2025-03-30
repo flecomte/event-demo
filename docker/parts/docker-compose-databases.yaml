@@ -34,6 +34,19 @@ services:
     volumes:
       - postgresql_data:/var/lib/postgresql/data
 
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: event-demo
+      RABBITMQ_DEFAULT_PASS: changeit
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+
 secrets:
   postgresql_password:
     file: ../postgresql.secret
@@ -42,3 +55,4 @@ volumes:
   redis_data:
   redisinsight_data:
   postgresql_data:
+  rabbitmq_data:

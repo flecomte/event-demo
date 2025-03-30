@@ -18,6 +18,12 @@ services:
       - "traefik.http.routers.redisinsight.service=redisinsight"
       - "traefik.http.services.redisinsight.loadbalancer.server.port=8001"
 
+  rabbitmq:
+    labels:
+      - "traefik.http.routers.rabbitmq-management.rule=Host(`management.rabbitmq.traefik.me`)"
+      - "traefik.http.routers.rabbitmq-management.service=rabbitmq-management"
+      - "traefik.http.services.rabbitmq-management.loadbalancer.server.port=15672"
+
 secrets:
   pgadmin_password:
     file: ../pgadmin.secret

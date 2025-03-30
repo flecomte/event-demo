@@ -8,6 +8,8 @@ services:
         condition: service_completed_successfully
       postgresql:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     labels:
       - "traefik.http.routers.api.rule=Host(`api.traefik.me`)"
       - "traefik.http.services.api.loadbalancer.server.port=8080"

@@ -18,13 +18,15 @@ Api url:
 - [Frontend web site](http://app.traefik.me/) (WIP)
 
 Exposed url on test env:
-- [PostgreSql](http://postgresql.traefik.me/)
-- [Redis](http://redis.traefik.me/)
+- [PostgreSql](http://localhost:5432/)
+- [Redis](http://localhost:6379/)
+- [RabbitMQ](http://localhost:15672/)
 
 Admin service URL:
 - [Træfik dashboard](http://traefik.traefik.me/)
 - [Redis insight](http://insight.redis.traefik.me/)
 - [pgAdmin](http://pgadmin.postgresql.traefik.me/)
+- [RabbitMQ management](http://management.rabbitmq.traefik.me/)
 
 
 What's in this demo
