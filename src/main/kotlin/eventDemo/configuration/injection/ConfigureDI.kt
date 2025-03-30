@@ -13,9 +13,17 @@ fun appKoinModule(config: Configuration) =
 data class Configuration(
   val redisUrl: String,
   val postgresql: Postgresql,
+  val rabbitmq: RabbitMQ,
 ) {
   data class Postgresql(
     val url: String,
+    val username: String,
+    val password: String,
+  )
+
+  data class RabbitMQ(
+    val url: String,
+    val port: Int,
     val username: String,
     val password: String,
   )

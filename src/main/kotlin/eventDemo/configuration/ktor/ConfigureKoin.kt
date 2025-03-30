@@ -29,6 +29,13 @@ fun ApplicationConfig.configuration() =
         username = getProperty("postgresql.username"),
         password = getProperty("postgresql.password"),
       ),
+    rabbitmq =
+      Configuration.RabbitMQ(
+        url = getProperty("rabbitmq.url"),
+        port = getProperty("rabbitmq.port").toInt(),
+        username = getProperty("rabbitmq.username"),
+        password = getProperty("rabbitmq.password"),
+      ),
   )
 
 private fun ApplicationConfig.getProperty(path: String): String =

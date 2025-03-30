@@ -1,5 +1,6 @@
 package eventDemo.configuration.injection
 
+import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
@@ -37,6 +38,16 @@ fun Module.configureDIInfrastructure(config: Configuration) {
         HikariDataSource(it)
       }
   } bind DataSource::class
+
+  single {
+    ConnectionFactory().apply {
+      host = config.rabbitmq.url
+      port = config.rabbitmq.port
+      virtualHost = virtualHost
+      username = config.rabbitmq.username
+      password = config.rabbitmq.password
+    }
+  }
 
   singleOf(::GameEventBusInMemory) bind GameEventBus::class
   singleOf(::GameEventStoreInPostgresql) bind GameEventStore::class
