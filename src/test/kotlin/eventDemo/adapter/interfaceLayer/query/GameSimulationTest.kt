@@ -24,6 +24,7 @@ import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.testKoinApplicationWithConfig
+import io.kotest.assertions.nondeterministic.until
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -32,7 +33,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -58,6 +58,8 @@ class GameSimulationTest :
         var playedCard1: Card? = null
         var playedCard2: Card? = null
 
+        var player1HasJoin = false
+
         val player1Job =
           launch {
             IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player1)).also { sendCommand ->
@@ -66,6 +68,8 @@ class GameSimulationTest :
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
               }
             }
+
+            player1HasJoin = true
 
             channelNotification1.receive().let {
               assertIs<WelcomeToTheGameNotification>(it).players shouldBeEqual setOf(player1)
@@ -116,7 +120,7 @@ class GameSimulationTest :
 
         val player2Job =
           launch {
-            delay(100)
+            until(1.seconds) { player1HasJoin }
             IWantToJoinTheGameCommand(IWantToJoinTheGameCommand.Payload(gameId, player2)).also { sendCommand ->
               channelCommand2.send(sendCommand)
               channelNotification2.receive().let {
