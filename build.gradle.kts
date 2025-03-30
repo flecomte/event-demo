@@ -118,6 +118,7 @@ dependencies {
   implementation("redis.clients:jedis:5.2.0")
   implementation("org.postgresql:postgresql:42.7.5")
   implementation("com.zaxxer:HikariCP:6.3.0")
+  implementation("com.rabbitmq:amqp-client:5.25.0")
 
   // Force version of sub library (for security)
   implementation("commons-codec:commons-codec:1.13")
