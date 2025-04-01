@@ -41,11 +41,14 @@ suspend fun testApplicationWithConfig(block: suspend ApplicationTestBuilder.(koi
 }
 
 fun DataSource.cleanEventSource() {
-  this.connection.prepareStatement(
-    """
-    truncate event_stream;
-    """.trimIndent(),
-  )
+  this.connection
+    .prepareStatement(
+      """
+      truncate event_stream;
+      """.trimIndent(),
+    ).use {
+      it.execute()
+    }
 }
 
 fun UnifiedJedis.cleanProjections() {
