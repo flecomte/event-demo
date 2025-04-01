@@ -3,7 +3,7 @@ package eventDemo.configuration.injection
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import eventDemo.adapter.infrastructureLayer.event.GameEventBusInMemory
+import eventDemo.adapter.infrastructureLayer.event.GameEventBusInRabbinMQ
 import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInPostgresql
 import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInRedis
 import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInMemory
@@ -48,8 +48,7 @@ fun Module.configureDIInfrastructure(config: Configuration) {
       password = config.rabbitmq.password
     }
   }
-
-  singleOf(::GameEventBusInMemory) bind GameEventBus::class
+  singleOf(::GameEventBusInRabbinMQ) bind GameEventBus::class
   singleOf(::GameEventStoreInPostgresql) bind GameEventStore::class
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
 
