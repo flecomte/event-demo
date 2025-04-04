@@ -5,6 +5,7 @@ import eventDemo.business.entity.Deck
 import eventDemo.configuration.business.configureGameListener
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.configuration.ktor.configuration
+import io.kotest.engine.runBlocking
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -36,7 +37,9 @@ suspend fun testApplicationWithConfig(block: suspend ApplicationTestBuilder.(koi
     val koin = koinApplication { modules(appKoinModule(conf.configuration())) }.koin
     koin.cleanDataTest()
     koin.configureGameListener()
-    block(koin)
+    runBlocking {
+      block(koin)
+    }
   }
 }
 
