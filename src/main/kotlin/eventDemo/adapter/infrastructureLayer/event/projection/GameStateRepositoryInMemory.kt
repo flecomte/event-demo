@@ -21,6 +21,7 @@ class GameStateRepositoryInMemory(
 ) : GameStateRepository {
   private val projectionsSnapshot =
     ProjectionSnapshotRepositoryInMemory(
+      name = GameStateRepositoryInMemory::class,
       eventStore = eventStore,
       snapshotCacheConfig = snapshotConfig,
       applyToProjection = GameState::apply,

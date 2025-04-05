@@ -8,7 +8,7 @@ import java.util.UUID
 
 class GameEventBusInMemory :
   GameEventBus,
-  Bus<GameEvent> by BusInMemory(),
+  Bus<GameEvent> by BusInMemory(GameEventBusInMemory::class),
   Comparable<GameEventBusInMemory> {
   private val instanceId: UUID = UUID.randomUUID()
 

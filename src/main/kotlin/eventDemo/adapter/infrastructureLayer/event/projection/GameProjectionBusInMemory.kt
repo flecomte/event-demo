@@ -9,7 +9,7 @@ import java.util.UUID
 
 class GameProjectionBusInMemory :
   GameProjectionBus,
-  Bus<Projection<GameId>> by BusInMemory(),
+  Bus<Projection<GameId>> by BusInMemory(GameProjectionBusInMemory::class),
   Comparable<GameProjectionBusInMemory> {
   private val instanceId: UUID = UUID.randomUUID()
 

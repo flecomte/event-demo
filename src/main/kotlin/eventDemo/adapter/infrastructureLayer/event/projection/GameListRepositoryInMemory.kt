@@ -21,6 +21,7 @@ class GameListRepositoryInMemory(
 ) : GameListRepository {
   private val projectionsSnapshot =
     ProjectionSnapshotRepositoryInMemory(
+      name = GameListRepositoryInMemory::class,
       eventStore = eventStore,
       snapshotCacheConfig = snapshotConfig,
       applyToProjection = GameList::apply,

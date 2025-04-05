@@ -10,15 +10,17 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.reflect.KClass
 
 class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID : AggregateId>(
+  val name: KClass<*> = ProjectionSnapshotRepositoryInMemory::class,
   private val eventStore: EventStore<E, ID>,
   private val initialStateBuilder: (aggregateId: ID) -> P,
   private val snapshotCacheConfig: SnapshotConfig = SnapshotConfig(),
   private val applyToProjection: P.(event: E) -> P,
 ) : ProjectionSnapshotRepository<E, P, ID> {
   private val projectionsSnapshot: ConcurrentHashMap<ID, ConcurrentLinkedQueue<Pair<P, Instant>>> = ConcurrentHashMap()
-  private val logger = KotlinLogging.logger { }
+  private val logger = KotlinLogging.logger(name.qualifiedName.toString())
 
   /**
    * Create a snapshot for the event
