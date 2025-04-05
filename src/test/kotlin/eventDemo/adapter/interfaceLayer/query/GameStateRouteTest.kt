@@ -48,14 +48,13 @@ class GameStateRouteTest :
     }
 
     test("/games/{id}/card/last") {
-      testApplicationWithConfig { koin ->
-        val gameId = GameId()
-        val player1 = Player(name = "Nikola")
-        val player2 = Player(name = "Einstein")
-        var lastPlayedCard: Card? = null
-
-        val eventHandler = koin.get<GameEventHandler>()
-        val stateRepo = koin.get<GameStateRepository>()
+      val gameId = GameId()
+      val player1 = Player(name = "Nikola")
+      val player2 = Player(name = "Einstein")
+      var lastPlayedCard: Card? = null
+      testApplicationWithConfig({
+        val eventHandler = get<GameEventHandler>()
+        val stateRepo = get<GameStateRepository>()
 
         runBlocking {
           eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
@@ -89,7 +88,7 @@ class GameStateRouteTest :
           }
           delay(100)
         }
-
+      }) {
         httpClient()
           .get("/games/$gameId/card/last") {
             withAuth(player1)

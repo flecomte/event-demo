@@ -21,7 +21,6 @@ import eventDemo.business.notification.PlayerAsPlayACardNotification
 import eventDemo.business.notification.PlayerWasReadyNotification
 import eventDemo.business.notification.TheGameWasStartedNotification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.business.configureGameListener
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.until
@@ -177,7 +176,6 @@ class GameSimulationTest :
           val commandHandler by inject<GameCommandHandler>()
           val eventStore by inject<GameEventStore>()
           val playerNotificationListener by inject<PlayerNotificationListener>()
-          configureGameListener()
           playerNotificationListener.startListening(player1, gameId) { channelNotification1.trySendBlocking(it) }
           playerNotificationListener.startListening(player2, gameId) { channelNotification2.trySendBlocking(it) }
 

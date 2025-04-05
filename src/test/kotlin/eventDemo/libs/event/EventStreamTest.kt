@@ -1,6 +1,5 @@
 package eventDemo.libs.event
 
-import eventDemo.cleanEventSource
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -13,7 +12,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.assertThrows
-import javax.sql.DataSource
 import kotlin.test.assertNotNull
 
 @DelicateCoroutinesApi
@@ -29,7 +27,6 @@ class EventStreamTest :
 
     suspend fun eventStreams(): List<EventStream<EventXTest, IdTest>> =
       testKoinApplicationWithConfig {
-        get<DataSource>().cleanEventSource()
         listOf(
           EventStreamInMemory(IdTest()),
           EventStreamInPostgresql(

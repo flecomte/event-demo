@@ -5,7 +5,6 @@ import eventDemo.business.entity.Deck
 import eventDemo.configuration.business.configureGameListener
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.configuration.ktor.configuration
-import io.kotest.engine.runBlocking
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -13,6 +12,7 @@ import io.ktor.utils.io.KtorDsl
 import org.koin.core.Koin
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.dsl.koinApplication
+import org.koin.ktor.ext.getKoin
 import redis.clients.jedis.UnifiedJedis
 import javax.sql.DataSource
 
@@ -24,22 +24,31 @@ fun Deck.allCards(): Set<Card> =
 
 @KoinApplicationDslMarker
 suspend fun <T> testKoinApplicationWithConfig(block: suspend Koin.() -> T): T =
-  koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration())) }.koin.block()
+  koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration())) }
+    .koin
+    .apply {
+      cleanDataTest()
+      configureGameListener()
+    }.block()
 
 @KtorDsl
-suspend fun testApplicationWithConfig(block: suspend ApplicationTestBuilder.(koin: Koin) -> Unit) {
+fun testApplicationWithConfig(
+  configBuilder: Koin.() -> Unit = {},
+  block: suspend ApplicationTestBuilder.() -> Unit,
+) {
   testApplication {
     val conf = ApplicationConfig("application.conf")
     environment {
       config = conf
     }
 
-    val koin = koinApplication { modules(appKoinModule(conf.configuration())) }.koin
-    koin.cleanDataTest()
-    koin.configureGameListener()
-    runBlocking {
-      block(koin)
+    application {
+      val koin = getKoin()
+      koin.cleanDataTest()
+      koin.configureGameListener()
+      configBuilder(koin)
     }
+    block()
   }
 }
 

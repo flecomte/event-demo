@@ -44,15 +44,18 @@ class GameListRouteTest :
     }
 
     test("/games return a game with status OPENING") {
-      testApplicationWithConfig { koin ->
-        val gameId = GameId()
-        val player1 = Player(name = "Nikola")
-
-        val eventHandler = koin.get<GameEventHandler>()
-        runBlocking {
-          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-        }
-
+      val gameId = GameId()
+      val player1 = Player(name = "Nikola")
+      testApplicationWithConfig(
+        {
+          runBlocking {
+            get<GameEventHandler>()
+              .handle(gameId) {
+                NewPlayerEvent(gameId, player1, it)
+              }
+          }
+        },
+      ) {
         // Wait until the projection is created
         eventually(3.seconds) {
           httpClient()
@@ -73,11 +76,11 @@ class GameListRouteTest :
     }
 
     test("/games return a game with status IS_STARTED") {
-      testApplicationWithConfig { koin ->
-        val gameId = GameId()
-        val player1 = Player(name = "Nikola")
-        val player2 = Player(name = "Einstein")
-        val eventHandler = koin.get<GameEventHandler>()
+      val gameId = GameId()
+      val player1 = Player(name = "Nikola")
+      val player2 = Player(name = "Einstein")
+      testApplicationWithConfig({
+        val eventHandler = get<GameEventHandler>()
         runBlocking {
           eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
           eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
@@ -92,7 +95,7 @@ class GameListRouteTest :
             )
           }
         }
-
+      }) {
         httpClient()
           .get("/games") {
             withAuth(player1)

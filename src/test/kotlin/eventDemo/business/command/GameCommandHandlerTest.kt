@@ -8,7 +8,6 @@ import eventDemo.business.event.projection.projectionListener.PlayerNotification
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
-import eventDemo.configuration.business.configureGameListener
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -26,11 +25,10 @@ import kotlin.time.Duration.Companion.seconds
 class GameCommandHandlerTest :
   FunSpec({
     test("handle a command should execute the command") {
-      withTimeout(1.seconds) {
+      withTimeout(5.seconds) {
         testKoinApplicationWithConfig {
-          configureGameListener()
-          val commandHandler by inject<GameCommandHandler>()
-          val notificationListener by inject<PlayerNotificationListener>()
+          val commandHandler = get<GameCommandHandler>()
+          val notificationListener = get<PlayerNotificationListener>()
           val gameId = GameId()
           val player = Player("Tesla")
           val channelCommand = Channel<GameCommand>(Channel.BUFFERED)
