@@ -9,25 +9,21 @@ class BusInMemory<E>(
   val name: KClass<*> = BusInMemory::class,
 ) : Bus<E> {
   private val logger = KotlinLogging.logger(name.qualifiedName.toString())
-  private val subscribers: MutableList<Pair<Int, suspend (E) -> Unit>> = mutableListOf()
+  private val subscribers: MutableList<suspend (E) -> Unit> = mutableListOf()
 
   override suspend fun publish(item: E) {
     withLoggingContext("busItem" to item.toString()) {
       logger.info { "Item sent to the bus: $item" }
       subscribers
-        .sortedByDescending { (priority, _) -> priority }
-        .forEach { (_, block) ->
+        .forEach {
           coroutineScope {
-            block(item)
+            it(item)
           }
         }
     }
   }
 
-  override fun subscribe(
-    priority: Int,
-    block: suspend (E) -> Unit,
-  ) {
-    subscribers.add(priority to block)
+  override fun subscribe(block: suspend (E) -> Unit) {
+    subscribers.add(block)
   }
 }

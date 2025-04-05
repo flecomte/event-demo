@@ -6,8 +6,5 @@ interface Bus<T> {
   /**
    * @param priority The higher the priority, the more it will be called first
    */
-  fun subscribe(
-    priority: Int = 0,
-    block: suspend (T) -> Unit,
-  )
+  fun subscribe(block: suspend (T) -> Unit)
 }

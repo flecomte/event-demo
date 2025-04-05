@@ -42,10 +42,7 @@ class BusInRabbitMQ<E>(
       }
   }
 
-  override fun subscribe(
-    priority: Int,
-    block: suspend (E) -> Unit,
-  ) {
+  override fun subscribe(block: suspend (E) -> Unit) {
     connectionFactory
       .newConnection()
       .createChannel()

@@ -15,18 +15,14 @@ class ReactionListener(
   private val eventHandler: GameEventHandler,
 ) {
   companion object Config {
-    const val DEFAULT_PRIORITY = -1000
     val registeredListeners = ConcurrentSkipListSet<GameProjectionBus>()
   }
 
   private val logger = KotlinLogging.logger { }
 
-  fun subscribeToBus(
-    projectionBus: GameProjectionBus,
-    priority: Int = DEFAULT_PRIORITY,
-  ) {
+  fun subscribeToBus(projectionBus: GameProjectionBus) {
     if (registeredListeners.add(projectionBus)) {
-      projectionBus.subscribe(priority) { projection: Projection<GameId> ->
+      projectionBus.subscribe { projection: Projection<GameId> ->
         if (projection !is GameState) return@subscribe
         withLoggingContext("projection" to projection.toString()) {
           sendStartGameEvent(projection)

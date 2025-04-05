@@ -31,16 +31,9 @@ class GameCommandHandler(
   private val logger = KotlinLogging.logger { }
   private val eventCommandMap = EventCommandMap()
 
-  companion object Config {
-    const val DEFAULT_PRIORITY = 1000
-  }
-
   // subscribe to the event bus to send success notification after save the event.
-  fun subscribeToBus(
-    eventBus: GameEventBus,
-    listenerPriority: Int = DEFAULT_PRIORITY,
-  ) {
-    eventBus.subscribe(listenerPriority) { event: GameEvent ->
+  fun subscribeToBus(eventBus: GameEventBus) {
+    eventBus.subscribe { event: GameEvent ->
       eventCommandMap[event.eventId]?.apply {
         channel.sendSuccess(commandId)()
       } ?: logger.warn { "No Notification for event: $event" }
