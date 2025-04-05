@@ -10,7 +10,7 @@ import org.koin.core.module.dsl.singleOf
 
 fun Module.configureDIBusiness() {
   single {
-    GameCommandHandler(get(), get(), get(), get())
+    GameCommandHandler(get(), get(), get())
   }
   singleOf(::GameEventHandler)
   singleOf(::GameCommandActionRunner)

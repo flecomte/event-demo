@@ -27,8 +27,6 @@ class GameCommandHandler(
   private val commandStreamChannel: CommandStreamChannel<GameCommand>,
   private val eventHandler: GameEventHandler,
   private val runner: GameCommandActionRunner,
-  eventBus: GameEventBus,
-  listenerPriority: Int = DEFAULT_PRIORITY,
 ) {
   private val logger = KotlinLogging.logger { }
   private val eventCommandMap = EventCommandMap()
@@ -38,7 +36,10 @@ class GameCommandHandler(
   }
 
   // subscribe to the event bus to send success notification after save the event.
-  init {
+  fun subscribeToBus(
+    eventBus: GameEventBus,
+    listenerPriority: Int = DEFAULT_PRIORITY,
+  ) {
     eventBus.subscribe(listenerPriority) { event: GameEvent ->
       eventCommandMap[event.eventId]?.apply {
         channel.sendSuccess(commandId)()
