@@ -17,8 +17,6 @@ import io.github.oshai.kotlinlogging.withLoggingContext
  */
 class GameStateRepositoryInMemory(
   eventStore: GameEventStore,
-  projectionBus: GameProjectionBus,
-  eventBus: GameEventBus,
   snapshotConfig: SnapshotConfig = SnapshotConfig(),
 ) : GameStateRepository {
   private val projectionsSnapshot =
@@ -29,7 +27,10 @@ class GameStateRepositoryInMemory(
       initialStateBuilder = { aggregateId: GameId -> GameState(aggregateId) },
     )
 
-  init {
+  fun subscribeToBus(
+    projectionBus: GameProjectionBus,
+    eventBus: GameEventBus,
+  ) {
     // On new event was received, build snapshot and publish it to the projection bus
     eventBus.subscribe { event ->
       withLoggingContext("event" to event.toString()) {
