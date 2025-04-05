@@ -144,14 +144,8 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    */
   private fun FilteredList<P>.excludeTheHeadBySize(): FilteredList<P> {
     // filter if size exceeds the limit
-    if (size > snapshotCacheConfig.maxSnapshotCacheSize) {
-      val numberToRemove = size - snapshotCacheConfig.maxSnapshotCacheSize
-      if (numberToRemove > 0) {
-        return sortedBy { it.first.lastEventVersion }
-          .takeLast(numberToRemove)
-      }
-    }
-    return this
+    return sortedBy { it.first.lastEventVersion }
+      .dropLast(snapshotCacheConfig.maxSnapshotCacheSize)
   }
 
   /**

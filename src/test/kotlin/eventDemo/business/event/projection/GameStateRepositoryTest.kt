@@ -11,9 +11,8 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.equals.shouldBeEqual
-import io.kotest.matchers.ints.shouldBeLessThan
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
@@ -148,8 +147,7 @@ class GameStateRepositoryTest :
             lastEventVersion shouldBeEqual 1000
             players shouldHaveSize 1000
           }
-          repo.count(aggregateId) shouldBeGreaterThan 20
-          repo.count(aggregateId) shouldBeLessThan 30
+          repo.count(aggregateId) shouldBe 119
         }
       }
     }
