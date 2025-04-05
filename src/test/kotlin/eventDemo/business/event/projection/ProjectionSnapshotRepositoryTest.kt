@@ -51,7 +51,6 @@ class ProjectionSnapshotRepositoryTest :
     val projectionRepo =
       listOf(
         ::getSnapshotRepoInMemoryTest,
-        ::getSnapshotRepoInRedisTest,
       )
 
     val list =

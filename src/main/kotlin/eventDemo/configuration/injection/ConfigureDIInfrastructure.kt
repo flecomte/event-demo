@@ -5,9 +5,9 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInRabbinMQ
 import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInPostgresql
-import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInRedis
+import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInMemory
 import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInMemory
-import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInRedis
+import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInMemory
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.projection.GameProjectionBus
@@ -17,15 +17,9 @@ import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
-import redis.clients.jedis.JedisPooled
-import redis.clients.jedis.UnifiedJedis
 import javax.sql.DataSource
 
 fun Module.configureDIInfrastructure(config: Configuration) {
-  single {
-    JedisPooled(config.redisUrl)
-  } bind UnifiedJedis::class
-
   single {
     HikariConfig()
       .apply {
@@ -53,10 +47,10 @@ fun Module.configureDIInfrastructure(config: Configuration) {
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
 
   single {
-    GameStateRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
+    GameStateRepositoryInMemory(get(), snapshotConfig = SnapshotConfig())
   } bind GameStateRepository::class
 
   single {
-    GameListRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
+    GameListRepositoryInMemory(get(), snapshotConfig = SnapshotConfig())
   } bind GameListRepository::class
 }

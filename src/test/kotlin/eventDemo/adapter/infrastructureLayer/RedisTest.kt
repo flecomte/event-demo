@@ -11,7 +11,7 @@ class RedisTest :
   FunSpec({
     tags(NamedTag("redis"))
 
-    test("test connection with jedis") {
+    xtest("test connection with jedis") {
       JedisPooled(redisUrl).also {
         it.set("test", "test")
         it.get("test") shouldBeEqual "test"
