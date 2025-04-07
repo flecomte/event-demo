@@ -7,7 +7,7 @@ import eventDemo.business.event.projection.projectionListener.ReactionListener
 import org.koin.core.Koin
 
 fun Koin.configureGameListener() {
-  get<ReactionListener>()
+  get<GameCommandHandler>()
     .subscribeToBus(get())
 
   get<GameStateRepositoryInMemory>()
@@ -16,6 +16,6 @@ fun Koin.configureGameListener() {
   get<GameListRepositoryInMemory>()
     .subscribeToBus(get(), get())
 
-  get<GameCommandHandler>()
+  get<ReactionListener>()
     .subscribeToBus(get())
 }

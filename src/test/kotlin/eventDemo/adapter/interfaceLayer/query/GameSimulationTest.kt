@@ -82,9 +82,6 @@ class GameSimulationTest :
                 assertIs<CommandSuccessNotification>(it).commandId shouldBeEqual sendCommand.id
               }
             }
-            channelNotification1.receive().let {
-              assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player2
-            }
             val player1Hand =
               channelNotification1.receive().let {
                 assertIs<TheGameWasStartedNotification>(it).hand shouldHaveSize 7
@@ -94,6 +91,9 @@ class GameSimulationTest :
               assertIs<ItsTheTurnOfNotification>(it).apply {
                 player shouldBeEqual player1
               }
+            }
+            channelNotification1.receive().let {
+              assertIs<PlayerWasReadyNotification>(it).player shouldBeEqual player2
             }
 
             IWantToPlayCardCommand(IWantToPlayCardCommand.Payload(gameId, player1, player1Hand.first())).also { sendCommand ->

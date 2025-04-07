@@ -9,6 +9,7 @@ import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.gameList.GameList
 import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
@@ -22,6 +23,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class GameListRouteTest :
@@ -57,7 +59,12 @@ class GameListRouteTest :
         },
       ) {
         // Wait until the projection is created
-        eventually(3.seconds) {
+        eventually(
+          eventuallyConfig {
+            duration = 3.seconds
+            interval = 300.milliseconds
+          },
+        ) {
           httpClient()
             .get("/games") {
               withAuth(player1)
