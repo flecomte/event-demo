@@ -1,14 +1,14 @@
 package eventDemo.externalServices
 
+import eventDemo.Tag
 import eventDemo.testKoinApplicationWithConfig
-import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import javax.sql.DataSource
 
 class PostgresqlTest :
   FunSpec({
-    tags(NamedTag("postgresql"))
+    tags(Tag.Postgresql)
 
     test("test connection with postgresql") {
       testKoinApplicationWithConfig {

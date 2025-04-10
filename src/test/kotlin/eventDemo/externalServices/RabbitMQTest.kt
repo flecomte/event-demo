@@ -5,9 +5,9 @@ import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
+import eventDemo.Tag
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldStartWith
 import io.mockk.mockk
@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class RabbitMQTest :
   FunSpec({
-    tags(NamedTag("rabbitmq"))
+    tags(Tag.RabbitMQ)
 
     test("test connection with RabbitMQ") {
       testKoinApplicationWithConfig {

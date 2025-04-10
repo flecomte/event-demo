@@ -1,7 +1,7 @@
 package eventDemo.libs.event
 
+import eventDemo.Tag
 import eventDemo.testKoinApplicationWithConfig
-import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,7 +19,7 @@ import kotlin.test.assertNotNull
 @DelicateCoroutinesApi
 class EventStreamTest :
   FunSpec({
-    tags(NamedTag("postgresql"))
+    tags(Tag.Postgresql)
 
     fun EventStream<EventXTest, IdTest>.with3Events(block: EventStream<EventXTest, IdTest>.(id: IdTest) -> Unit) =
       also {
@@ -103,6 +103,8 @@ class EventStreamTest :
     }
 
     context("publish should be concurrently secure") {
+      tags(Tag.Concurrence)
+
       testKoinApplicationWithConfig {
         withData(eventStreams()) { stream ->
           (0..9)

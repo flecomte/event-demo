@@ -1,5 +1,6 @@
 package eventDemo.business.event.projection
 
+import eventDemo.Tag
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventHandler
@@ -9,7 +10,6 @@ import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
-import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(DelicateCoroutinesApi::class)
 class GameStateRepositoryTest :
   FunSpec({
-    tags(NamedTag("postgresql"))
+    tags(Tag.Postgresql)
 
     val player1 = Player("Tesla")
     val player2 = Player(name = "Einstein")
@@ -116,6 +116,8 @@ class GameStateRepositoryTest :
     }
 
     test("getUntil should be concurrently secure") {
+      tags(Tag.Concurrence)
+
       val aggregateId = GameId()
       testKoinApplicationWithConfig {
         val repo = get<GameStateRepository>()
@@ -155,5 +157,7 @@ class GameStateRepositoryTest :
       }
     }
 
-    xtest("get should be concurrently secure") { }
+    xtest("get should be concurrently secure") {
+      tags(Tag.Concurrence)
+    }
   })

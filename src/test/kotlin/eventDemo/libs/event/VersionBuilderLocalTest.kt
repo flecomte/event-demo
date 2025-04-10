@@ -1,5 +1,6 @@
 package eventDemo.libs.event
 
+import eventDemo.Tag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -22,6 +23,8 @@ class VersionBuilderLocalTest :
     }
 
     test("buildNextVersion concurrently") {
+      tags(Tag.Concurrence)
+
       val versionBuilder = VersionBuilderLocal()
       val id = IdTest()
       (1..20)

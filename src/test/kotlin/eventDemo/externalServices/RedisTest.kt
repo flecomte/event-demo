@@ -1,6 +1,6 @@
 package eventDemo.externalServices
 
-import io.kotest.core.NamedTag
+import eventDemo.Tag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import redis.clients.jedis.JedisPooled
@@ -9,7 +9,7 @@ private val redisUrl = "redis://localhost:6379"
 
 class RedisTest :
   FunSpec({
-    tags(NamedTag("redis"))
+    tags(Tag.Redis)
 
     xtest("test connection with jedis") {
       JedisPooled(redisUrl).also {

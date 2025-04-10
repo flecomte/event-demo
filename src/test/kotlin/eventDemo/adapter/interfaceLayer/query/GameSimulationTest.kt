@@ -1,5 +1,6 @@
 package eventDemo.adapter.interfaceLayer.query
 
+import eventDemo.Tag
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.command.command.GameCommand
 import eventDemo.business.command.command.IWantToJoinTheGameCommand
@@ -24,7 +25,6 @@ import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInMemory
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.until
-import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -44,7 +44,7 @@ import kotlin.time.Duration.Companion.seconds
 @DelicateCoroutinesApi
 class GameSimulationTest :
   FunSpec({
-    tags(NamedTag("postgresql"))
+    tags(Tag.Postgresql)
 
     test("Simulation of a game") {
       withTimeout(2.seconds) {
