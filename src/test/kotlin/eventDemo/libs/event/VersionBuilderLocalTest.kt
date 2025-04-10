@@ -1,6 +1,7 @@
 package eventDemo.libs.event
 
 import eventDemo.Tag
+import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -8,7 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, KotestInternal::class)
 class VersionBuilderLocalTest :
   FunSpec({
 

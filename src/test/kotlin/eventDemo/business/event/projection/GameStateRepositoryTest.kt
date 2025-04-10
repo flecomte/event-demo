@@ -10,6 +10,7 @@ import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
+import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, KotestInternal::class)
 class GameStateRepositoryTest :
   FunSpec({
     tags(Tag.Postgresql)

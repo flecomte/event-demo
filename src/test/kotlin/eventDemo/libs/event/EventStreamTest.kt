@@ -2,6 +2,7 @@ package eventDemo.libs.event
 
 import eventDemo.Tag
 import eventDemo.testKoinApplicationWithConfig
+import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldHaveSize
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.assertThrows
 import org.koin.core.Koin
 import kotlin.test.assertNotNull
 
-@DelicateCoroutinesApi
+@OptIn(KotestInternal::class, DelicateCoroutinesApi::class)
 class EventStreamTest :
   FunSpec({
     tags(Tag.Postgresql)
