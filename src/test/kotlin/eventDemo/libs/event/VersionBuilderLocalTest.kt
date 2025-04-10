@@ -22,9 +22,7 @@ class VersionBuilderLocalTest :
       }
     }
 
-    test("buildNextVersion concurrently") {
-      tags(Tag.Concurrence)
-
+    test("buildNextVersion concurrently").config(tags = setOf(Tag.Concurrence)) {
       val versionBuilder = VersionBuilderLocal()
       val id = IdTest()
       (1..20)

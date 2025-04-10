@@ -102,9 +102,7 @@ class EventStreamTest :
       }
     }
 
-    context("publish should be concurrently secure") {
-      tags(Tag.Concurrence)
-
+    context("publish should be concurrently secure").config(tags = setOf(Tag.Concurrence)) {
       testKoinApplicationWithConfig {
         withData(eventStreams()) { stream ->
           (0..9)

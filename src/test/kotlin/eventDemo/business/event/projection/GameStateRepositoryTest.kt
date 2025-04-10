@@ -115,9 +115,7 @@ class GameStateRepositoryTest :
       }
     }
 
-    test("getUntil should be concurrently secure") {
-      tags(Tag.Concurrence)
-
+    test("getUntil should be concurrently secure").config(tags = setOf(Tag.Concurrence)) {
       val aggregateId = GameId()
       testKoinApplicationWithConfig {
         val repo = get<GameStateRepository>()
