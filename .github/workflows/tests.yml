@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew composeUp -Pci
 
       - name: Test
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test -x composeUp --no-daemon
 
       - name: Upload test reports
         if: always()
