@@ -33,13 +33,15 @@ jobs:
         run: ./gradlew build --scan -x test -x ktlintKotlinScriptCheck -x ktlintTestSourceSetCheck -x ktlintMainSourceSetCheck | tee build.log
 
       - name: Show Build Scan URL
-        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' build.log
+        run: |
+          grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' build.log || echo "No build scan URL found."
 
       - name: processResources
         run: ./gradlew processResources --scan | tee resources.log
 
       - name: Show Resource Scan URL
-        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' resources.log
+        run: |
+          grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' resources.log || echo "No resource scan URL found."
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -70,13 +72,15 @@ jobs:
         run: ./gradlew composeUp --scan | tee compose.log
 
       - name: Show Compose Scan URL
-        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' compose.log
+        run: |
+          grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' compose.log || echo "No compose scan URL found."
 
       - name: Run tests
         run: ./gradlew test --scan | tee test.log
 
       - name: Show Test Scan URL
-        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' test.log
+        run: |
+          grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' test.log || echo "No test scan URL found."
 
   lint:
     needs: build
@@ -101,4 +105,5 @@ jobs:
         run: ./gradlew ktlintCheck --scan | tee lint.log
 
       - name: Show Lint Scan URL
-        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' lint.log
+        run: |
+          grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' lint.log || echo "No lint scan URL found."
