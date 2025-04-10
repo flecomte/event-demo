@@ -45,7 +45,15 @@ tasks.withType<Test>().configureEach {
 }
 
 dockerCompose {
-  useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
+  val composeFile =
+    if (project.hasProperty("ci")) {
+      // Use docker-compose-ci.yaml for the CI
+      "docker/docker-compose-ci.yaml"
+    } else {
+      // Use docker-compose-test.yaml for local tests
+      "docker/docker-compose-test.yaml"
+    }
+  useComposeFiles.set(listOf(composeFile))
   setProjectName("event-demo-test")
 }
 

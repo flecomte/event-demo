@@ -36,8 +36,8 @@ jobs:
       - name: Run KtLint
         run: ./gradlew ktlintCheck
 
-      - name: Start Docker Compose services
-        run: ./gradlew composeUp
+      - name: Start CI Docker Compose services
+        run: ./gradlew composeUp -Pci
 
       - name: Run tests
         run: ./gradlew test --no-daemon
