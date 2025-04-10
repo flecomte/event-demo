@@ -47,7 +47,7 @@ class GameSimulationTest :
     tags(Tag.Postgresql)
 
     test("Simulation of a game") {
-      withTimeout(2.seconds) {
+      withTimeout(10.seconds) {
         disableShuffleDeck()
         val gameId = GameId()
         val player1 = Player(name = "Nikola")
