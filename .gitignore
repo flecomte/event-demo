@@ -36,3 +36,4 @@ out/
 .vscode/
 /docker/.env
 /docker/*.secret
+*.hprof
