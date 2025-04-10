@@ -7,11 +7,12 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -19,79 +20,31 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            gradle-${{ runner.os }}-
 
-      - name: Build
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build -x test -x ktlintKotlinScriptCheck -x ktlintTestSourceSetCheck -x ktlintMainSourceSetCheck
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x gradlew
 
-      - name: processResources
-        run: ./gradlew processResources
+      - name: Run KtLint
+        run: ./gradlew ktlintCheck
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: build/
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: build/
-
-      - name: Compose Up
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: composeUp
+      - name: Start Docker Compose services
+        run: ./gradlew composeUp
 
       - name: Run tests
-        uses: gradle/gradle-build-action@v2
+        run: ./gradlew test --no-daemon
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          arguments: test
-
-  lint:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: build/
-
-      - name: Run linter
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: ktlintCheck
+          name: test-results
+          path: build/reports/tests/test
