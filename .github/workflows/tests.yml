@@ -29,13 +29,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build -x test -x ktlintKotlinScriptCheck -x ktlintTestSourceSetCheck -x ktlintMainSourceSetCheck
+      - name: Build (without tests & lint)
+        run: ./gradlew build --scan -x test -x ktlintKotlinScriptCheck -x ktlintTestSourceSetCheck -x ktlintMainSourceSetCheck | tee build.log
+
+      - name: Show Build Scan URL
+        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' build.log
 
       - name: processResources
-        run: ./gradlew processResources
+        run: ./gradlew processResources --scan | tee resources.log
+
+      - name: Show Resource Scan URL
+        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' resources.log
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -63,14 +67,16 @@ jobs:
           path: build/
 
       - name: Compose Up
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: composeUp
+        run: ./gradlew composeUp --scan | tee compose.log
+
+      - name: Show Compose Scan URL
+        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' compose.log
 
       - name: Run tests
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: test
+        run: ./gradlew test --scan | tee test.log
+
+      - name: Show Test Scan URL
+        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' test.log
 
   lint:
     needs: build
@@ -92,6 +98,7 @@ jobs:
           path: build/
 
       - name: Run linter
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: ktlintCheck
+        run: ./gradlew ktlintCheck --scan | tee lint.log
+
+      - name: Show Lint Scan URL
+        run: grep -Eo 'https://scans.gradle.com/s/[a-zA-Z0-9]+' lint.log
