@@ -9,6 +9,7 @@ import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
+import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -23,6 +24,8 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(DelicateCoroutinesApi::class)
 class GameStateRepositoryTest :
   FunSpec({
+    tags(NamedTag("postgresql"))
+
     val player1 = Player("Tesla")
     val player2 = Player(name = "Einstein")
 

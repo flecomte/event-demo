@@ -1,4 +1,4 @@
-package eventDemo.adapter.infrastructureLayer
+package eventDemo.externalServices
 
 import eventDemo.testKoinApplicationWithConfig
 import io.kotest.core.NamedTag

@@ -35,8 +35,8 @@ class PlayerNotificationListener(
     currentPlayer: Player,
     gameId: GameId,
     outgoingNotification: (Notification) -> Unit,
-  ) {
-    projectionBus.subscribe { currentState ->
+  ): AutoCloseable {
+    return projectionBus.subscribe { currentState ->
       if (currentState !is GameState) return@subscribe
       if (currentState.aggregateId != gameId) return@subscribe
       withLoggingContext("projection" to currentState.toString()) {

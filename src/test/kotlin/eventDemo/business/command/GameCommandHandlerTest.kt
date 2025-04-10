@@ -9,6 +9,7 @@ import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.WelcomeToTheGameNotification
 import eventDemo.testKoinApplicationWithConfig
+import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equals.shouldBeEqual
@@ -24,6 +25,8 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(DelicateCoroutinesApi::class)
 class GameCommandHandlerTest :
   FunSpec({
+    tags(NamedTag("postgresql"))
+
     test("handle a command should execute the command") {
       withTimeout(5.seconds) {
         testKoinApplicationWithConfig {

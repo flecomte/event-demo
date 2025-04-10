@@ -1,4 +1,4 @@
-package eventDemo.adapter.infrastructureLayer
+package eventDemo.externalServices
 
 import io.kotest.core.NamedTag
 import io.kotest.core.spec.style.FunSpec

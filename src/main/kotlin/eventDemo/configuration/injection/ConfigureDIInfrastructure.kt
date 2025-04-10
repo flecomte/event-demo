@@ -16,10 +16,13 @@ import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.scope.Scope
+import org.koin.core.scope.ScopeCallback
 import org.koin.dsl.bind
 import javax.sql.DataSource
 
 fun Module.configureDIInfrastructure(config: Configuration) {
+  // Postgresql config
   single {
     HikariConfig()
       .apply {
@@ -30,18 +33,27 @@ fun Module.configureDIInfrastructure(config: Configuration) {
         minimumIdle = 10
       }.let {
         HikariDataSource(it)
+      }.also { datasource ->
+        registerCallback(
+          object : ScopeCallback {
+            override fun onScopeClose(scope: Scope) {
+              datasource.close()
+            }
+          },
+        )
       }
   } bind DataSource::class
 
-  single {
+  // RabbitMQ config
+  factory {
     ConnectionFactory().apply {
       host = config.rabbitmq.url
       port = config.rabbitmq.port
-      virtualHost = virtualHost
       username = config.rabbitmq.username
       password = config.rabbitmq.password
     }
   }
+
   singleOf(::GameEventBusInRabbinMQ) bind GameEventBus::class
   singleOf(::GameEventStoreInPostgresql) bind GameEventStore::class
   singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class

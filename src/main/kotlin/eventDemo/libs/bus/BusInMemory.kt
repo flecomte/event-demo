@@ -23,7 +23,12 @@ class BusInMemory<E>(
     }
   }
 
-  override fun subscribe(block: suspend (E) -> Unit) {
+  override fun subscribe(block: suspend (E) -> Unit): Bus.Subscription {
     subscribers.add(block)
+    return object : Bus.Subscription {
+      override fun close() {
+        subscribers.remove(block)
+      }
+    }
   }
 }

@@ -1,10 +1,13 @@
 package eventDemo.libs.bus
 
 import com.rabbitmq.client.ConnectionFactory
-import io.kotest.assertions.nondeterministic.until
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
-import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.string.shouldStartWith
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
@@ -19,7 +22,6 @@ class BusTest :
         ConnectionFactory().apply {
           host = "localhost"
           port = 5672
-          virtualHost = virtualHost
           username = "event-demo"
           password = "changeit"
         }
@@ -29,24 +31,24 @@ class BusTest :
           BusInRabbitMQ::class.java.simpleName to
             BusInRabbitMQ(
               factory,
-              "testQueue",
+              "testExchange",
               { it.value },
               { ObjTest(it) },
             ),
         )
 
       withData(list) { bus ->
-        val value = "hello${Random.nextInt()}"
-        var isCalled = false
+        val spy = spyk(mockk<() -> Unit>())
 
         bus.subscribe { obj ->
-          isCalled = true
-          obj.value shouldBeEqual value
+          spy()
+          obj.value shouldStartWith "testMessage"
         }
-        bus.publish(ObjTest(value))
+        bus.publish(ObjTest("testMessage${Random.nextInt()}"))
+        bus.publish(ObjTest("testMessage${Random.nextInt()}"))
 
-        until(3.seconds) {
-          isCalled shouldBeEqual true
+        eventually(1.seconds) {
+          verify(exactly = 2) { spy() }
         }
       }
     }

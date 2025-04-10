@@ -1,5 +1,6 @@
 package eventDemo
 
+import com.zaxxer.hikari.HikariDataSource
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
 import eventDemo.configuration.business.configureGameListener
@@ -26,10 +27,12 @@ fun Deck.allCards(): Set<Card> =
 suspend fun <T> testKoinApplicationWithConfig(block: suspend Koin.() -> T): T =
   koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration())) }
     .koin
-    .apply {
+    .run {
       cleanDataTest()
       configureGameListener()
-    }.block()
+      block()
+        .apply { get<HikariDataSource>().close() }
+    }
 
 @KtorDsl
 fun testApplicationWithConfig(
@@ -53,14 +56,14 @@ fun testApplicationWithConfig(
 }
 
 fun DataSource.cleanEventSource() {
-  this.connection
-    .prepareStatement(
-      """
-      truncate event_stream;
-      """.trimIndent(),
-    ).use {
-      it.execute()
-    }
+  this.connection.use {
+    it
+      .prepareStatement(
+        """
+        truncate event_stream;
+        """.trimIndent(),
+      ).execute()
+  }
 }
 
 fun UnifiedJedis.cleanProjections() {

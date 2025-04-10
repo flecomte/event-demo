@@ -48,6 +48,12 @@ private fun DefaultWebSocketServerSession.runWebSocket(
   val currentPlayer = call.getPlayer()
   val outgoingFrameChannel: SendChannel<Notification> = fromFrameChannel(outgoing)
   withLoggingContext("currentPlayer" to currentPlayer.toString()) {
+    val notificationListener =
+      playerNotificationListener.startListening(
+        currentPlayer,
+        gameId,
+      ) { outgoingFrameChannel.trySendBlocking(it) }
+
     // TODO change GlobalScope
     GlobalScope.launch {
       commandHandler.handle(
@@ -56,12 +62,8 @@ private fun DefaultWebSocketServerSession.runWebSocket(
         toObjectChannel(incoming),
         outgoingFrameChannel,
       )
+      notificationListener.close()
     }
-
-    playerNotificationListener.startListening(
-      currentPlayer,
-      gameId,
-    ) { outgoingFrameChannel.trySendBlocking(it) }
   }
 }
 
