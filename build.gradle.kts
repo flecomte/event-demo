@@ -72,8 +72,8 @@ tasks.named("run") {
 tasks.register<Copy>("copyEnv") {
   group = "docker"
   description = "copy the default dotenv file"
-  from("/docker")
-  into("/docker")
+  from("docker")
+  into("docker")
   rename {
     it.removeSuffix(".template")
   }

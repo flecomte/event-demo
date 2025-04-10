@@ -33,13 +33,13 @@ jobs:
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x gradlew
 
-      - name: Run KtLint
+      - name: Lint
         run: ./gradlew ktlintCheck
 
       - name: Start CI Docker Compose services
         run: ./gradlew composeUp -Pci
 
-      - name: Run tests
+      - name: Test
         run: ./gradlew test --no-daemon
 
       - name: Upload test reports
