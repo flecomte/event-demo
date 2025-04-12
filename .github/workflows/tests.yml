@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -73,7 +77,6 @@ jobs:
         if: always()
         with:
           report-path: build/reports/ktlint/**/*.xml
-#          ignore-warnings: true # Ignore Lint Warnings
         continue-on-error: false
 
   test:
