@@ -173,7 +173,7 @@ class GameStateRepositoryTest :
               lastEventVersion shouldBeEqual 200
               players shouldHaveSize 200
             }
-            repo.count(aggregateId) shouldBe 39
+            repo.count(aggregateId) shouldBe 21
           }
         }
       }

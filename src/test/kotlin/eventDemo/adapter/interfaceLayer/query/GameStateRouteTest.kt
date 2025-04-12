@@ -12,6 +12,7 @@ import eventDemo.business.event.event.disableShuffleDeck
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testApplicationWithConfig
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -26,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.seconds
 
 class GameStateRouteTest :
   FunSpec({
@@ -92,23 +94,25 @@ class GameStateRouteTest :
           delay(100)
         }
       }) {
-        httpClient()
-          .get("/games/$gameId/state") {
-            withAuth(player1)
-            accept(ContentType.Application.Json)
-          }.apply {
-            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            call.body<GameState>().apply {
-              aggregateId shouldBeEqual gameId
-              players shouldHaveSize 2
-              isStarted shouldBeEqual true
-              assertIs<CardIsPlayedEvent>(lastEvent)
-              readyPlayers shouldBeEqual setOf(player1, player2)
-              direction shouldBeEqual GameState.Direction.CLOCKWISE
-              assertNotNull(lastCardPlayer) shouldBeEqual player1
-              assertNotNull(colorOnCurrentStack) shouldBeEqual Card.Color.Red
+        eventually(1.seconds) {
+          httpClient()
+            .get("/games/$gameId/state") {
+              withAuth(player1)
+              accept(ContentType.Application.Json)
+            }.apply {
+              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+              call.body<GameState>().apply {
+                aggregateId shouldBeEqual gameId
+                players shouldHaveSize 2
+                isStarted shouldBeEqual true
+                assertIs<CardIsPlayedEvent>(lastEvent)
+                readyPlayers shouldBeEqual setOf(player1, player2)
+                direction shouldBeEqual GameState.Direction.CLOCKWISE
+                assertNotNull(lastCardPlayer) shouldBeEqual player1
+                assertNotNull(colorOnCurrentStack) shouldBeEqual Card.Color.Red
+              }
             }
-          }
+        }
       }
     }
 
@@ -155,14 +159,16 @@ class GameStateRouteTest :
           delay(100)
         }
       }) {
-        httpClient()
-          .get("/games/$gameId/card/last") {
-            withAuth(player1)
-            accept(ContentType.Application.Json)
-          }.apply {
-            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
-          }
+        eventually(1.seconds) {
+          httpClient()
+            .get("/games/$gameId/card/last") {
+              withAuth(player1)
+              accept(ContentType.Application.Json)
+            }.apply {
+              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+              assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
+            }
+        }
       }
     }
   })

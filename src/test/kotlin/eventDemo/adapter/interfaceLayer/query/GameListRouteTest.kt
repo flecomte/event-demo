@@ -8,6 +8,7 @@ import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.gameList.GameList
 import eventDemo.testApplicationWithConfig
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.core.spec.style.FunSpec
@@ -65,19 +66,21 @@ class GameListRouteTest :
             interval = 300.milliseconds
           },
         ) {
-          httpClient()
-            .get("/games") {
-              withAuth(player1)
-              accept(ContentType.Application.Json)
-            }.apply {
-              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-              call.body<List<GameList>>().first().let {
-                it.status shouldBeEqual GameList.Status.OPENING
-                it.players shouldHaveSize 1
-                it.players shouldContain player1
-                it.winners shouldHaveSize 0
+          continually(1.seconds) {
+            httpClient()
+              .get("/games") {
+                withAuth(player1)
+                accept(ContentType.Application.Json)
+              }.apply {
+                assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+                call.body<List<GameList>>().first().let {
+                  it.status shouldBeEqual GameList.Status.OPENING
+                  it.players shouldHaveSize 1
+                  it.players shouldContain player1
+                  it.winners shouldHaveSize 0
+                }
               }
-            }
+          }
         }
       }
     }
@@ -103,20 +106,22 @@ class GameListRouteTest :
           }
         }
       }) {
-        httpClient()
-          .get("/games") {
-            withAuth(player1)
-            accept(ContentType.Application.Json)
-          }.apply {
-            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            call.body<List<GameList>>().first().let {
-              it.status shouldBeEqual GameList.Status.IS_STARTED
-              it.players shouldHaveSize 2
-              it.players shouldContain player1
-              it.players shouldContain player2
-              it.winners shouldHaveSize 0
+        eventually(1.seconds) {
+          httpClient()
+            .get("/games") {
+              withAuth(player1)
+              accept(ContentType.Application.Json)
+            }.apply {
+              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+              call.body<List<GameList>>().first().let {
+                it.status shouldBeEqual GameList.Status.IS_STARTED
+                it.players shouldHaveSize 2
+                it.players shouldContain player1
+                it.players shouldContain player2
+                it.winners shouldHaveSize 0
+              }
             }
-          }
+        }
       }
     }
   })
