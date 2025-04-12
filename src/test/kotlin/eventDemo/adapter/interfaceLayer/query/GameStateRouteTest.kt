@@ -8,6 +8,7 @@ import eventDemo.business.event.event.CardIsPlayedEvent
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
+import eventDemo.business.event.event.disableShuffleDeck
 import eventDemo.business.event.projection.gameState.GameState
 import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testApplicationWithConfig
@@ -28,31 +29,96 @@ import kotlin.test.assertNotNull
 
 class GameStateRouteTest :
   FunSpec({
-    test("/games/{id}/state on empty game") {
+    test("""The route "/games/{id}/state" should returns a non started game when is not exist""") {
       testApplicationWithConfig {
-        val id = GameId()
+        val gameId = GameId()
         val player1 = Player(name = "Nikola")
 
         httpClient()
-          .get("/games/$id/state") {
+          .get("/games/$gameId/state") {
             withAuth(player1)
             accept(ContentType.Application.Json)
           }.apply {
             assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-            val state = call.body<GameState>()
-            id shouldBeEqual state.aggregateId
-            state.players shouldHaveSize 0
-            state.isStarted shouldBeEqual false
+            call.body<GameState>().apply {
+              aggregateId shouldBeEqual gameId
+              players shouldHaveSize 0
+              isStarted shouldBeEqual false
+            }
           }
       }
     }
 
-    test("/games/{id}/card/last") {
+    test("""The route "/games/{id}/state" should returns the state with all informations""") {
       val gameId = GameId()
       val player1 = Player(name = "Nikola")
       val player2 = Player(name = "Einstein")
       var lastPlayedCard: Card? = null
       testApplicationWithConfig({
+        disableShuffleDeck()
+        val eventHandler = get<GameEventHandler>()
+        val stateRepo = get<GameStateRepository>()
+
+        runBlocking {
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+          eventHandler.handle(gameId) {
+            GameStartedEvent.new(
+              gameId,
+              setOf(player1, player2),
+              it,
+              shuffleIsDisabled = true,
+            )
+          }
+          delay(100)
+          lastPlayedCard = stateRepo.getLast(gameId).playableCards(player1).first()
+          assertNotNull(lastPlayedCard)
+            .let { assertIs<Card.NumericCard>(lastPlayedCard) }
+            .let {
+              it.number shouldBeEqual 0
+              it.color shouldBeEqual Card.Color.Red
+            }
+          delay(100)
+          eventHandler.handle(gameId) {
+            CardIsPlayedEvent(
+              gameId,
+              assertNotNull(lastPlayedCard),
+              player1,
+              it,
+            )
+          }
+          delay(100)
+        }
+      }) {
+        httpClient()
+          .get("/games/$gameId/state") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            call.body<GameState>().apply {
+              aggregateId shouldBeEqual gameId
+              players shouldHaveSize 2
+              isStarted shouldBeEqual true
+              assertIs<CardIsPlayedEvent>(lastEvent)
+              readyPlayers shouldBeEqual setOf(player1, player2)
+              direction shouldBeEqual GameState.Direction.CLOCKWISE
+              assertNotNull(lastCardPlayer) shouldBeEqual player1
+              assertNotNull(colorOnCurrentStack) shouldBeEqual Card.Color.Red
+            }
+          }
+      }
+    }
+
+    test("""The route "/games/{id}/card/last" should return the last card played of the game""") {
+      val gameId = GameId()
+      val player1 = Player(name = "Nikola")
+      val player2 = Player(name = "Einstein")
+      var lastPlayedCard: Card? = null
+      testApplicationWithConfig({
+        disableShuffleDeck()
         val eventHandler = get<GameEventHandler>()
         val stateRepo = get<GameStateRepository>()
 
