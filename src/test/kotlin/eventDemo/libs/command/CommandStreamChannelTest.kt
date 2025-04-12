@@ -1,5 +1,6 @@
 package eventDemo.libs.command
 
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import io.mockk.verify
@@ -8,6 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 class CommandTest(
@@ -34,6 +36,9 @@ class CommandStreamChannelTest :
       }
 
       channel.send(command)
-      verify(exactly = 1) { spyCall() }
+
+      eventually(3.seconds) {
+        verify(exactly = 1) { spyCall() }
+      }
     }
   })
