@@ -1,5 +1,7 @@
 @file:Suppress("PropertyName")
 
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val kotlin_serialization_version: String by project
@@ -26,8 +28,13 @@ application {
   applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+configure<KtlintExtension> {
   version.set("1.5.0")
+}
+ktlint {
+  reporters {
+    reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+  }
 }
 
 repositories {

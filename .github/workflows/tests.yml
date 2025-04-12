@@ -68,6 +68,14 @@ jobs:
       - name: Run lint
         run: ./gradlew ktlintCheck
 
+      - name: Publish ktlint report
+        uses: yutailang0119/action-ktlint@v4
+        if: always()
+        with:
+          report-path: build/reports/ktlint/**/*.xml
+#          ignore-warnings: true # Ignore Lint Warnings
+        continue-on-error: false
+
   test:
     needs: build
     runs-on: ubuntu-latest
