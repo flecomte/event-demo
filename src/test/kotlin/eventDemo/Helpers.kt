@@ -72,4 +72,5 @@ fun UnifiedJedis.cleanProjections() {
 
 fun Koin.cleanDataTest() {
   get<DataSource>().cleanEventSource()
+  get<UnifiedJedis>().cleanProjections()
 }
