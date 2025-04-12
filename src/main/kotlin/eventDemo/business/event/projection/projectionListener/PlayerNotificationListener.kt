@@ -31,6 +31,9 @@ class PlayerNotificationListener(
 ) {
   private val logger = KotlinLogging.logger {}
 
+  /**
+   * Forward projection from [bus][GameProjectionBus] to the player [notification][outgoingNotification]
+   */
   fun startListening(
     currentPlayer: Player,
     gameId: GameId,
@@ -39,7 +42,7 @@ class PlayerNotificationListener(
     return projectionBus.subscribe { currentState ->
       if (currentState !is GameState) return@subscribe
       if (currentState.aggregateId != gameId) return@subscribe
-      withLoggingContext("projection" to currentState.toString()) {
+      withLoggingContext("currentPlayer" to currentPlayer.toString(), "projection" to currentState.toString()) {
         fun Notification.send() {
           withLoggingContext("notification" to this.toString()) {
             if (currentState.players.contains(currentPlayer)) {
