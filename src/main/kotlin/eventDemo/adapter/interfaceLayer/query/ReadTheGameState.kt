@@ -1,11 +1,10 @@
 package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.business.entity.GameId
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.configuration.serializer.GameIdSerializer
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond

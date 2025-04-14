@@ -11,7 +11,7 @@ import eventDemo.business.event.event.PlayerHavePassEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.PlayerWinEvent
 import eventDemo.business.event.projection.GameProjectionBus
-import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.GameState
 import eventDemo.business.notification.ItsTheTurnOfNotification
 import eventDemo.business.notification.Notification
 import eventDemo.business.notification.PlayerAsJoinTheGameNotification

@@ -1,8 +1,7 @@
 package eventDemo.adapter.interfaceLayer.query
 
-import eventDemo.business.event.projection.gameList.GameListRepository
+import eventDemo.business.event.projection.GameListRepository
 import io.ktor.resources.Resource
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond

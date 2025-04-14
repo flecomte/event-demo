@@ -3,7 +3,7 @@ package eventDemo.business.command.action
 import eventDemo.business.command.CommandException
 import eventDemo.business.command.command.IamReadyToPlayCommand
 import eventDemo.business.event.event.PlayerReadyEvent
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameStateRepository
 
 /**
  * A command to set as ready to play

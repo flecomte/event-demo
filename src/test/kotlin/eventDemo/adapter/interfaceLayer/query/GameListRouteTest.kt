@@ -6,7 +6,7 @@ import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
-import eventDemo.business.event.projection.gameList.GameList
+import eventDemo.business.event.projection.GameList
 import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec

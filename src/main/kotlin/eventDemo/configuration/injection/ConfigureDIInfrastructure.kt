@@ -6,13 +6,13 @@ import com.zaxxer.hikari.HikariDataSource
 import eventDemo.adapter.infrastructureLayer.event.GameEventBusInRabbinMQ
 import eventDemo.adapter.infrastructureLayer.event.GameEventStoreInPostgresql
 import eventDemo.adapter.infrastructureLayer.event.projection.GameListRepositoryInRedis
-import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInMemory
+import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusInRabbitMQ
 import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInRedis
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventStore
+import eventDemo.business.event.projection.GameListRepository
 import eventDemo.business.event.projection.GameProjectionBus
-import eventDemo.business.event.projection.gameList.GameListRepository
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -62,7 +62,7 @@ fun Module.configureDIInfrastructure(config: Configuration) {
 
   singleOf(::GameEventBusInRabbinMQ) bind GameEventBus::class
   singleOf(::GameEventStoreInPostgresql) bind GameEventStore::class
-  singleOf(::GameProjectionBusInMemory) bind GameProjectionBus::class
+  singleOf(::GameProjectionBusInRabbitMQ) bind GameProjectionBus::class
 
   single {
     GameStateRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())

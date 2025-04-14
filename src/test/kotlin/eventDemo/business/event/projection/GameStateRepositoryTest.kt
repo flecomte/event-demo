@@ -9,8 +9,6 @@ import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.NewPlayerEvent
-import eventDemo.business.event.projection.gameState.GameState
-import eventDemo.business.event.projection.gameState.GameStateRepository
 import eventDemo.testKoinApplicationWithConfig
 import eventDemo.withLogLevel
 import io.kotest.assertions.nondeterministic.eventually

@@ -3,7 +3,7 @@ package eventDemo.business.command.action
 import eventDemo.business.command.CommandException
 import eventDemo.business.command.command.ICantPlayCommand
 import eventDemo.business.event.event.PlayerHavePassEvent
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameStateRepository
 
 /**
  * A command to perform an action to play a new card

@@ -1,8 +1,5 @@
 package eventDemo.business.entity
 
-import eventDemo.business.entity.Card
-import eventDemo.business.entity.Player
-import eventDemo.business.entity.PlayersHands
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import kotlin.test.assertNotNull

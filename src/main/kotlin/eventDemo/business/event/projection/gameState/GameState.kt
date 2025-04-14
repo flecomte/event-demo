@@ -1,4 +1,4 @@
-package eventDemo.business.event.projection.gameState
+package eventDemo.business.event.projection
 
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.Deck
@@ -25,7 +25,7 @@ data class GameState(
   val isStarted: Boolean = false,
   val playerWins: Set<Player> = emptySet(),
   val lastEvent: GameEvent? = null,
-) : Projection<GameId> {
+) : GameProjection {
   enum class Direction {
     CLOCKWISE,
     COUNTER_CLOCKWISE,

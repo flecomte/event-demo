@@ -1,4 +1,4 @@
-package eventDemo.business.event.projection.gameList
+package eventDemo.business.event.projection
 
 import eventDemo.business.event.event.CardIsPlayedEvent
 import eventDemo.business.event.event.GameEvent

@@ -3,11 +3,11 @@ package eventDemo.adapter.infrastructureLayer.event.projection
 import eventDemo.business.entity.GameId
 import eventDemo.business.event.GameEventBus
 import eventDemo.business.event.GameEventStore
+import eventDemo.business.event.projection.GameList
+import eventDemo.business.event.projection.GameListRepository
 import eventDemo.business.event.projection.GameProjectionBus
-import eventDemo.business.event.projection.gameList.GameList
-import eventDemo.business.event.projection.gameList.GameListRepository
-import eventDemo.business.event.projection.gameList.apply
-import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.apply
 import eventDemo.libs.event.projection.ProjectionSnapshotRepositoryInRedis
 import eventDemo.libs.event.projection.SnapshotConfig
 import io.github.oshai.kotlinlogging.withLoggingContext

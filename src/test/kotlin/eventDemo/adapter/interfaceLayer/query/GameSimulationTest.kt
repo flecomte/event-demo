@@ -12,7 +12,7 @@ import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.event.disableShuffleDeck
-import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.GameState
 import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.ItsTheTurnOfNotification

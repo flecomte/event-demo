@@ -5,7 +5,6 @@ import com.auth0.jwt.algorithms.Algorithm
 import eventDemo.business.entity.Player
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.auth.authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt

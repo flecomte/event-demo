@@ -4,7 +4,7 @@ import eventDemo.adapter.infrastructureLayer.event.projection.GameProjectionBusI
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
 import eventDemo.business.event.event.NewPlayerEvent
-import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.GameState
 import eventDemo.business.notification.WelcomeToTheGameNotification
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk

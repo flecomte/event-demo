@@ -5,7 +5,7 @@ import eventDemo.business.event.GameEventHandler
 import eventDemo.business.event.event.GameStartedEvent
 import eventDemo.business.event.event.PlayerWinEvent
 import eventDemo.business.event.projection.GameProjectionBus
-import eventDemo.business.event.projection.gameState.GameState
+import eventDemo.business.event.projection.GameState
 import eventDemo.libs.event.projection.Projection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext

@@ -8,8 +8,8 @@ import eventDemo.business.event.event.CardIsPlayedEvent
 import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.event.disableShuffleDeck
-import eventDemo.business.event.projection.gameState.GameState
-import eventDemo.business.event.projection.gameState.GameStateRepository
+import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
