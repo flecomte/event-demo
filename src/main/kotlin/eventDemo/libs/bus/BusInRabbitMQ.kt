@@ -6,6 +6,7 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.runBlocking
 
@@ -15,6 +16,8 @@ class BusInRabbitMQ<E>(
   private val objectToString: (E) -> String,
   private val stringToObject: (String) -> E,
 ) : Bus<E> {
+  private val logger = KotlinLogging.logger { }
+
   private val connection: Connection = connectionFactory.newConnection()
     get() {
       return if (field.isOpen) {
@@ -50,6 +53,7 @@ class BusInRabbitMQ<E>(
           objectToString(item).toByteArray(),
         )
       }
+    logger.info { "Item sent to the bus" }
   }
 
   override fun subscribe(block: suspend (E) -> Unit): Bus.Subscription {

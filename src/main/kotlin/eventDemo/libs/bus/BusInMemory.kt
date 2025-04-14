@@ -13,7 +13,7 @@ class BusInMemory<E>(
 
   override suspend fun publish(item: E) {
     withLoggingContext("busItem" to item.toString()) {
-      logger.info { "Item sent to the bus: $item" }
+      logger.info { "Item sent to the bus" }
       subscribers
         .forEach {
           coroutineScope {

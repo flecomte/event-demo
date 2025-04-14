@@ -7,7 +7,7 @@ interface ProjectionSnapshotRepository<E : Event<ID>, P : Projection<ID>, ID : A
   /**
    * Create a snapshot for the event
    */
-  fun applyAndPutToCache(event: E): P
+  suspend fun applyAndPutToCache(event: E): P
 
   fun count(aggregateId: ID): Int
 

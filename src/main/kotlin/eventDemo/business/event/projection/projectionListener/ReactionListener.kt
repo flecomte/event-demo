@@ -30,7 +30,10 @@ class ReactionListener(
         }
       }
     } else {
-      logger.error { "${this::class.simpleName} is already init for this bus" }
+      "${this::class.simpleName} is already init for this bus".let {
+        logger.error { it }
+        error(it)
+      }
     }
   }
 

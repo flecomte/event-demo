@@ -32,7 +32,7 @@ class ProjectionSnapshotRepositoryInMemory<E : Event<ID>, P : Projection<ID>, ID
    * 5. save it
    * 6. remove old one
    */
-  override fun applyAndPutToCache(event: E): P =
+  override suspend fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
         withLoggingContext("projection" to it.toString()) {

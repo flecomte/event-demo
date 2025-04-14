@@ -48,7 +48,6 @@ fun testApplicationWithConfig(
     application {
       val koin = getKoin()
       koin.cleanDataTest()
-      koin.configureGameListener()
       configBuilder(koin)
     }
     block()

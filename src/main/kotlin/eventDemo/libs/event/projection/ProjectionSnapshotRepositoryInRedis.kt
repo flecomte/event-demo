@@ -33,7 +33,7 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
    * 5. save it
    * 6. remove old one
    */
-  override fun applyAndPutToCache(event: E): P =
+  override suspend fun applyAndPutToCache(event: E): P =
     getUntil(event)
       .also {
         withLoggingContext(mapOf("projection" to it.toString(), "event" to event.toString())) {
@@ -131,16 +131,13 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
   }
 
   private fun save(projection: P) {
-    repeat(5) {
-      val added = jedis.zadd(projection.redisKey, projection.lastEventVersion.toDouble(), projectionToJson(projection))
-      if (added < 1) {
-        logger.error { "Projection NOT saved" }
-      } else {
-        logger.info { "Projection saved" }
-        return
-      }
+    val added = jedis.zadd(projection.redisKey, projection.lastEventVersion.toDouble(), projectionToJson(projection))
+    if (added < 1) {
+      logger.error { "Projection NOT saved (already exists)" }
+    } else {
+      logger.info { "Projection saved" }
+      jedis.expire(projection.redisKey, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
     }
-    jedis.expire(projection.redisKey, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
   }
 
   /**
@@ -195,7 +192,7 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
             it.last.toDouble(),
           ).also { removedCount ->
             if (removedCount > 0) {
-              logger.info {
+              logger.debug {
                 "$removedCount snapshot removed Modulo(${snapshotCacheConfig.modulo}) (${it.first} to ${it.last}) [lastVersion=$lastVersion]"
               }
             }

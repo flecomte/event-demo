@@ -158,7 +158,7 @@ class ProjectionSnapshotRepositoryTest :
         val versionBuilder = VersionBuilderLocal()
         val aggregateId = IdTest()
 
-        fun buildEndSendEventX() {
+        suspend fun buildEndSendEventX() {
           EventXTest(num = 1, version = versionBuilder.buildNextVersion(aggregateId), aggregateId = aggregateId)
             .also { eventStore.publish(it) }
             .also { repo.applyAndPutToCache(it) }
