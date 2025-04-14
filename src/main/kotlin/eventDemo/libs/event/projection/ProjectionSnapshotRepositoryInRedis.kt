@@ -136,7 +136,9 @@ class ProjectionSnapshotRepositoryInRedis<E : Event<ID>, P : Projection<ID>, ID 
       logger.error { "Projection NOT saved (already exists)" }
     } else {
       logger.info { "Projection saved" }
-      jedis.expire(projection.redisKey, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
+      if (snapshotCacheConfig.maxSnapshotCacheTtl.isFinite()) {
+        jedis.expire(projection.redisKey, snapshotCacheConfig.maxSnapshotCacheTtl.inWholeSeconds)
+      }
     }
   }
 
