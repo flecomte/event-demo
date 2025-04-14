@@ -10,7 +10,7 @@ Installation
 To run the stack:
 
 ```shell
-docker compose -f docker\docker-compose.yaml -p event-demo up -d
+docker compose -f docker\docker-compose-prod.yaml -p event-demo up -d
 ```
 
 Api url:
@@ -56,11 +56,23 @@ What's in this demo
 The stack
 ---------
 
+Language
 - Kotlin
+
+Framwork
 - Ktor
+
+Database
 - Postgresql
+  - with Flyway
 - Redis
 - RabbitMQ
+
+Infra
 - Docker
 - Træfik
-- Flyway
+
+Architecture
+============
+
+[Diagram](./doc/Workflow.puml)

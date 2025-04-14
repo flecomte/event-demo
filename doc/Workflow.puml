@@ -1,0 +1,84 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+package Legend {
+    usecase (Queries) #7693C4
+    usecase (Projections) #AB64C9
+    usecase (Events) #5FAD56
+}
+
+actor  User
+entity Query #7693C4
+
+entity Command #5FAD56
+entity Event #5FAD56
+entity Projection #AB64C9
+
+database  Postgresql
+database  Redis
+queue     RabbitMQ
+
+usecase  (Web socket adapter) #5FAD56
+usecase  (Command handler) #5FAD56
+usecase/ (Action) #5FAD56
+usecase  (Event handler) #5FAD56
+usecase  (Version builder) #5FAD56
+usecase  (Event store) #5FAD56
+usecase  (Event stream) #5FAD56
+usecase  (Event bus) #5FAD56
+usecase/ (Reaction listener) #5FAD56
+
+usecase/ (Projection builder) #AB64C9
+usecase  (Projection repository) #AB64C9
+usecase  (Projection bus) #AB64C9
+
+usecase  (Controller) #7693C4
+
+User -> Query : <<create>>
+Command <- User : <<create>>
+User ---> (Controller) : Get \nprojection
+User <-- (Controller) : Returns \nprojection
+
+(Controller) --------> (Projection repository) : Get \nprojection
+
+User -> (Web socket adapter) : Send \ncommand
+(Web socket adapter) --> (Command handler) : Send \ncommand
+(Web socket adapter) ...> User : Send notification \n(error or success)
+
+(Command handler) ..> (Web socket adapter) : Send \nnotification
+(Command handler) -> (Action) : Execute action
+(Command handler) <- (Action) : Returns \nevent builder
+(Command handler) ---> (Event handler) : Dispatch \nevent \n(send an event builder)
+(Command handler) --> Event : <<Create>>
+
+(Event handler) --> (Event store) : Publish \nevent
+(Event handler) <-- (Reaction listener) : Dispatch \n new event
+(Version builder) <- (Event handler) : build next version
+note "Acquire a lock, \nget the next event version, \nand then, build the event " as EventHandlerNote
+EventHandlerNote <-- (Event handler)
+
+(Event store) -left-> (Event stream)
+(Event store) ---> (Event bus) : Publish \nevent
+
+(Event stream) --> Postgresql : Persist \nevent
+(Event bus) -> RabbitMQ : Publish \nevent
+(Event bus) -> RabbitMQ : Subscribe \nto event
+(Event bus) <. RabbitMQ : Emit event
+
+(Reaction listener) ---> (Projection bus) : Subscribe
+(Reaction listener) <.. (Projection bus) : Emit projection
+
+(Projection bus) <- (Projection repository) : Publish \nprojection
+RabbitMQ <- (Projection bus) : Publish \nprojection
+RabbitMQ <- (Projection bus) : Subscribe \nto projection
+RabbitMQ .> (Projection bus) : Emit projection
+
+(Event bus) <---- (Projection repository) : Subscribe
+(Event bus) ..> (Projection repository) : Emit event
+
+(Projection repository) --> Redis : Persist \nprojection
+(Projection repository) <- Redis : Get \nprojection
+(Projection repository) -> (Projection builder) : Build \nprojection
+
+(Projection builder) --> Projection : <<create projection>>
+@enduml
