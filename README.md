@@ -1,32 +1,21 @@
-Event demo
+Event Demo
 ==========
-- [Installation](#installation)
+- [Installation](./doc/installation.md)
+- [What's the demo for ?](#whats-the-demo-for-)
 - [What's in this demo](#whats-in-this-demo)
+- [The stack](#the-stack)
 
 
-Installation
-------------
+What's the demo for ?
+--------------------
 
-To run the stack:
+This demo is intended to demonstrate the implementation 
+of different patterns and architectures.
 
-```shell
-docker compose -f docker\docker-compose-prod.yaml -p event-demo up -d
-```
-
-Api url:
-- [Backend API](http://api.traefik.me/)
-- [Frontend web site](http://app.traefik.me/) (WIP)
-
-Exposed url on test env:
-- [PostgreSql](http://localhost:5432/)
-- [Redis](http://localhost:6379/)
-- [RabbitMQ](http://localhost:15672/)
-
-Admin service URL:
-- [Træfik dashboard](http://traefik.traefik.me/)
-- [Redis insight](http://insight.redis.traefik.me/)
-- [pgAdmin](http://pgadmin.postgresql.traefik.me/)
-- [RabbitMQ management](http://management.rabbitmq.traefik.me/)
+- The Event sourcing pattern.
+- The Event driver pattern.
+- The CQRS pattern.
+- With the Hexagonal architecture.
 
 
 What's in this demo
@@ -59,7 +48,7 @@ The stack
 Language
 - Kotlin
 
-Framwork
+Framework
 - Ktor
 
 Database
