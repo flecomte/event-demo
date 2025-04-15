@@ -4,6 +4,7 @@ Event Demo
 - [What's the demo for ?](#whats-the-demo-for-)
 - [What's in this demo](#whats-in-this-demo)
 - [The stack](#the-stack)
+- [Architecture](./doc/architecture.md)
 
 
 What's the demo for ?
@@ -60,9 +61,3 @@ Database
 Infra
 - Docker
 - Træfik
-
-Architecture
-============
-
-- [Workflow Diagram](./doc/Workflow.puml)
-- [Entities and Projections Diagram](./doc/Entities.puml)
