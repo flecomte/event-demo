@@ -1,0 +1,93 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+left to right direction
+
+class GameList <<Projection>> {
+  + status: Status
+}
+class GameState <<Projection>> {
+  + players: List<Player>
+  + currentPlayerTurn: Player
+  + lastCardPlayer: Player
+  + colorOnCurrentStack: Color
+  + direction: Direction
+  + readyPlayers: List<Player>
+  + deck: Deck
+  + isStarted: Boolean
+  + playerWins: List<Player>
+}
+interface Card {
+  + id: UUID
+}
+enum Color {
+  + Blue
+  + Red
+  + Yellow
+  + Green
+}
+class GameId {
+  + id: UUID
+}
+class Player {
+  + id: PlayerId
+  + name: String
+}
+class Deck {
+  + stack: Stack
+  + discard: Discard
+  + playersHands: PlayersHands
+}
+class Stack {
+  + cards: List<Card>
+  + shuffle()
+}
+class Discard {
+  + cards: List<Card>
+}
+class PlayerHands {
+  + map: Map<PlayerId, List<Card>>
+}
+
+class NumericCard {
+  + number: Int
+  + color: Color
+}
+class ReverseCard {
+  + color: Color
+}
+class PassCard {
+  + color: Color
+}
+class Plus2Card {
+  + color: Color
+}
+class Plus4Card
+class ChangeColorCard
+
+GameState *-- Deck
+GameState o-- "many" Player
+Deck *-- PlayerHands
+PlayerHands *-- "many" Card
+PlayerHands o-- "many" Player
+Stack *-- "many" Card
+Discard *-- "many" Card
+Deck *-- Stack
+Deck *-- Discard
+GameState *-- GameId
+Card <|--- NumericCard
+Card <|--- ReverseCard
+Card <|--- PassCard
+Card <|--- ChangeColorCard
+Card <|--- Plus2Card
+Card <|--- Plus4Card
+
+ReverseCard o-- Color
+NumericCard o-- Color
+PassCard o-- Color
+Plus2Card o-- Color
+
+GameList *-- GameId
+GameList o-- "many" Player
+
+@enduml

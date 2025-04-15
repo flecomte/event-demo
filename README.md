@@ -75,4 +75,5 @@ Infra
 Architecture
 ============
 
-[Diagram](./doc/Workflow.puml)
+- [Workflow Diagram](./doc/Workflow.puml)
+- [Entities and Projections Diagram](./doc/Entities.puml)
