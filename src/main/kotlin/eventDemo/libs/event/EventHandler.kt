@@ -1,7 +1,4 @@
-package eventDemo.business.event
-
-import eventDemo.libs.event.AggregateId
-import eventDemo.libs.event.Event
+package eventDemo.libs.event
 
 /**
  * A stream to publish and read the played card event.
