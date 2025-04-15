@@ -69,10 +69,10 @@ class GameSimulationTest :
           // In the normal process, these handlers is invoque players connect to the websocket
           run {
             GlobalScope.launch(Dispatchers.IO) {
-              commandHandler.handle(player1, gameId, channelCommand1, channelNotification1)
+              commandHandler.handleIncomingPlayerCommands(player1, gameId, channelCommand1, channelNotification1)
             }
             GlobalScope.launch(Dispatchers.IO) {
-              commandHandler.handle(player2, gameId, channelCommand2, channelNotification2)
+              commandHandler.handleIncomingPlayerCommands(player2, gameId, channelCommand2, channelNotification2)
             }
           }
 

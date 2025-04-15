@@ -42,7 +42,7 @@ class GameCommandHandlerTest :
           ) { channelNotification.trySendBlocking(it) }
 
           GlobalScope.launch {
-            commandHandler.handle(
+            commandHandler.handleIncomingPlayerCommands(
               player,
               gameId,
               channelCommand,

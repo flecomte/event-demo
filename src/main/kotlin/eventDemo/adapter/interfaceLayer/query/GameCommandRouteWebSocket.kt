@@ -56,7 +56,7 @@ private fun DefaultWebSocketServerSession.runWebSocket(
 
     // TODO change GlobalScope
     GlobalScope.launch {
-      commandHandler.handle(
+      commandHandler.handleIncomingPlayerCommands(
         currentPlayer,
         gameId,
         toObjectChannel(incoming),
