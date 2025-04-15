@@ -15,8 +15,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Listen [GameCommand] on [CommandStreamChannel], check the validity and execute an action.
@@ -112,7 +116,9 @@ private fun SendChannel<Notification>.sendError(command: GameCommand): suspend (
 /**
  * Map to record the command that triggered the event.
  */
-private class EventCommandMap {
+private class EventCommandMap(
+  val retention: Duration = 10.minutes,
+) {
   val map = ConcurrentHashMap<UUID, Output>()
 
   fun set(
@@ -120,7 +126,12 @@ private class EventCommandMap {
     channel: SendChannel<Notification>,
     commandId: CommandId,
   ) {
-    map[eventId] = Output(channel, commandId)
+    map[eventId] = Output(channel, commandId, Clock.System.now())
+
+    map
+      .filterValues { it.date < (Clock.System.now() - retention) }
+      .keys
+      .forEach(map::remove)
   }
 
   operator fun get(eventId: UUID): Output? =
@@ -129,5 +140,6 @@ private class EventCommandMap {
   data class Output(
     val channel: SendChannel<Notification>,
     val commandId: CommandId,
+    val date: Instant,
   )
 }
