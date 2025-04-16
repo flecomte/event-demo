@@ -12,7 +12,7 @@ data class ICantPlay(
   private val gameStateRepository: GameStateRepository,
 ) : CommandAction<ICantPlayCommand, PlayerHavePassEvent> {
   override fun run(command: ICantPlayCommand): (version: Int) -> PlayerHavePassEvent {
-    val state = gameStateRepository.getLast(command.payload.aggregateId)
+    val state = gameStateRepository.get(command.payload.aggregateId)
 
     if (state.currentPlayerTurn != command.payload.player) {
       throw CommandException("Its not your turn!")

@@ -19,7 +19,7 @@ class EventHandlerImpl<E : Event<ID>, ID : AggregateId>(
   /**
    * Build Event then send it to the event store and bus.
    */
-  override suspend fun handle(
+  override fun handle(
     aggregateId: ID,
     buildEvent: (version: Int) -> E,
   ): E =
@@ -34,13 +34,9 @@ class EventHandlerImpl<E : Event<ID>, ID : AggregateId>(
             .also {
               withLoggingContext("event" to it.toString()) {
                 eventStore.publish(it)
+                eventBus.publish(it)
               }
             }
-        }.also { event ->
-          withLoggingContext("event" to event.toString()) {
-            // Publish to the bus
-            eventBus.publish(event)
-          }
         }
     }
 }

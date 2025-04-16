@@ -42,21 +42,19 @@ class BusInRabbitMQ<E>(
       }
   }
 
-  override suspend fun publish(item: E) {
+  override fun publish(item: E) {
     connection
       .createChannel()
-      .use {
-        it.basicPublish(
-          exchangeName,
-          routingKey,
-          AMQP.BasicProperties(),
-          objectToString(item).toByteArray(),
-        )
-      }
+      .basicPublish(
+        exchangeName,
+        routingKey,
+        AMQP.BasicProperties(),
+        objectToString(item).toByteArray(),
+      )
     logger.info { "Item sent to the bus" }
   }
 
-  override fun subscribe(block: suspend (E) -> Unit): Bus.Subscription {
+  override fun subscribe(block: (E) -> Unit): Bus.Subscription {
     connection
       .createChannel()
       .also { channel ->

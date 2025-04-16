@@ -13,7 +13,6 @@ import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.projection.GameListRepository
 import eventDemo.business.event.projection.GameProjectionBus
 import eventDemo.business.event.projection.GameStateRepository
-import eventDemo.libs.event.projection.SnapshotConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.scope.Scope
@@ -65,10 +64,10 @@ fun Module.configureDIInfrastructure(config: Configuration) {
   singleOf(::GameProjectionBusInRabbitMQ) bind GameProjectionBus::class
 
   single {
-    GameStateRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
+    GameStateRepositoryInRedis(get())
   } bind GameStateRepository::class
 
   single {
-    GameListRepositoryInRedis(get(), get(), snapshotConfig = SnapshotConfig())
+    GameListRepositoryInRedis(get())
   } bind GameListRepository::class
 }

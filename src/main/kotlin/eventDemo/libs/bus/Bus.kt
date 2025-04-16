@@ -1,13 +1,22 @@
 package eventDemo.libs.bus
 
 interface Bus<T> {
-  suspend fun publish(item: T)
+  /**
+   * Publish a new [message][item] to the bus.
+   */
+  fun publish(item: T)
 
   /**
-   * @param priority The higher the priority, the more it will be called first
+   * Subscribe a [lambda][block] to the bus.
+   *
+   * When a message is sent to the bus, the [block] is executed.
    */
-  fun subscribe(block: suspend (T) -> Unit): Subscription
+  fun subscribe(block: (T) -> Unit): Subscription
 
+  /**
+   * The returns of the [subscribe] method.
+   * It can be called to [cancel][close] the subscription.
+   */
   interface Subscription : AutoCloseable {
     override fun close()
   }

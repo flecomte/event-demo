@@ -34,7 +34,7 @@ class CommandStreamChannel<C : Command>(
     }
   }
 
-  private suspend fun runAndLogStatus(
+  private fun runAndLogStatus(
     command: C,
     action: CommandBlock<C>,
   ) {
@@ -47,4 +47,4 @@ class CommandStreamChannel<C : Command>(
   }
 }
 
-typealias CommandBlock<C> = suspend (C) -> Unit
+typealias CommandBlock<C> = (C) -> Unit

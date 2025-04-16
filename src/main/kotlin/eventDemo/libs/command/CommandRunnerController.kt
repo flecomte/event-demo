@@ -14,7 +14,7 @@ class CommandRunnerController<C : Command>(
 ) {
   private val executedCommand: ConcurrentHashMap<CommandId, Pair<Boolean, Instant>> = ConcurrentHashMap()
 
-  suspend fun runOnlyOnce(
+  fun runOnlyOnce(
     command: C,
     action: CommandBlock<C>,
   ) {

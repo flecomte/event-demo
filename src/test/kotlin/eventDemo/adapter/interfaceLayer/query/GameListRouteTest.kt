@@ -8,6 +8,7 @@ import eventDemo.business.event.event.NewPlayerEvent
 import eventDemo.business.event.event.PlayerReadyEvent
 import eventDemo.business.event.projection.GameList
 import eventDemo.testApplicationWithConfig
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -19,10 +20,11 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
+
+val logger = KotlinLogging.logger {}
 
 class GameListRouteTest :
   FunSpec({
@@ -30,7 +32,7 @@ class GameListRouteTest :
 
       testApplicationWithConfig {
         val player1 = Player(name = "Nikola")
-
+        logger.info { "Starting player1" }
         httpClient()
           .get("/games") {
             withAuth(player1)
@@ -48,16 +50,14 @@ class GameListRouteTest :
       val player1 = Player(name = "Nikola")
       testApplicationWithConfig(
         {
-          runBlocking {
-            get<GameEventHandler>()
-              .handle(gameId) {
-                NewPlayerEvent(gameId, player1, it)
-              }
-          }
+          get<GameEventHandler>()
+            .handle(gameId) {
+              NewPlayerEvent(gameId, player1, it)
+            }
         },
       ) {
         // Wait until the projection is created
-        eventually(1.seconds) {
+        eventually(3.seconds) {
           httpClient()
             .get("/games") {
               withAuth(player1)
@@ -81,19 +81,17 @@ class GameListRouteTest :
       val player2 = Player(name = "Einstein")
       testApplicationWithConfig({
         val eventHandler = get<GameEventHandler>()
-        runBlocking {
-          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
-          eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
-          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
-          eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-          eventHandler.handle(gameId) {
-            GameStartedEvent.new(
-              gameId,
-              setOf(player1, player2),
-              it,
-              shuffleIsDisabled = true,
-            )
-          }
+        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player1, it) }
+        eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
+        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
+        eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
+        eventHandler.handle(gameId) {
+          GameStartedEvent.new(
+            gameId,
+            setOf(player1, player2),
+            it,
+            shuffleIsDisabled = true,
+          )
         }
       }) {
         eventually(1.seconds) {

@@ -44,7 +44,7 @@ class CommandHandler<B : Bus<E>, E : Event<ID>, ID : AggregateId, C : Command>(
    *
    * It restricts to run only once the [command].
    */
-  suspend fun handle(
+  fun handle(
     aggregateId: ID,
     command: C,
     callback: CommandCallback<C>,
@@ -99,10 +99,10 @@ private class EventCommandMap<C : Command, E : Event<*>>(
     val event: E,
     val date: Instant,
   ) {
-    suspend operator fun invoke(error: CommandException? = null) {
+    operator fun invoke(error: CommandException? = null) {
       callback(command, error)
     }
   }
 }
 
-typealias CommandCallback<C> = suspend (command: C, error: CommandException?) -> Unit
+typealias CommandCallback<C> = (command: C, error: CommandException?) -> Unit

@@ -37,7 +37,7 @@ class ReactionListener(
     }
   }
 
-  private suspend fun sendStartGameEvent(state: GameState) {
+  private fun sendStartGameEvent(state: GameState) {
     if (state.isReady && !state.isStarted) {
       val reactionEvent =
         eventHandler.handle(state.aggregateId) {
@@ -54,7 +54,7 @@ class ReactionListener(
     }
   }
 
-  private suspend fun sendWinnerEvent(state: GameState) {
+  private fun sendWinnerEvent(state: GameState) {
     val winner = state.playerHasNoCardLeft().firstOrNull()
     if (winner != null) {
       val reactionEvent =

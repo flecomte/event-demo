@@ -86,12 +86,12 @@ class GameCommandHandler(
    * If the command fail, send an [error notification][CommandErrorNotification],
    * if success, send a [success notification][CommandSuccessNotification]
    */
-  suspend fun handle(
+  fun handle(
     player: Player,
     gameId: GameId,
     command: GameCommand,
-    sendSuccess: suspend () -> Unit,
-    sendError: suspend (message: String) -> Unit,
+    sendSuccess: () -> Unit,
+    sendError: (message: String) -> Unit,
   ) {
     if (command.payload.aggregateId.id != gameId.id) {
       logger.warn { "Handle command Refuse, the gameId of the command is not the same" }
@@ -114,26 +114,26 @@ class GameCommandHandler(
   }
 }
 
-private fun SendChannel<Notification>.sendSuccess(command: GameCommand): suspend () -> Unit =
+private fun SendChannel<Notification>.sendSuccess(command: GameCommand): () -> Unit =
   {
     val logger = KotlinLogging.logger { }
     CommandSuccessNotification(commandId = command.id)
       .also { notification ->
         withLoggingContext("notification" to notification.toString(), "commandId" to command.id.toString()) {
           logger.debug { "Notification SUCCESS sent" }
-          send(notification)
+          trySend(notification)
         }
       }
   }
 
-private fun SendChannel<Notification>.sendError(command: GameCommand): suspend (message: String) -> Unit =
+private fun SendChannel<Notification>.sendError(command: GameCommand): (message: String) -> Unit =
   {
     val logger = KotlinLogging.logger { }
     CommandErrorNotification(message = it, command = command)
       .also { notification ->
         withLoggingContext("notification" to notification.toString(), "command" to command.toString()) {
           logger.warn { "Notification ERROR sent: ${notification.message}" }
-          send(notification)
+          trySend(notification)
         }
       }
   }

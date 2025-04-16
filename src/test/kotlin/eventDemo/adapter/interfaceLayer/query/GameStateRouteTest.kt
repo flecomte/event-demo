@@ -12,6 +12,7 @@ import eventDemo.business.event.projection.GameState
 import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.testApplicationWithConfig
 import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.until
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
@@ -53,7 +54,6 @@ class GameStateRouteTest :
       val gameId = GameId()
       val player1 = Player(name = "Nikola")
       val player2 = Player(name = "Einstein")
-      var lastPlayedCard: Card? = null
       testApplicationWithConfig({
         disableShuffleDeck()
         val eventHandler = get<GameEventHandler>()
@@ -64,9 +64,8 @@ class GameStateRouteTest :
           eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
           eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
           eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-          lastPlayedCard = eventually { stateRepo.getLast(gameId).playableCards(player1).first() }
-          assertNotNull(lastPlayedCard)
-            .let { assertIs<Card.NumericCard>(lastPlayedCard) }
+          val lastPlayedCard = eventually(3.seconds) { stateRepo.get(gameId).playableCards(player1).first() }
+          assertIs<Card.NumericCard>(lastPlayedCard)
             .let {
               it.number shouldBeEqual 0
               it.color shouldBeEqual Card.Color.Red
@@ -74,32 +73,36 @@ class GameStateRouteTest :
           eventHandler.handle(gameId) {
             CardIsPlayedEvent(
               gameId,
-              assertNotNull(lastPlayedCard),
+              lastPlayedCard,
               player1,
               it,
             )
           }
+          until(3.seconds) {
+            stateRepo
+              .get(gameId)
+              .deck.discard
+              .last() == lastPlayedCard
+          }
         }
       }) {
-        eventually(1.seconds) {
-          httpClient()
-            .get("/games/$gameId/state") {
-              withAuth(player1)
-              accept(ContentType.Application.Json)
-            }.apply {
-              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-              call.body<GameState>().apply {
-                aggregateId shouldBeEqual gameId
-                players shouldHaveSize 2
-                isStarted shouldBeEqual true
-                assertIs<CardIsPlayedEvent>(lastEvent)
-                readyPlayers shouldBeEqual setOf(player1, player2)
-                direction shouldBeEqual GameState.Direction.CLOCKWISE
-                assertNotNull(lastCardPlayer) shouldBeEqual player1
-                assertNotNull(colorOnCurrentStack) shouldBeEqual Card.Color.Red
-              }
+        httpClient()
+          .get("/games/$gameId/state") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            call.body<GameState>().apply {
+              aggregateId shouldBeEqual gameId
+              players shouldHaveSize 2
+              isStarted shouldBeEqual true
+              assertIs<CardIsPlayedEvent>(lastEvent)
+              readyPlayers shouldBeEqual setOf(player1, player2)
+              direction shouldBeEqual GameState.Direction.CLOCKWISE
+              assertNotNull(lastCardPlayer) shouldBeEqual player1
+              assertNotNull(colorOnCurrentStack) shouldBeEqual Card.Color.Red
             }
-        }
+          }
       }
     }
 
@@ -118,9 +121,8 @@ class GameStateRouteTest :
           eventHandler.handle(gameId) { NewPlayerEvent(gameId, player2, it) }
           eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player1, it) }
           eventHandler.handle(gameId) { PlayerReadyEvent(gameId, player2, it) }
-          lastPlayedCard = eventually { stateRepo.getLast(gameId).playableCards(player1).first() }
-          assertNotNull(lastPlayedCard)
-            .let { assertIs<Card.NumericCard>(lastPlayedCard) }
+          lastPlayedCard = eventually(3.seconds) { stateRepo.get(gameId).playableCards(player1).first() }
+          assertIs<Card.NumericCard>(lastPlayedCard)
             .let {
               it.number shouldBeEqual 0
               it.color shouldBeEqual Card.Color.Red
@@ -133,18 +135,23 @@ class GameStateRouteTest :
               it,
             )
           }
+
+          until(3.seconds) {
+            stateRepo
+              .get(gameId)
+              .deck.discard
+              .last() == lastPlayedCard
+          }
         }
       }) {
-        eventually(1.seconds) {
-          httpClient()
-            .get("/games/$gameId/card/last") {
-              withAuth(player1)
-              accept(ContentType.Application.Json)
-            }.apply {
-              assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
-              assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
-            }
-        }
+        httpClient()
+          .get("/games/$gameId/card/last") {
+            withAuth(player1)
+            accept(ContentType.Application.Json)
+          }.apply {
+            assertEquals(HttpStatusCode.OK, status, message = bodyAsText())
+            assertEquals(assertNotNull(lastPlayedCard), call.body<Card>())
+          }
       }
     }
   })

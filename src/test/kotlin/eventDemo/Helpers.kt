@@ -6,6 +6,7 @@ import eventDemo.business.entity.Deck
 import eventDemo.configuration.business.configureGameListener
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.configuration.ktor.configuration
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -39,6 +40,7 @@ fun testApplicationWithConfig(
   configBuilder: Koin.() -> Unit = {},
   block: suspend ApplicationTestBuilder.() -> Unit,
 ) {
+  val logger = KotlinLogging.logger {}
   testApplication {
     val conf = ApplicationConfig("application.conf")
     environment {
@@ -46,11 +48,18 @@ fun testApplicationWithConfig(
     }
 
     application {
+      logger.info { "Config App" }
       val koin = getKoin()
       koin.cleanDataTest()
-      configBuilder(koin)
+      runCatching {
+        logger.info { "Starting A" }
+        configBuilder(koin)
+        logger.info { "A finish" }
+      }
     }
-    block()
+    logger.info { "Starting B" }
+    this@testApplication.block()
+    logger.info { "B finish" }
   }
 }
 

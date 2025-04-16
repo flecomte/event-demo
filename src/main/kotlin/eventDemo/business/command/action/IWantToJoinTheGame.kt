@@ -12,7 +12,7 @@ data class IWantToJoinTheGame(
   private val gameStateRepository: GameStateRepository,
 ) : CommandAction<IWantToJoinTheGameCommand, NewPlayerEvent> {
   override fun run(command: IWantToJoinTheGameCommand): (version: Int) -> NewPlayerEvent {
-    val state = gameStateRepository.getLast(command.payload.aggregateId)
+    val state = gameStateRepository.get(command.payload.aggregateId)
     if (!state.isStarted) {
       return {
         NewPlayerEvent(

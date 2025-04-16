@@ -2,7 +2,6 @@ package eventDemo.business.event.projection
 
 import ch.qos.logback.classic.Level
 import com.rabbitmq.client.impl.ForgivingExceptionHandler
-import com.zaxxer.hikari.pool.ProxyConnection
 import eventDemo.Tag
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.entity.GameId
@@ -17,7 +16,6 @@ import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
-import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.joinAll
@@ -41,13 +39,10 @@ class GameStateRepositoryTest :
         val eventHandler = get<GameEventHandler>()
         eventHandler
           .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
-          .also { event ->
+          .also {
             // Wait until the projection is created
             eventually(1.seconds) {
-              assertNotNull(repo.getUntil(event)).also {
-                assertNotNull(it.players) shouldBeEqual setOf(player1)
-              }
-              assertNotNull(repo.getLast(aggregateId)).also {
+              assertNotNull(repo.get(aggregateId)).also {
                 assertNotNull(it.players) shouldBeEqual setOf(player1)
               }
             }
@@ -68,9 +63,9 @@ class GameStateRepositoryTest :
 
           var state: GameState? = null
           projectionBus.subscribe {
-            repo.getLast(aggregateId).also {
-              state = it
-            }
+            repo
+              .get(aggregateId)
+              .also { state = it }
           }
 
           eventHandler
@@ -86,7 +81,7 @@ class GameStateRepositoryTest :
             .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
             .also {
               eventually(1.seconds) {
-                assertNotNull(repo.getLast(aggregateId)).also {
+                assertNotNull(repo.get(aggregateId)).also {
                   assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
                 }
               }
@@ -95,44 +90,7 @@ class GameStateRepositoryTest :
       }
     }
 
-    test("getUntil should build the state until the event") {
-      withLogLevel(
-        GameCommandHandler::class.java.name to Level.ERROR,
-        ForgivingExceptionHandler::class.java.name to Level.OFF,
-        ProxyConnection::class.java.name to Level.OFF,
-        Logger.ROOT_LOGGER_NAME to Level.INFO,
-      ) {
-        repeat(10) {
-          val aggregateId = GameId()
-          testKoinApplicationWithConfig {
-            val repo = get<GameStateRepository>()
-            val eventHandler = get<GameEventHandler>()
-
-            val event1 =
-              eventHandler
-                .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player1, version = it) }
-                .also { event1 ->
-                  assertNotNull(repo.getUntil(event1)).also {
-                    assertNotNull(it.players) shouldBeEqual setOf(player1)
-                  }
-                }
-
-            eventHandler
-              .handle(aggregateId) { NewPlayerEvent(aggregateId = aggregateId, player = player2, version = it) }
-              .also { event2 ->
-                assertNotNull(repo.getUntil(event2)).also {
-                  assertNotNull(it.players) shouldBeEqual setOf(player1, player2)
-                }
-                assertNotNull(repo.getUntil(event1)).also {
-                  assertNotNull(it.players) shouldBeEqual setOf(player1)
-                }
-              }
-          }
-        }
-      }
-    }
-
-    test("getUntil should be concurrently secure").config(tags = setOf(Tag.Concurrence)) {
+    test("get should be concurrently secure").config(tags = setOf(Tag.Concurrence)) {
       withLogLevel(
         Logger.ROOT_LOGGER_NAME to Level.ERROR,
         ForgivingExceptionHandler::class.java.name to Level.OFF,
@@ -167,17 +125,12 @@ class GameStateRepositoryTest :
               includeFirst = false
             },
           ) {
-            repo.getLast(aggregateId).run {
+            repo.get(aggregateId).run {
               lastEventVersion shouldBeEqual 200
               players shouldHaveSize 200
             }
-            repo.count(aggregateId) shouldBe 21
           }
         }
       }
-    }
-
-    xtest("get should be concurrently secure") {
-      tags(Tag.Concurrence)
     }
   })

@@ -12,7 +12,7 @@ data class IWantToPlayCard(
   private val gameStateRepository: GameStateRepository,
 ) : CommandAction<IWantToPlayCardCommand, CardIsPlayedEvent> {
   override fun run(command: IWantToPlayCardCommand): (version: Int) -> CardIsPlayedEvent {
-    val state = gameStateRepository.getLast(command.payload.aggregateId)
+    val state = gameStateRepository.get(command.payload.aggregateId)
 
     if (!state.isStarted) {
       throw CommandException("The game is Not started")

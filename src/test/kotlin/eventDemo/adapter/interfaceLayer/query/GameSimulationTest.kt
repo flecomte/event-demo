@@ -1,7 +1,6 @@
 package eventDemo.adapter.interfaceLayer.query
 
 import eventDemo.Tag
-import eventDemo.adapter.infrastructureLayer.event.projection.GameStateRepositoryInMemory
 import eventDemo.business.command.GameCommandHandler
 import eventDemo.business.command.command.GameCommand
 import eventDemo.business.command.command.IWantToJoinTheGameCommand
@@ -10,9 +9,9 @@ import eventDemo.business.command.command.IamReadyToPlayCommand
 import eventDemo.business.entity.Card
 import eventDemo.business.entity.GameId
 import eventDemo.business.entity.Player
-import eventDemo.business.event.GameEventStore
 import eventDemo.business.event.event.disableShuffleDeck
 import eventDemo.business.event.projection.GameState
+import eventDemo.business.event.projection.GameStateRepository
 import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
 import eventDemo.business.notification.CommandSuccessNotification
 import eventDemo.business.notification.ItsTheTurnOfNotification
@@ -61,9 +60,9 @@ class GameSimulationTest :
         var player1HasJoin = false
 
         testKoinApplicationWithConfig {
-          val commandHandler by inject<GameCommandHandler>()
-          val eventStore by inject<GameEventStore>()
-          val playerNotificationListener by inject<PlayerNotificationListener>()
+          val commandHandler = get<GameCommandHandler>()
+          val playerNotificationListener = get<PlayerNotificationListener>()
+          val gameStateRepository = get<GameStateRepository>()
 
           // Run command handler
           // In the normal process, these handlers is invoque players connect to the websocket
@@ -76,8 +75,8 @@ class GameSimulationTest :
             }
           }
 
-          // Consume etch notification of players, and put theses in list.
-          // is used later to control when other players can be executing the next action
+          // Consume etch notification of players, and put theses in a list.
+          // Is used later to control when other players can execute the next action
           val player1Notifications = mutableListOf<Notification>()
           val player2Notifications = mutableListOf<Notification>()
           run {
@@ -94,7 +93,7 @@ class GameSimulationTest :
             }
           }
 
-          // The player 1 actions
+          // Player 1 actions
           val player1Job =
             launch {
               playerNotificationListener.startListening(player1, gameId) {
@@ -132,11 +131,11 @@ class GameSimulationTest :
               }
             }
 
-          // The player 2 actions
+          // Player 2 actions
           val player2Job =
             launch {
-              // wait the player 1 has join the game
-              until(1.seconds) { player1HasJoin }
+              // wait player 1 has joined the game
+              until(3.seconds) { player1HasJoin }
 
               playerNotificationListener.startListening(player2, gameId) {
                 channelNotification2.trySendBlocking(it)
@@ -176,7 +175,7 @@ class GameSimulationTest :
           joinAll(player1Job, player2Job)
 
           // Build the last state from the event store
-          val state = GameStateRepositoryInMemory(eventStore = eventStore).getLast(gameId)
+          val state = gameStateRepository.get(gameId)
 
           // Check if the state is correct
           state.aggregateId shouldBeEqual gameId
@@ -192,6 +191,6 @@ class GameSimulationTest :
   })
 
 private suspend inline fun <reified T : Notification> MutableList<Notification>.waitNotification(crossinline block: T.() -> Boolean): T =
-  eventually(1.seconds) {
+  eventually(3.seconds) {
     filterIsInstance<T>().first { block(it) }
   }

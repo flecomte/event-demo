@@ -13,7 +13,7 @@ class IamReadyToPlay(
 ) : CommandAction<IamReadyToPlayCommand, PlayerReadyEvent> {
   @Throws(CommandException::class)
   override fun run(command: IamReadyToPlayCommand): (version: Int) -> PlayerReadyEvent {
-    val state = gameStateRepository.getLast(command.payload.aggregateId)
+    val state = gameStateRepository.get(command.payload.aggregateId)
     val playerExist: Boolean = state.players.contains(command.payload.player)
     val playerIsAlreadyReady: Boolean = state.readyPlayers.contains(command.payload.player)
 
