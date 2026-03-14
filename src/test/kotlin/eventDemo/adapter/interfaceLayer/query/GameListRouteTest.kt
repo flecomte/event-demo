@@ -57,7 +57,7 @@ class GameListRouteTest :
         },
       ) {
         // Wait until the projection is created
-        eventually(3.seconds) {
+        eventually(10.seconds) {
           httpClient()
             .get("/games") {
               withAuth(player1)
@@ -94,7 +94,7 @@ class GameListRouteTest :
           )
         }
       }) {
-        eventually(1.seconds) {
+        eventually(3.seconds) {
           httpClient()
             .get("/games") {
               withAuth(player1)

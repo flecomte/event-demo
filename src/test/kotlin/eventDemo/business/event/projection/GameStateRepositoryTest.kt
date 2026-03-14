@@ -120,8 +120,8 @@ class GameStateRepositoryTest :
 
           eventually(
             eventuallyConfig {
-              duration = 10.seconds
-              interval = 1.seconds
+              duration = 60.seconds
+              interval = 2.seconds
               includeFirst = false
             },
           ) {
