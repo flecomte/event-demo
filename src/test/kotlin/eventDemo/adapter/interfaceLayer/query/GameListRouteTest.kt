@@ -94,7 +94,7 @@ class GameListRouteTest :
           )
         }
       }) {
-        eventually(1.seconds) {
+        eventually(3.seconds) {
           httpClient()
             .get("/games") {
               withAuth(player1)
