@@ -1,8 +1,8 @@
 package eventDemo.libs.command
 
-import eventDemo.business.command.CommandException
-import eventDemo.business.command.command.GameCommand
-import eventDemo.business.event.event.GameEvent
+import eventDemo.domain.command.CommandException
+import eventDemo.domain.command.command.GameCommand
+import eventDemo.domain.event.event.GameEvent
 import eventDemo.libs.bus.Bus
 import eventDemo.libs.event.AggregateId
 import eventDemo.libs.event.Event

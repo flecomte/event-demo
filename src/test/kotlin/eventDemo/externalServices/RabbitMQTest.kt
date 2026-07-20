@@ -26,7 +26,7 @@ class RabbitMQTest :
 
         val exchangeName = "test_" + UUID.randomUUID()
 
-        val spy = spyk(mockk<() -> Unit>())
+        val spy = spyk<() -> Unit>()
 
         factory.newConnection().use { connection ->
           connection

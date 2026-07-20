@@ -1,10 +1,10 @@
 package eventDemo.configuration.injection
 
-import eventDemo.business.command.GameCommandActionRunner
-import eventDemo.business.command.GameCommandHandler
-import eventDemo.business.event.GameEventHandler
-import eventDemo.business.event.projection.projectionListener.PlayerNotificationListener
-import eventDemo.business.event.projection.projectionListener.ReactionListener
+import eventDemo.domain.command.GameCommandActionRunner
+import eventDemo.domain.command.GameCommandHandler
+import eventDemo.domain.event.GameEventHandler
+import eventDemo.domain.event.projection.projectionListener.PlayerNotificationListener
+import eventDemo.domain.event.projection.projectionListener.ReactionListener
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 

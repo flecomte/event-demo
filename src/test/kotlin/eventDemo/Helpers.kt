@@ -1,9 +1,9 @@
 package eventDemo
 
 import com.zaxxer.hikari.HikariDataSource
-import eventDemo.business.entity.Card
-import eventDemo.business.entity.Deck
-import eventDemo.configuration.business.configureGameListener
+import eventDemo.domain.entity.Card
+import eventDemo.domain.entity.Deck
+import eventDemo.configuration.domain.configureGameListener
 import eventDemo.configuration.injection.appKoinModule
 import eventDemo.configuration.ktor.configuration
 import io.github.oshai.kotlinlogging.KotlinLogging

@@ -12,9 +12,9 @@ val kotest_version: String by project
 
 plugins {
   application
-  kotlin("jvm") version "2.1.10"
-  id("io.ktor.plugin") version "3.1.1"
-  id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+  kotlin("jvm") version "2.1.21"
+  id("io.ktor.plugin") version "3.5.1"
+  id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
   id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
   id("com.avast.gradle.docker-compose") version "0.17.12"
 }

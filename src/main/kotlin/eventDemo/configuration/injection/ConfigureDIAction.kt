@@ -1,9 +1,9 @@
 package eventDemo.configuration.injection
 
-import eventDemo.business.command.action.ICantPlay
-import eventDemo.business.command.action.IWantToJoinTheGame
-import eventDemo.business.command.action.IWantToPlayCard
-import eventDemo.business.command.action.IamReadyToPlay
+import eventDemo.domain.command.action.ICantPlay
+import eventDemo.domain.command.action.IWantToJoinTheGame
+import eventDemo.domain.command.action.IWantToPlayCard
+import eventDemo.domain.command.action.IamReadyToPlay
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 

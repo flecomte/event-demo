@@ -1,6 +1,6 @@
 package eventDemo.configuration
 
-import eventDemo.configuration.business.configureGameListener
+import eventDemo.configuration.domain.configureGameListener
 import eventDemo.configuration.ktor.configureHttpRouting
 import eventDemo.configuration.ktor.configureKoin
 import eventDemo.configuration.ktor.configureSecurity

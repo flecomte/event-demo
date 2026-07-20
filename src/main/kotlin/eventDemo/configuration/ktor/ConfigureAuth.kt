@@ -2,7 +2,7 @@ package eventDemo.configuration.ktor
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import eventDemo.business.entity.Player
+import eventDemo.domain.entity.Player
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authentication

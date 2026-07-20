@@ -1,6 +1,6 @@
 package eventDemo.configuration.serializer
 
-import eventDemo.business.entity.Player
+import eventDemo.domain.entity.Player
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

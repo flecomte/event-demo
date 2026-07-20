@@ -3,6 +3,7 @@ package eventDemo.libs.command
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -26,19 +27,19 @@ class CommandStreamChannelTest :
       val channel = Channel<CommandTest>()
       val stream = CommandStreamChannel(CommandRunnerController())
 
-      val spyCall: () -> Unit = mockk(relaxed = true)
+      val spy = spyk<() -> Unit>()
 
       GlobalScope.launch {
         stream.process(channel) {
           println("In action ${it.id}")
-          spyCall()
+          spy()
         }
       }
 
       channel.send(command)
 
       eventually(3.seconds) {
-        verify(exactly = 1) { spyCall() }
+        verify(exactly = 1) { spy() }
       }
     }
   })

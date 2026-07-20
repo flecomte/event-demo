@@ -1,7 +1,7 @@
 package eventDemo.configuration.ktor
 
-import eventDemo.business.entity.GameId
-import eventDemo.business.entity.Player
+import eventDemo.domain.entity.GameId
+import eventDemo.domain.entity.Player
 import eventDemo.configuration.serializer.CommandIdSerializer
 import eventDemo.configuration.serializer.GameIdSerializer
 import eventDemo.configuration.serializer.PlayerIdSerializer

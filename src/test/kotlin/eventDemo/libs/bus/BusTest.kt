@@ -38,7 +38,7 @@ class BusTest :
         )
 
       withData(list) { bus ->
-        val spy = spyk(mockk<() -> Unit>())
+        val spy = spyk<() -> Unit>()
 
         bus.subscribe { obj ->
           spy()
