@@ -6,6 +6,10 @@ interface Bus<T> {
    */
   fun publish(item: T)
 
+  fun publish(items: Collection<T>) {
+    items.forEach { publish(it) }
+  }
+
   /**
    * Subscribe a [lambda][block] to the bus.
    *

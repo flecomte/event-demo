@@ -1,6 +1,6 @@
 package eventDemo.libs.command
 
-import eventDemo.configuration.serializer.CommandIdSerializer
+import eventDemo.contexts.game.infrastructure.persistence.serializers.CommandIdSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

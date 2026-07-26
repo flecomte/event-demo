@@ -7,6 +7,7 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.runBlocking
 
@@ -43,15 +44,17 @@ class BusInRabbitMQ<E>(
   }
 
   override fun publish(item: E) {
-    connection
-      .createChannel()
-      .basicPublish(
-        exchangeName,
-        routingKey,
-        AMQP.BasicProperties(),
-        objectToString(item).toByteArray(),
-      )
-    logger.info { "Item sent to the bus" }
+    withLoggingContext("item" to item.toString()) {
+      connection
+        .createChannel()
+        .basicPublish(
+          exchangeName,
+          routingKey,
+          AMQP.BasicProperties(),
+          objectToString(item).toByteArray(),
+        )
+      logger.info { "Item sent to the bus" }
+    }
   }
 
   override fun subscribe(block: (E) -> Unit): Bus.Subscription {
@@ -75,7 +78,11 @@ class BusInRabbitMQ<E>(
                 body: ByteArray,
               ) {
                 runBlocking {
-                  block(stringToObject(body.toString(Charsets.UTF_8)))
+                  val obj = stringToObject(body.toString(Charsets.UTF_8))
+                  withLoggingContext("item" to obj.toString()) {
+                    logger.info { "Received delivery of $exchangeName" }
+                  }
+                  block(obj)
                 }
                 channel.basicAck(envelope.deliveryTag, false)
               }
