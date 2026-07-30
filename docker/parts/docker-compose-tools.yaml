@@ -4,10 +4,20 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     secrets:
       - pgadmin_password
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    configs:
+      - source: pgpass
+        target: /pgpass
+        mode: 0600
+        uid: "5050"
+        gid: "5050"
+      - source: servers_json
+        target: /pgadmin4/servers.json
     labels:
       - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.postgresql.traefik.me`)"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
@@ -23,6 +33,27 @@ services:
       - "traefik.http.routers.rabbitmq-management.rule=Host(`management.rabbitmq.traefik.me`)"
       - "traefik.http.routers.rabbitmq-management.service=rabbitmq-management"
       - "traefik.http.services.rabbitmq-management.loadbalancer.server.port=15672"
+
+configs:
+  pgpass:
+    content: |
+      *:*:*:event-demo:changeit
+  servers_json:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Event demo",
+            "Group": "Servers",
+            "Host": "postgresql",
+            "Port": 5432,
+            "MaintenanceDB": "event-demo",
+            "Username": "event-demo",
+            "PassFile": "/pgpass",
+            "SSLMode": "prefer"
+          }
+        }
+      }
 
 secrets:
   pgadmin_password:
