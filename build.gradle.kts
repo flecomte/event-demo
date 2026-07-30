@@ -88,13 +88,13 @@ tasks.register<Copy>("copyEnv") {
       exclude()
     }
   }
+  val files =
+    listOf(
+      File("docker/pgadmin.secret"),
+      File("docker/postgresql.secret"),
+    )
+  outputs.files(*files.toTypedArray())
   doLast {
-    val files =
-      listOf(
-        File("docker/pgadmin.secret"),
-        File("docker/postgresql.secret"),
-      )
-
     files.forEach {
       if (!it.exists()) {
         it.writeText("changeit")
