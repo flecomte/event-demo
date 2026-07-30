@@ -1,3 +1,4 @@
+import com.avast.gradle.dockercompose.ComposeExtension
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 val ktorVersion: Provider<String> = providers.gradleProperty("ktor_version")
@@ -49,29 +50,42 @@ tasks.withType<Test>().configureEach {
   useJUnitPlatform()
 }
 
-dockerCompose {
-  val composeFile =
-    if (project.hasProperty("ci")) {
-      // Use docker-compose-ci.yaml for the CI
-      "docker/docker-compose-ci.yaml"
-    } else {
-      // Use docker-compose-test.yaml for local tests
-      "docker/docker-compose-test.yaml"
-    }
-  useComposeFiles.set(listOf(composeFile))
-  setProjectName("event-demo-test")
+configure<ComposeExtension> {
+  createNested("test").apply {
+    useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
+    setProjectName("event-demo-test")
+  }
+  createNested("dev").apply {
+    useComposeFiles.set(listOf("docker/docker-compose-dev.yaml"))
+    setProjectName("event-demo-dev")
+  }
+  createNested("ci").apply {
+    useComposeFiles.set(listOf("docker/docker-compose-ci.yaml"))
+    setProjectName("event-demo-ci")
+  }
 }
 
 tasks.test {
-  dependsOn("composeUp")
-  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
-  dockerCompose.setProjectName("event-demo-test")
+  if (project.hasProperty("ci")) {
+    dependsOn("ciComposeUp")
+  } else {
+    dependsOn("testComposeUp")
+  }
 }
-
 tasks.named("run") {
-  dependsOn("composeUp")
-  dockerCompose.useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
-  dockerCompose.setProjectName("event-demo-dev")
+  dependsOn("devComposeUp")
+}
+tasks.composeUp {
+  dependsOn("copyEnv")
+}
+tasks.named("devComposeUp") {
+  dependsOn("copyEnv")
+}
+tasks.named("testComposeUp") {
+  dependsOn("copyEnv")
+}
+tasks.named("ciComposeUp") {
+  dependsOn("copyEnv")
 }
 
 tasks.register<Copy>("copyEnv") {
@@ -89,10 +103,12 @@ tasks.register<Copy>("copyEnv") {
     }
   }
   val files =
-    listOf(
-      File("docker/pgadmin.secret"),
-      File("docker/postgresql.secret"),
-    )
+    buildList {
+      add(File("docker/postgresql.secret"))
+      if (!project.hasProperty("ci")) {
+        add(File("docker/pgadmin.secret"))
+      }
+    }
   outputs.files(*files.toTypedArray())
   doLast {
     files.forEach {
@@ -101,9 +117,6 @@ tasks.register<Copy>("copyEnv") {
       }
     }
   }
-}
-tasks.composeUp {
-  dependsOn("copyEnv")
 }
 
 dependencies {

@@ -1,0 +1,4 @@
+name: event-demo-test
+include:
+  - path:
+    - docker-compose-test.yaml

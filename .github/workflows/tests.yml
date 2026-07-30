@@ -106,10 +106,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Start CI Docker Compose services
-        run: ./gradlew composeUp -Pci
+        run: ./gradlew ciComposeUp -Pci
 
       - name: Run tests
-        run: ./gradlew test -x composeUp --no-daemon
+        run: ./gradlew test -x ciComposeUp -Pci --no-daemon
 
       - name: Upload test reports
         if: always()

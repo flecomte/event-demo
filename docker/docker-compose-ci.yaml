@@ -1,6 +1,5 @@
-name: event-demo-test
+name: event-demo-ci
 include:
   - path:
     - parts/docker-compose-databases.yaml
     - parts/docker-compose-databases-expose.yaml
-    - parts/docker-compose-traefik.yaml

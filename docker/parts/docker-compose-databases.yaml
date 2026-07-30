@@ -24,8 +24,6 @@ services:
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
       POSTGRES_USER: event-demo
-    secrets:
-      - postgresql_password
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U event-demo'"]
       interval: 1s
@@ -33,6 +31,7 @@ services:
       retries: 10
     volumes:
       - postgresql_data:/var/lib/postgresql
+      - ../postgresql.secret:/run/secrets/postgresql_password:ro
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
@@ -46,10 +45,6 @@ services:
       retries: 5
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
-
-secrets:
-  postgresql_password:
-    file: ../postgresql.secret
 
 volumes:
   redis_data:
