@@ -16,7 +16,7 @@ class PlayCardHandler(
   override fun handle(command: PlayCardCommand) {
     command
       .getGame()
-      .isStatusOrFail(GameStarted::class, "The game is not started")
+      .isStatusOrFail<GameStarted>("The game is not started")
       .playTheCard(
         card = command.payload.card,
         playerId = command.payload.playerId,

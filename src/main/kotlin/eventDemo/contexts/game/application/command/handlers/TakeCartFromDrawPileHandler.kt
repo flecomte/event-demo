@@ -18,7 +18,7 @@ class TakeCartFromDrawPileHandler(
   override fun handle(command: TakeCartFromDrawPileCommand) {
     command
       .getGame()
-      .isStatusOrFail(GameStarted::class, "The game is not started")
+      .isStatusOrFail<GameStarted>("The game is not started")
       .playerTakeCartFromDrawPile(command.payload.playerId, 1)
       .saveEvents()
       .publishEvents()

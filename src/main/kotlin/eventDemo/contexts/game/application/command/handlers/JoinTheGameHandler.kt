@@ -20,7 +20,7 @@ class JoinTheGameHandler(
     retry {
       command
         .getGame()
-        .isStatusOrFail(GameCreated::class, "The game is started")
+        .isStatusOrFail<GameCreated>("The game is started")
         .userJoinTheGame(
           userId = command.userId,
           name = user.username,

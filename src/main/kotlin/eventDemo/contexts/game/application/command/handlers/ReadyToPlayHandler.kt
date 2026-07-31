@@ -16,7 +16,7 @@ class ReadyToPlayHandler(
   override fun handle(command: ReadyToPlayCommand) {
     command
       .getGame()
-      .isStatusOrFail(GameCreated::class, "The game is started")
+      .isStatusOrFail<GameCreated>("The game is started")
       .setReadyPlayer(command.payload.playerId)
       .saveEvents()
       .publishEvents()

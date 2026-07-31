@@ -37,16 +37,8 @@ abstract class GameEventManager(
     return this
   }
 
-  protected fun <G : Game> Game.isStatusOrFail(
-    kClass: KClass<G>,
-    message: String,
-  ): G {
-    if (kClass.isInstance(this)) {
-      return this as G
-    } else {
-      throw CommandException(message)
-    }
-  }
+  protected inline fun <reified G : Game> Game.isStatusOrFail(message: String): G =
+    this as? G ?: throw CommandException(message)
 
   protected fun <T> retry(
     mapAttempts: Int = 5,
