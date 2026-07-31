@@ -1,0 +1,18 @@
+services:
+  pgadmin:
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    configs:
+      - source: pgpass
+        target: /pgpass
+        mode: 0600
+        uid: "5050"
+        gid: "5050"
+      - source: servers_json
+        target: /pgadmin4/servers.json
+
+configs:
+  pgpass:
+    content: |
+      *:*:*:event-demo:changeit
