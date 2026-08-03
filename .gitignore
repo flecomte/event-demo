@@ -37,3 +37,4 @@ out/
 /docker/.env
 /docker/*.secret
 *.hprof
+/.gradle-docker-cache/

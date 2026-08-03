@@ -1,4 +1,3 @@
-import com.avast.gradle.dockercompose.ComposeExtension
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 val ktorVersion: Provider<String> = providers.gradleProperty("ktor_version")
@@ -15,7 +14,6 @@ plugins {
   id("io.ktor.plugin") version "3.5.1"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
   id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-  id("com.avast.gradle.docker-compose") version "0.17.12"
 }
 
 group = "io.github.flecomte"
@@ -48,43 +46,19 @@ java {
 
 tasks.withType<Test>().configureEach {
   useJUnitPlatform()
-}
-
-configure<ComposeExtension> {
-  createNested("test").apply {
-    useComposeFiles.set(listOf("docker/docker-compose-test.yaml"))
-    setProjectName("event-demo-test")
-  }
-  createNested("dev").apply {
-    useComposeFiles.set(listOf("docker/docker-compose-dev.yaml"))
-    setProjectName("event-demo-dev")
-  }
-  createNested("ci").apply {
-    useComposeFiles.set(listOf("docker/docker-compose-ci.yaml"))
-    setProjectName("event-demo-ci")
+  jvmArgs("-Djdk.attach.allowAttachSelf=true", "-XX:+EnableDynamicAgentLoading")
+  // Dynamic self-attach (used by MockK/ByteBuddy) times out in Docker containers because the
+  // SIGQUIT-triggered AttachListener handshake never completes there. Loading the byte-buddy
+  // agent jar statically via -javaagent avoids the attach handshake entirely: MockK detects the
+  // pre-installed Instrumentation instance and skips dynamic attach.
+  doFirst {
+    val agentJar =
+      classpath.files.firstOrNull { it.name.startsWith("byte-buddy-agent") }
+        ?: error("byte-buddy-agent jar not found on test classpath")
+    jvmArgs("-javaagent:$agentJar")
   }
 }
-
 tasks.test {
-  if (project.hasProperty("ci")) {
-    dependsOn("ciComposeUp")
-  } else {
-    dependsOn("testComposeUp")
-  }
-}
-tasks.named("run") {
-  dependsOn("devComposeUp")
-}
-tasks.composeUp {
-  dependsOn("copyEnv")
-}
-tasks.named("devComposeUp") {
-  dependsOn("copyEnv")
-}
-tasks.named("testComposeUp") {
-  dependsOn("copyEnv")
-}
-tasks.named("ciComposeUp") {
   dependsOn("copyEnv")
 }
 
@@ -154,6 +128,6 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion.get()}")
   testImplementation("io.ktor:ktor-server-test-host-jvm:${ktorVersion.get()}")
   testImplementation("io.kotest:kotest-runner-junit5:${kotestVersion.get()}")
-  testImplementation("io.mockk:mockk:1.13.17")
+  testImplementation("io.mockk:mockk:1.14.11")
   testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }

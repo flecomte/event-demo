@@ -15,10 +15,13 @@ import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.dsl.koinApplication
 import org.koin.ktor.ext.getKoin
 
+const val CONFIG_FILE_NAME = "application.conf"
+
 @KoinApplicationDslMarker
 suspend fun <T> testKoinApplicationWithConfig(block: suspend Koin.() -> T): T =
-  koinApplication { modules(appKoinModule(ApplicationConfig("application.conf").configuration)) }
-    .koin
+  koinApplication {
+    modules(appKoinModule(ApplicationConfig(CONFIG_FILE_NAME).configuration))
+  }.koin
     .run {
       cleanDataTest()
       configureProjectionListener()
@@ -34,7 +37,7 @@ fun testApplicationWithConfig(
 ) {
   val logger = KotlinLogging.logger {}
   testApplication {
-    val conf = ApplicationConfig("application.conf")
+    val conf = ApplicationConfig(CONFIG_FILE_NAME)
     environment {
       config = conf
     }

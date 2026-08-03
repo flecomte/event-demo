@@ -1,4 +1,8 @@
 name: event-demo-test
 include:
   - path:
-    - docker-compose-test.yaml
+      - parts/docker-compose-databases.yaml
+      - parts/docker-compose-databases-expose.yaml
+      - parts/docker-compose-tools.yaml
+      - parts/docker-compose-tools-local.yaml
+      - parts/docker-compose-traefik.yaml

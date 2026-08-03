@@ -1,0 +1,20 @@
+services:
+  tests:
+    build:
+      context: ../..
+      dockerfile: docker/DockerfileTest
+    volumes:
+      - ${GRADLE_CACHE_DIR:-gradle-cache}:/home/gradle/.gradle
+      - ../..:/app
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  gradle-cache:
