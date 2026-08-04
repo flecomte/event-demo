@@ -1,58 +1,264 @@
 openapi: "3.0.3"
 info:
   title: "event_demo API"
-  description: "event_demo API"
-  version: "1.0.0"
+  description: |
+    API for the event_demo project: a small event-sourced Uno-like card game.
+
+    The API is split in two parts:
+    - a classic REST API used to authenticate, create users, list games and
+      replay a game's history.
+    - a WebSocket endpoint (`/games/{id}`) used to play a game in real time:
+      the client sends `GameCommand` messages and receives `Notification`
+      messages back. See the `x-websocket-channels` section below for details,
+      since WebSockets are not natively described by OpenAPI 3.0.
+
+    Authentication is done with a JWT bearer token obtained from `/login/{username}`.
+    Note that most polymorphic messages (`GameCommand`, `Notification`) are
+    discriminated by a `type` field whose value is the fully-qualified Kotlin
+    class name of the payload (since no custom serial name is declared for
+    these types), while `Card` uses short discriminator values
+    (`Simple`, `Reverse`, `Pass`, `Plus2`, `Plus4`, `ChangeColor`).
+  version: "2.0.0"
 servers:
 - url: "https://event_demo"
+
+tags:
+- name: Auth
+  description: User registration and authentication
+- name: Games
+  description: Listing games and reading/playing their state
+
+security:
+- bearerAuth: []
+
 paths:
-  "/game/{id}/card/last":
-    get:
-      description: get the last card played
+  "/login/{username}":
+    post:
+      tags: [Auth]
+      summary: Log in and obtain a JWT
+      security: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The user's plain-text password.
+          required: true
+          schema:
+            type: string
       responses:
         200:
-          description: The last card
+          description: Successful login
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Card"
+                $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: Unknown username or invalid password
+  "/users/create":
+    post:
+      tags: [Auth]
+      summary: Create a new user account
+      description: Requires a valid JWT (any authenticated user can create new users).
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The plain-text password, hashed server-side before being stored.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The newly created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUserResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+  "/games":
+    get:
+      tags: [Games]
+      summary: List all known games
+      description: Returns up to the 100 most recent games (pagination is not yet exposed on this route).
+      responses:
+        200:
+          description: The list of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GameList"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+  "/games/{id}":
+    get:
+      tags: [Games]
+      summary: Replay a game's full notification history
+      description: |
+        Rebuilds every notification that would have been sent to the calling
+        player since the beginning of the game (from its event stream), so a
+        client reconnecting can catch up on the current game state.
+
+        This same path also accepts a WebSocket upgrade to play the game live,
+        see `x-websocket-channels` at the root of this document.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: The full list of notifications for this game, from this player's point of view
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          description: No game found for this id
+
+x-websocket-channels:
+  "/games/{id}":
+    description: |
+      WebSocket endpoint to join and play a game in real time. Requires the
+      same JWT bearer authentication as the REST routes (sent the same way,
+      e.g. via the `Authorization` header during the WebSocket handshake).
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    send:
+      description: Commands sent by the client to act on the game.
+      schema:
+        $ref: "#/components/schemas/GameCommand"
+    receive:
+      description: Notifications sent by the server as the game progresses.
+      schema:
+        $ref: "#/components/schemas/Notification"
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT obtained from `POST /login/{username}`. It carries the `username`
+        and `userid` claims and currently expires 60 seconds after issuance.
+
+  responses:
+    Unauthorized:
+      description: Missing, invalid or expired JWT
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: "Token is not valid or has expired"
+
   schemas:
-    Card:
-      oneOf:
-        - $ref: "#/components/schemas/SimpleCard"
-        - $ref: "#/components/schemas/ReverseCard"
-        - $ref: "#/components/schemas/PassCard"
-        - $ref: "#/components/schemas/Plus2Card"
-        - $ref: "#/components/schemas/Plus4Card"
-        - $ref: "#/components/schemas/ChangeColorCard"
-    SimpleCard:
+    LoginResponse:
+      type: object
+      required: [token]
       properties:
-        number:
+        token:
+          type: string
+          description: JWT bearer token to use on subsequent requests.
+
+    CreateUserResponse:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+
+    HttpErrorBadRequest:
+      type: object
+      description: Generic problem-details style error body used by some validation failures.
+      properties:
+        title:
+          type: string
+        statusCode:
           type: integer
-        color:
-          $ref: "#/components/schemas/CardColor"
-    ReverseCard:
+        invalidParams:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvalidParam"
+
+    InvalidParam:
+      type: object
+      required: [name, reason]
       properties:
-        color:
-          $ref: "#/components/schemas/CardColor"
-    PassCard:
+        name:
+          type: string
+        reason:
+          type: string
+
+    PlayerId:
+      type: string
+      format: uuid
+
+    Player:
+      type: object
+      required: [name, userId, hand, id]
       properties:
-        color:
-          $ref: "#/components/schemas/CardColor"
-    Plus2Card:
+        name:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        id:
+          $ref: "#/components/schemas/PlayerId"
+        hand:
+          description: The set of cards currently held by the player.
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+
+    GameList:
+      type: object
+      required: [aggregateId, status, players, winners]
       properties:
-        color:
-          $ref: "#/components/schemas/CardColor"
-    Plus4Card:
-      properties:
-        nextColor:
-          $ref: "#/components/schemas/CardColor"
-    ChangeColorCard:
-      properties:
-        nextColor:
-          $ref: "#/components/schemas/CardColor"
+        aggregateId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/GameStatus"
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/Player"
+        winners:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayerId"
+
+    GameStatus:
+      type: string
+      enum:
+        - OPENING
+        - IS_STARTED
+        - FINISH
+        - CANCELED
+
     CardColor:
       type: string
       enum:
@@ -60,3 +266,401 @@ components:
         - Red
         - Yellow
         - Green
+
+    Card:
+      description: >
+        A playing card. Discriminated by the "type" field using the short
+        names declared on each Kotlin subtype (@SerialName), unlike
+        GameCommand/Notification below.
+      oneOf:
+        - $ref: "#/components/schemas/NumericCard"
+        - $ref: "#/components/schemas/ReverseCard"
+        - $ref: "#/components/schemas/PassCard"
+        - $ref: "#/components/schemas/Plus2Card"
+        - $ref: "#/components/schemas/Plus4Card"
+        - $ref: "#/components/schemas/ChangeColorCard"
+      discriminator:
+        propertyName: type
+        mapping:
+          Simple: "#/components/schemas/NumericCard"
+          Reverse: "#/components/schemas/ReverseCard"
+          Pass: "#/components/schemas/PassCard"
+          Plus2: "#/components/schemas/Plus2Card"
+          Plus4: "#/components/schemas/Plus4Card"
+          ChangeColor: "#/components/schemas/ChangeColorCard"
+
+    NumericCard:
+      description: A numbered card (0-9) of a given color.
+      type: object
+      required: [type, id, number, color]
+      properties:
+        type:
+          type: string
+          enum: [Simple]
+        id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+          minimum: 0
+          maximum: 9
+        color:
+          $ref: "#/components/schemas/CardColor"
+
+    ReverseCard:
+      description: Reverses the turn order.
+      type: object
+      required: [type, id, color]
+      properties:
+        type:
+          type: string
+          enum: [Reverse]
+        id:
+          type: string
+          format: uuid
+        color:
+          $ref: "#/components/schemas/CardColor"
+
+    PassCard:
+      description: Skips the next player's turn.
+      type: object
+      required: [type, id, color]
+      properties:
+        type:
+          type: string
+          enum: [Pass]
+        id:
+          type: string
+          format: uuid
+        color:
+          $ref: "#/components/schemas/CardColor"
+
+    Plus2Card:
+      description: Forces the next player to draw 2 cards and skips their turn.
+      type: object
+      required: [type, id, color]
+      properties:
+        type:
+          type: string
+          enum: [Plus2]
+        id:
+          type: string
+          format: uuid
+        color:
+          $ref: "#/components/schemas/CardColor"
+
+    Plus4Card:
+      description: >
+        Forces the next player to draw 4 cards and skips their turn. The new
+        color is chosen separately, via the `chosenColor` field of
+        PlayCardCommand, and is not part of the card itself.
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [Plus4]
+        id:
+          type: string
+          format: uuid
+
+    ChangeColorCard:
+      description: >
+        Changes the current color. The new color is chosen separately, via
+        the `chosenColor` field of PlayCardCommand, and is not part of the
+        card itself.
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [ChangeColor]
+        id:
+          type: string
+          format: uuid
+
+    GameCommand:
+      description: >
+        A command sent by the client over the game WebSocket to act on a game.
+        Discriminated by "type", whose value is the fully-qualified Kotlin
+        class name of the command (no `@SerialName` is declared on these
+        types).
+      oneOf:
+        - $ref: "#/components/schemas/JoinTheGameCommand"
+        - $ref: "#/components/schemas/PlayCardCommand"
+        - $ref: "#/components/schemas/ReadyToPlayCommand"
+        - $ref: "#/components/schemas/TakeCartFromDrawPileCommand"
+      discriminator:
+        propertyName: type
+        mapping:
+          eventDemo.contexts.game.application.command.models.JoinTheGameCommand: "#/components/schemas/JoinTheGameCommand"
+          eventDemo.contexts.game.application.command.models.PlayCardCommand: "#/components/schemas/PlayCardCommand"
+          eventDemo.contexts.game.application.command.models.ReadyToPlayCommand: "#/components/schemas/ReadyToPlayCommand"
+          eventDemo.contexts.game.application.command.models.TakeCartFromDrawPileCommand: "#/components/schemas/TakeCartFromDrawPileCommand"
+
+    JoinTheGameCommand:
+      description: Join an existing (not yet started) game.
+      type: object
+      required: [type, userId, payload]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.command.models.JoinTheGameCommand]
+        userId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          required: [aggregateId]
+          properties:
+            aggregateId:
+              type: string
+              format: uuid
+              description: The id of the game to join.
+
+    ReadyToPlayCommand:
+      description: Mark the calling player as ready, so the game can start once everyone is ready.
+      type: object
+      required: [type, userId, payload]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.command.models.ReadyToPlayCommand]
+        userId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          required: [aggregateId, playerId]
+          properties:
+            aggregateId:
+              type: string
+              format: uuid
+            playerId:
+              $ref: "#/components/schemas/PlayerId"
+
+    TakeCartFromDrawPileCommand:
+      description: Draw a card from the draw pile.
+      type: object
+      required: [type, userId, payload]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.command.models.TakeCartFromDrawPileCommand]
+        userId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          required: [aggregateId, playerId]
+          properties:
+            aggregateId:
+              type: string
+              format: uuid
+            playerId:
+              $ref: "#/components/schemas/PlayerId"
+
+    PlayCardCommand:
+      description: Play a card from the calling player's hand.
+      type: object
+      required: [type, userId, payload]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.command.models.PlayCardCommand]
+        userId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          required: [aggregateId, playerId, card]
+          properties:
+            aggregateId:
+              type: string
+              format: uuid
+            playerId:
+              $ref: "#/components/schemas/PlayerId"
+            card:
+              $ref: "#/components/schemas/Card"
+            chosenColor:
+              description: The color to switch to, only required when playing a Plus4Card or ChangeColorCard.
+              nullable: true
+              allOf:
+                - $ref: "#/components/schemas/CardColor"
+
+    Notification:
+      description: >
+        A notification sent by the server, either replayed by `GET /games/{id}`
+        or streamed live over the game WebSocket. Discriminated by "type",
+        whose value is the fully-qualified Kotlin class name of the
+        notification (no `@SerialName` is declared on these types).
+      oneOf:
+        - $ref: "#/components/schemas/WelcomeToTheGameNotification"
+        - $ref: "#/components/schemas/PlayerAsJoinTheGameNotification"
+        - $ref: "#/components/schemas/PlayerWasReadyNotification"
+        - $ref: "#/components/schemas/TheGameWasStartedNotification"
+        - $ref: "#/components/schemas/ItsTheTurnOfNotification"
+        - $ref: "#/components/schemas/PlayerAsPlayACardNotification"
+        - $ref: "#/components/schemas/YourNewCardNotification"
+        - $ref: "#/components/schemas/PlayerHavePassNotification"
+        - $ref: "#/components/schemas/PilesShuffledNotification"
+        - $ref: "#/components/schemas/PlayerWinNotification"
+      discriminator:
+        propertyName: type
+        mapping:
+          eventDemo.contexts.game.application.notification.models.WelcomeToTheGameNotification: "#/components/schemas/WelcomeToTheGameNotification"
+          eventDemo.contexts.game.application.notification.models.PlayerAsJoinTheGameNotification: "#/components/schemas/PlayerAsJoinTheGameNotification"
+          eventDemo.contexts.game.application.notification.models.PlayerWasReadyNotification: "#/components/schemas/PlayerWasReadyNotification"
+          eventDemo.contexts.game.application.notification.models.TheGameWasStartedNotification: "#/components/schemas/TheGameWasStartedNotification"
+          eventDemo.contexts.game.application.notification.models.ItsTheTurnOfNotification: "#/components/schemas/ItsTheTurnOfNotification"
+          eventDemo.contexts.game.application.notification.models.PlayerAsPlayACardNotification: "#/components/schemas/PlayerAsPlayACardNotification"
+          eventDemo.contexts.game.application.notification.models.YourNewCardNotification: "#/components/schemas/YourNewCardNotification"
+          eventDemo.contexts.game.application.notification.models.PlayerHavePassNotification: "#/components/schemas/PlayerHavePassNotification"
+          eventDemo.contexts.game.application.notification.models.PilesShuffledNotification: "#/components/schemas/PilesShuffledNotification"
+          eventDemo.contexts.game.application.notification.models.PlayerWinNotification: "#/components/schemas/PlayerWinNotification"
+
+    WelcomeToTheGameNotification:
+      description: Sent to a player right after they join a game, listing all players currently in it.
+      type: object
+      required: [type, id, players]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.WelcomeToTheGameNotification]
+        id:
+          type: string
+          format: uuid
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/Player"
+
+    PlayerAsJoinTheGameNotification:
+      description: Sent to the other players when a new player joins the game.
+      type: object
+      required: [type, id, player]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PlayerAsJoinTheGameNotification]
+        id:
+          type: string
+          format: uuid
+        player:
+          $ref: "#/components/schemas/Player"
+
+    PlayerWasReadyNotification:
+      description: Sent to all players when a player marks themselves as ready.
+      type: object
+      required: [type, id, playerId]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PlayerWasReadyNotification]
+        id:
+          type: string
+          format: uuid
+        playerId:
+          $ref: "#/components/schemas/PlayerId"
+
+    TheGameWasStartedNotification:
+      description: Sent to each player when the game starts, with their initial hand.
+      type: object
+      required: [type, id, hand]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.TheGameWasStartedNotification]
+        id:
+          type: string
+          format: uuid
+        hand:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+
+    ItsTheTurnOfNotification:
+      description: Sent to all players to indicate whose turn it now is.
+      type: object
+      required: [type, id, player]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.ItsTheTurnOfNotification]
+        id:
+          type: string
+          format: uuid
+        player:
+          $ref: "#/components/schemas/Player"
+
+    PlayerAsPlayACardNotification:
+      description: Sent to all players when a player plays a card.
+      type: object
+      required: [type, id, playerId, card]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PlayerAsPlayACardNotification]
+        id:
+          type: string
+          format: uuid
+        playerId:
+          $ref: "#/components/schemas/PlayerId"
+        card:
+          $ref: "#/components/schemas/Card"
+
+    YourNewCardNotification:
+      description: Sent to a player with the cards they just drew from the draw pile.
+      type: object
+      required: [type, id, cards]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.YourNewCardNotification]
+        id:
+          type: string
+          format: uuid
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+
+    PlayerHavePassNotification:
+      description: Sent to the other players when a player draws a card and passes their turn.
+      type: object
+      required: [type, id, playerId]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PlayerHavePassNotification]
+        id:
+          type: string
+          format: uuid
+        playerId:
+          $ref: "#/components/schemas/PlayerId"
+
+    PilesShuffledNotification:
+      description: Sent to all players when the discard pile is reshuffled into the draw pile.
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PilesShuffledNotification]
+        id:
+          type: string
+          format: uuid
+
+    PlayerWinNotification:
+      description: Sent to all players when a player wins the game.
+      type: object
+      required: [type, id, playerId]
+      properties:
+        type:
+          type: string
+          enum: [eventDemo.contexts.game.application.notification.models.PlayerWinNotification]
+        id:
+          type: string
+          format: uuid
+        playerId:
+          $ref: "#/components/schemas/PlayerId"
