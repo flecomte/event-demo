@@ -87,6 +87,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Install a pinned Docker Compose version
+        run: |
+          mkdir -p ~/.docker/cli-plugins
+          curl -fSL https://github.com/docker/compose/releases/download/v5.1.4/docker-compose-linux-x86_64 \
+            -o ~/.docker/cli-plugins/docker-compose
+          chmod +x ~/.docker/cli-plugins/docker-compose
+          docker compose version
+
       - name: Prepare docker secrets
         run: |
           [ -f docker/postgresql.secret ] || echo -n "changeit" > docker/postgresql.secret
