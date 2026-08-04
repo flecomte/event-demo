@@ -22,7 +22,6 @@ services:
     image: postgres:18.4
     command: postgres -c 'max_connections=500'
     environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
       POSTGRES_USER: event-demo
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U event-demo'"]
@@ -31,7 +30,6 @@ services:
       retries: 10
     volumes:
       - postgresql_data:/var/lib/postgresql
-      - ../postgresql.secret:/run/secrets/postgresql_password:ro
 
   rabbitmq:
     image: rabbitmq:4-management-alpine

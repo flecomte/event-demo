@@ -1,8 +1,8 @@
 # Image officielle Gradle avec JDK 21 déjà installé
 FROM gradle:9.6.1-jdk21
- 
+
 WORKDIR /app
- 
+
 # Copie du wrapper et des fichiers de config en premier pour profiter du cache Docker
 COPY build.gradle.kts settings.gradle.kts ./
 

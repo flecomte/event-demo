@@ -109,7 +109,7 @@ jobs:
           chmod -R 777 "$GRADLE_CACHE_DIR"
 
       - name: Run tests in Docker
-        run: docker compose -f docker/docker-compose-test.yaml run --rm tests
+        run: docker compose -f docker/docker-compose-test.yaml run tests
 
       - name: Shut down Docker services
         if: always()

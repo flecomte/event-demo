@@ -1,4 +1,4 @@
-name: event-demo-test
+name: event-demo-dev
 include:
   - path:
       - parts/docker-compose-databases.yaml
@@ -6,3 +6,12 @@ include:
       - parts/docker-compose-tools.yaml
       - parts/docker-compose-tools-local.yaml
       - parts/docker-compose-traefik.yaml
+
+services:
+  postgresql:
+    environment:
+      POSTGRES_PASSWORD: "changeit"
+
+  pgadmin:
+    environment:
+      PGADMIN_DEFAULT_PASSWORD: "changeit"

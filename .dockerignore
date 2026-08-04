@@ -1,0 +1,26 @@
+# Version control
+.git
+.github
+
+# Gradle build outputs / caches (must always be rebuilt fresh inside the image)
+.gradle
+build/
+.kotlin
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea
+.vscode
+.run
+*.iml
+*.iws
+*.ipr
+
+# Docker-only local files (secrets/env must never be baked into the image)
+docker/.env
+docker/*.env.docker
+docker/*.secret
+
+# Misc
+*.hprof
+.gradle-docker-cache/

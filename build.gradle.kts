@@ -58,40 +58,6 @@ tasks.withType<Test>().configureEach {
     jvmArgs("-javaagent:$agentJar")
   }
 }
-tasks.test {
-  dependsOn("copyEnv")
-}
-
-tasks.register<Copy>("copyEnv") {
-  group = "docker"
-  description = "copy the default dotenv file"
-  from("docker")
-  into("docker")
-  rename {
-    it.removeSuffix(".template")
-  }
-  include(".env.template")
-  eachFile {
-    if (File("docker/$name").exists()) {
-      exclude()
-    }
-  }
-  val files =
-    buildList {
-      add(File("docker/postgresql.secret"))
-      if (!project.hasProperty("ci")) {
-        add(File("docker/pgadmin.secret"))
-      }
-    }
-  outputs.files(*files.toTypedArray())
-  doLast {
-    files.forEach {
-      if (!it.exists()) {
-        it.writeText("changeit")
-      }
-    }
-  }
-}
 
 dependencies {
   implementation("io.ktor:ktor-server-core-jvm")

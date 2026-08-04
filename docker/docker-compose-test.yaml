@@ -4,3 +4,8 @@ include:
     - parts/docker-compose-databases.yaml
     - parts/docker-compose-test.yaml
     - parts/docker-compose-traefik.yaml
+
+services:
+  postgresql:
+    environment:
+      POSTGRES_PASSWORD: "changeit"

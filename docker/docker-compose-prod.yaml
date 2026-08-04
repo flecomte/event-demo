@@ -5,3 +5,16 @@ include:
     - parts/docker-compose-app.yaml
     - parts/docker-compose-tools.yaml
     - parts/docker-compose-traefik.yaml
+
+services:
+  postgresql:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
+    volumes:
+      - ./postgresql.secret:/run/secrets/postgresql_password:ro
+
+  pgadmin:
+    environment:
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+    volumes:
+      - ./pgadmin.secret:/run/secrets/pgadmin_password:ro

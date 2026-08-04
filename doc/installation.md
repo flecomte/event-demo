@@ -1,10 +1,22 @@
 Installation
 ============
 
-To run the stack:
+To run the stack in production:
 
 ```shell
 docker compose -f docker\docker-compose-prod.yaml -p event-demo up -d
+```
+
+To run only the app dependencies in development mode and run the app localy (not in docker):
+
+```shell
+docker compose -f docker\docker-compose-dev.yaml up -d
+```
+
+To run the tests in docker (it's designed for the CI):
+
+```shell
+docker compose -f docker\docker-compose-test.yaml up -d
 ```
 
 Api url:

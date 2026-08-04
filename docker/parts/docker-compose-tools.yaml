@@ -2,10 +2,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
-      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
-    secrets:
-      - pgadmin_password
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@event-demo.dev}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     configs:
@@ -44,10 +41,6 @@ configs:
           }
         }
       }
-
-secrets:
-  pgadmin_password:
-    file: ../pgadmin.secret
 
 volumes:
   pgadmin_data:
