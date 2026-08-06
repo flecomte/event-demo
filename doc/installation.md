@@ -21,7 +21,7 @@ docker compose -f docker\docker-compose-test.yaml up -d
 
 Api url:
 - [Backend API](http://api.traefik.me/)
-- [Frontend web site](http://app.traefik.me/) (WIP)
+- [Frontend web site](http://app.traefik.me/)
 
 Exposed url on dev env:
 - [PostgreSql](http://localhost:5432/)
