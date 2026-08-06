@@ -23,7 +23,7 @@ Api url:
 - [Backend API](http://api.traefik.me/)
 - [Frontend web site](http://app.traefik.me/) (WIP)
 
-Exposed url on test env:
+Exposed url on dev env:
 - [PostgreSql](http://localhost:5432/)
 - [Redis](http://localhost:6379/)
 - [RabbitMQ](http://localhost:15672/)
