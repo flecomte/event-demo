@@ -7,7 +7,5 @@ object Tag {
 
   object RabbitMQ : Tag()
 
-  object Redis : Tag()
-
   object Concurrence : Tag()
 }

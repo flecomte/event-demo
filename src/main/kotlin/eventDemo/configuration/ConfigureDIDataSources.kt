@@ -7,8 +7,6 @@ import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 import org.koin.core.scope.ScopeCallback
 import org.koin.dsl.bind
-import redis.clients.jedis.JedisPooled
-import redis.clients.jedis.UnifiedJedis
 import javax.sql.DataSource
 
 fun Module.configureDIDataSource(config: Configuration) {
@@ -25,11 +23,6 @@ fun Module.configureDIDataSource(config: Configuration) {
         )
       }
   } bind DataSource::class
-
-  // Redis (for Projections)
-  single {
-    JedisPooled(config.redisUrl)
-  } bind UnifiedJedis::class
 
   // RabbitMQ (for EventBus)
   factory {

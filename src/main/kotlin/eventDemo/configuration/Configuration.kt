@@ -3,7 +3,6 @@ package eventDemo.configuration
 import io.ktor.server.config.ApplicationConfig
 
 data class Configuration(
-  val redisUrl: String,
   val jwtSecret: String,
   val postgresql: Postgresql,
   val rabbitmq: RabbitMQ,
@@ -25,7 +24,6 @@ data class Configuration(
 val ApplicationConfig.configuration
   get() =
     Configuration(
-      redisUrl = getProperty("redis.url"),
       jwtSecret = getProperty("jwt.secret"),
       postgresql =
         Configuration.Postgresql(

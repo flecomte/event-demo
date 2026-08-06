@@ -1,7 +1,6 @@
 package eventDemo.testHelpers
 
 import org.koin.core.Koin
-import redis.clients.jedis.UnifiedJedis
 import javax.sql.DataSource
 
 fun DataSource.cleanEventSource() {
@@ -17,11 +16,6 @@ fun DataSource.cleanEventSource() {
   }
 }
 
-fun UnifiedJedis.cleanProjections() {
-  flushAll()
-}
-
 fun Koin.cleanDataTest() {
   get<DataSource>().cleanEventSource()
-  get<UnifiedJedis>().cleanProjections()
 }

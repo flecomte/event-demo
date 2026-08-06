@@ -81,7 +81,6 @@ dependencies {
   implementation("io.github.oshai:kotlin-logging-jvm:${kotlinLoggingVersion.get()}")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${kotlinSerializationVersion.get()}")
   implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
-  implementation("redis.clients:jedis:5.2.0")
   implementation("org.postgresql:postgresql:42.7.13")
   implementation("com.zaxxer:HikariCP:6.3.0")
   implementation("com.rabbitmq:amqp-client:5.25.0")

@@ -30,7 +30,6 @@ Framework
 Database
 - Postgresql
   - with Flyway
-- Redis
 - RabbitMQ
 
 Infra
