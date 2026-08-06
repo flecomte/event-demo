@@ -70,13 +70,17 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run lint
-        run: ./gradlew ktlintCheck
+        # Path scoped to :backend on purpose: :composeApp applies the Android Gradle plugin,
+        # which needs an Android SDK to even configure. Keeping every gradlew invocation on a
+        # fully-qualified project path (with org.gradle.configureondemand=true) lets CI skip
+        # configuring :composeApp entirely, so no Android SDK setup is needed on this runner.
+        run: ./gradlew :backend:ktlintCheck
 
       - name: Publish ktlint report
         uses: yutailang0119/action-ktlint@v5
         if: always()
         with:
-          report-path: build/reports/ktlint/**/*.xml
+          report-path: backend/build/reports/ktlint/**/*.xml
         continue-on-error: false
 
   test:
@@ -128,12 +132,12 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: build/reports/tests/test
+          path: backend/build/reports/tests/test
 
       - name: Publish Test Report
         uses: dorny/test-reporter@v3
         if: always()
         with:
           name: JUnit Tests
-          path: build/test-results/test/TEST-*.xml
+          path: backend/build/test-results/test/TEST-*.xml
           reporter: java-junit

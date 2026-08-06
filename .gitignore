@@ -1,8 +1,14 @@
 .gradle
+.kotlin/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+### Android / KMP ###
+local.properties
+captures/
+.cxx/
 
 ### STS ###
 .apt_generated

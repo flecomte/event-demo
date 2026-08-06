@@ -4,7 +4,11 @@ FROM gradle:9.6.1-jdk21
 WORKDIR /app
 
 # Copie du wrapper et des fichiers de config en premier pour profiter du cache Docker
-COPY build.gradle.kts settings.gradle.kts ./
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 
-# Lance les tests Kotlin
-CMD ["gradle", "test", "--no-daemon"]
+# Lance les tests Kotlin.
+# Scope volontairement limite a :backend et :shared : :composeApp applique le plugin Android
+# (com.android.application), qui echoue a la configuration sans SDK Android installe dans
+# cette image de test. Ne pas passer a un `gradle test` non scope sans ajouter le SDK Android
+# a l'image, ou sans configuration-on-demand garantissant que :composeApp n'est pas evalue.
+CMD ["gradle", ":backend:test", ":shared:test", "--no-daemon"]
