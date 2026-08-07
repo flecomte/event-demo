@@ -1,0 +1,105 @@
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
+
+val ktorVersion: Provider<String> = providers.gradleProperty("ktor_version")
+val kotlinVersion: Provider<String> = providers.gradleProperty("kotlin_version")
+val kotlinSerializationVersion: Provider<String> = providers.gradleProperty("kotlin_serialization_version")
+val logbackVersion: Provider<String> = providers.gradleProperty("logback_version")
+val koinVersion: Provider<String> = providers.gradleProperty("koin_version")
+val kotlinLoggingVersion: Provider<String> = providers.gradleProperty("kotlin_logging_version")
+val kotestVersion: Provider<String> = providers.gradleProperty("kotest_version")
+
+plugins {
+  application
+  kotlin("jvm")
+  id("io.ktor.plugin") version "3.5.1"
+  id("org.jetbrains.kotlin.plugin.serialization")
+  id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+}
+
+group = "io.github.flecomte"
+
+application {
+  mainClass.set("eventDemo.ApplicationKt")
+
+  val isDevelopment: Boolean = project.ext.has("development")
+  applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+configure<KtlintExtension> {
+  version.set("1.8.0")
+}
+ktlint {
+  reporters {
+    reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+kotlin {
+  compilerOptions {
+    freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+  }
+}
+
+tasks.withType<Test>().configureEach {
+  useJUnitPlatform()
+  jvmArgs("-Djdk.attach.allowAttachSelf=true", "-XX:+EnableDynamicAgentLoading")
+  // Dynamic self-attach (used by MockK/ByteBuddy) times out in Docker containers because the
+  // SIGQUIT-triggered AttachListener handshake never completes there. Loading the byte-buddy
+  // agent jar statically via -javaagent avoids the attach handshake entirely: MockK detects the
+  // pre-installed Instrumentation instance and skips dynamic attach.
+  doFirst {
+    val agentJar =
+      classpath.files.firstOrNull { it.name.startsWith("byte-buddy-agent") }
+        ?: error("byte-buddy-agent jar not found on test classpath")
+    jvmArgs("-javaagent:$agentJar")
+  }
+}
+
+dependencies {
+  implementation(project(":shared"))
+  implementation("io.ktor:ktor-server-core-jvm")
+  implementation("io.ktor:ktor-server-auth-jvm")
+  implementation("io.ktor:ktor-server-auth-jwt-jvm")
+  implementation("io.ktor:ktor-server-auto-head-response-jvm")
+  implementation("io.ktor:ktor-server-resources")
+  implementation("io.ktor:ktor-server-content-negotiation-jvm")
+  implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
+  implementation("io.ktor:ktor-server-websockets-jvm")
+  implementation("io.ktor:ktor-server-cors-jvm")
+  implementation("io.ktor:ktor-server-host-common-jvm")
+  implementation("io.ktor:ktor-server-status-pages-jvm")
+  implementation("io.ktor:ktor-server-netty-jvm")
+  implementation("io.ktor:ktor-server-data-conversion")
+  implementation("io.ktor:ktor-client-content-negotiation")
+  implementation("io.ktor:ktor-client-auth")
+  implementation("ch.qos.logback:logback-classic:${logbackVersion.get()}")
+  implementation("io.insert-koin:koin-ktor:${koinVersion.get()}")
+  implementation("io.insert-koin:koin-logger-slf4j:${koinVersion.get()}")
+  implementation("io.github.oshai:kotlin-logging-jvm:${kotlinLoggingVersion.get()}")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${kotlinSerializationVersion.get()}")
+  implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+  implementation("org.postgresql:postgresql:42.7.13")
+  implementation("com.zaxxer:HikariCP:6.3.0")
+  implementation("com.rabbitmq:amqp-client:5.25.0")
+  implementation("com.password4j:password4j:1.8.4")
+
+  // Force version of sub library (for security)
+  implementation("commons-codec:commons-codec:1.13")
+
+  testImplementation("io.kotest:kotest-extensions-koin:${kotestVersion.get()}")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion.get()}")
+  testImplementation("io.ktor:ktor-server-test-host-jvm:${ktorVersion.get()}")
+  testImplementation("io.kotest:kotest-runner-junit5:${kotestVersion.get()}")
+  testImplementation("io.mockk:mockk:1.14.11")
+  testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+}

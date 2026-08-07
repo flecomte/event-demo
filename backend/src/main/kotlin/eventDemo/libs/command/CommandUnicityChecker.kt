@@ -1,0 +1,53 @@
+package eventDemo.libs.command
+
+import eventDemo.shared.command.Command
+import eventDemo.shared.ids.CommandId
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+
+/**
+ * Controls the execution of a command to prevent it from being executed more than once.
+ */
+class CommandUnicityChecker<C : Command>(
+  private val maxCacheTime: Duration = 10.minutes,
+) {
+  private val executedCommand: ConcurrentHashMap<CommandId, Pair<Boolean, Instant>> = ConcurrentHashMap()
+
+  fun runOnlyOnce(
+    command: C,
+    action: (C) -> Unit,
+  ) {
+    if (!isAlreadyExecuted(command)) {
+      action(command)
+      setAsExecuted(command)
+      removeOldCache()
+    } else {
+      throw UnicityException("Command already executed", command)
+    }
+  }
+
+  private fun setAsExecuted(command: C) {
+    executedCommand.computeIfAbsent(command.id) { Pair(true, Clock.System.now()) }
+  }
+
+  private fun removeOldCache() {
+    executedCommand
+      .filterValues { (_, date) ->
+        (date + maxCacheTime) < Clock.System.now()
+      }.keys
+      .forEach {
+        executedCommand.remove(it)
+      }
+  }
+
+  private fun isAlreadyExecuted(command: C): Boolean =
+    executedCommand[command.id]?.first ?: false
+
+  class UnicityException(
+    override val message: String,
+    val command: Command,
+  ) : Exception(message)
+}
